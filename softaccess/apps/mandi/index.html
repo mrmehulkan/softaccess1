@@ -2,6 +2,18 @@
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
+  <script>
+      // Security Guard: Check if user is logged in
+      (function() {
+          const userId = localStorage.getItem("user_id"); // user.js dwara save kiya gaya ID
+
+          if (!userId) {
+              // Agar login nahi hai, toh alert dikhao aur bahar phenk do
+              alert("⚠️ Unauthorized Access!\nPlease login via SoftAccess Portal.");
+              window.location.href = "../../index.html"; // Root Login page ka rasta
+          }
+      })();
+  </script>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mandi System — Seller Fixed</title>
    <!-- ✅ PWA ADD -->
@@ -322,6 +334,16 @@
       <div class="menu-btn" onclick="refreshAllData()" data-tooltip="Sync Data">
         <div class="ico">🔄</div><div>Sync Data</div>
       </div>
+      
+      <a href="../../dashboard.html" style="text-decoration:none; color:inherit;">
+          <div class="menu-btn" data-tooltip="Back to Apps">
+            <div class="ico">⬅️</div><div>Back to Apps</div>
+          </div>
+      </a>
+
+      <div class="menu-btn" onclick="logoutUser()" data-tooltip="Logout" style="color: #fda4af;">
+        <div class="ico">🚪</div><div>Logout</div>
+      </div>      
     </nav>
     <div class="sidebar-footer">v2.5 — Seller Fix</div>
   </aside>
@@ -754,14 +776,13 @@
   </div>
 </template>
 
-
+<script src="../../user.js"></script>
 <script>
 
 // ###############################################################
 //          PART 1: CONFIGURATION & GLOBAL VARIABLES
 // ###############################################################
-
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw1x6QXL8rOmrGPzZ-4gyuwJKUJGUYnUaDLC5Dg2yr0vkW2isEa6Kj5m7rmWQDpoefF2Q/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzzLOJrp1aWQjZ5tW7qFh-POjJ06Ph7UZeZM4q3Khq5c-F6_2VpdaDiSoV8oX_UDocTtg/exec";
 
 // Local State
 let products = []; 

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Calculator | SoftAccess</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .calc-container { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .row { display: flex; align-items: center; margin-bottom: 12px; gap: 15px; }
+        .denom { width: 60px; font-weight: bold; color: var(--primary); font-size: 18px; }
+        input { width: 100px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-size: 16px; }
+        .res-row { flex-grow: 1; text-align: right; font-weight: 600; color: #64748b; }
+        .total-box { background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .total-label { font-size: 14px; opacity: 0.8; }
+        .total-amount { font-size: 32px; font-weight: 800; margin: 5px 0; }
+        .btn-reset { width: 100%; margin-top: 15px; padding: 10px; background: transparent; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="calc-container">
+    <div class="header">
+        <h2 style="margin:0;">Cash Counter</h2>
+        <small style="color:#64748b;">Indian Currency Denominations</small>
+    </div>
+
+    <div id="inputs">
+        </div>
+
+    <div class="total-box">
+        <div class="total-label">Grand Total Amount</div>
+        <div class="total-amount">₹ <span id="grandTotal">0</span></div>
+        <div id="amountInWords" style="font-size: 12px; font-style: italic; opacity: 0.9;">Zero Rupees Only</div>
+    </div>
+
+    <button class="btn-reset" onclick="resetCalc()">Clear All</button>
+    <p style="text-align:center; font-size:12px; margin-top:20px; color:#94a3b8;">&copy; 2025 SoftAccess Portal</p>
+</div>
+
+<script>
+    const denoms = [2000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+    const container = document.getElementById('inputs');
+
+    // Create rows dynamically
+    denoms.forEach(d => {
+        container.innerHTML += `
+            <div class="row">
+                <div class="denom">× ${d}</div>
+                <input type="number" class="qty-input" data-val="${d}" placeholder="0" min="0" oninput="calculate()">
+                <div class="res-row">₹ <span class="subtotal" id="sub-${d}">0</span></div>
+            </div>
+        `;
+    });
+
+    function calculate() {
+        let grandTotal = 0;
+        const inputs = document.querySelectorAll('.qty-input');
+        
+        inputs.forEach(input => {
+            const val = parseInt(input.getAttribute('data-val'));
+            const qty = parseInt(input.value) || 0;
+            const sub = val * qty;
+            grandTotal += sub;
+            document.getElementById(`sub-${val}`).innerText = sub.toLocaleString('en-IN');
+        });
+
+        document.getElementById('grandTotal').innerText = grandTotal.toLocaleString('en-IN');
+    }
+
+    function resetCalc() {
+        document.querySelectorAll('.qty-input').forEach(i => i.value = '');
+        calculate();
+    }
+</script>
+
+</body>
+</html>
+

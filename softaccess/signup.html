@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="icon" href="assets/logo/favicon.png">
+  <meta charset="UTF-8">
+  <title>SoftAccess | Signup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{ font-family:system-ui; background:#f1f5f9; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+    .box{ background:#fff; padding:25px; border-radius:15px; width:100%; max-width:380px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.1); }
+    input{ width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }
+    button{ width:100%; padding:12px; background:#0f172a; color:#fff; border:none; border-radius:8px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <img src="assets/logo/logo.png" height="50">
+    <h2>Create Account</h2>
+    <input id="name" placeholder="Full Name">
+    <input id="email" placeholder="Email (Optional)">
+    <input id="mobile" placeholder="Mobile Number (Optional)">
+    <input id="password" type="password" placeholder="Password">
+    <input id="confirm_password" type="password" placeholder="Confirm Password">
+    <button onclick="signup()">Register Now</button>
+    <p style="font-size:13px; margin-top:15px;"><a href="index.html">Pehle se account hai? Login</a></p>
+  </div>
+  <script src="user.js"></script>
+</body>
+</html>

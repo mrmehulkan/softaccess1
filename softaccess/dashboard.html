@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="icon" href="assets/logo/favicon.png">
+  <meta charset="UTF-8">
+  <title>Dashboard | SoftAccess</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{ font-family:system-ui; margin:0; background:#f8fafc; }
+    header{ display:flex; justify-content:space-between; align-items:center; padding:15px 25px; background:#fff; border-bottom:1px solid #e2e8f0; }
+    .container{ padding:20px; max-width:1000px; margin:auto; }
+    .card-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; }
+    .card{ background:#fff; padding:20px; border-radius:12px; border:1px solid #e2e8f0; text-align:center; }
+    .badge{ padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold; }
+    .active{ background:#dcfce7; color:#166534; }
+    .expired{ background:#fee2e2; color:#991b1b; }
+    button{ background:#0f172a; color:#fff; padding:8px 18px; border:none; border-radius:6px; cursor:pointer; }
+  </style>
+</head>
+<body>
+<header>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="assets/logo/logo.png" height="35">
+    <span style="font-weight:bold;">SoftAccess</span>
+  </div>
+  <button onclick="logoutUser()">Logout</button>
+</header>
+
+<div class="container">
+  <h2 id="welcome">Welcome</h2>
+  <div id="list" class="card-grid">Loading softwares...</div>
+</div>
+
+<script src="user.js"></script>
+<script>
+  document.getElementById("welcome").innerText = "Namaste, " + localStorage.getItem("user_name");
+  loadMySoftwares();
+</script>
+</body>
+</html>

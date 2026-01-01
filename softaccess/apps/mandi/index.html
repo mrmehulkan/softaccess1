@@ -1,0 +1,2287 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mandi System — Seller Fixed</title>
+   <!-- ✅ PWA ADD -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mandi">
+  
+  <style>
+    .p4-party-btn{
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #cbd5e1;
+      background:#ffffff;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .p4-party-btn:active{ transform:scale(0.96); }
+
+    /* ---------- Fonts & Base Settings ---------- */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700&display=swap');
+    :root{
+      --sidebar-width:220px;
+      --sidebar-collapsed-width:78px;
+      --accent:#0f766e;
+      --muted:#6b7280;
+      --overlay: rgba(0,0,0,0.36);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Noto Sans Gujarati', system-ui, -apple-system, "Segoe UI", Roboto, Arial;}
+    html,body{height:100%;}
+    body{background:#f3f4f6;color:#073230;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow:auto;}
+
+    /* ---------- Layout (Sidebar + Main) ---------- */
+    .layout{display:flex;height:100vh;width:100%;overflow:hidden;transition:all .18s ease;}
+    .sidebar{
+      width:var(--sidebar-width);
+      min-width:110px;
+      background:var(--accent);
+      color:#eafff9;
+      padding:18px 8px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      transition:width .18s ease,padding .18s ease, transform .18s ease;
+      z-index:1200;
+    }
+    .sidebar .brand{font-weight:800;font-size:0.95rem;text-align:center;}
+    .sidebar .sidebar-note{font-size:0.78rem;opacity:0.9;text-align:center;}
+    
+    /* Menu Buttons Style */
+    .menu{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+    .menu-btn{
+      display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;cursor:pointer;user-select:none;
+      transition:background .12s, transform .08s;font-size:0.9rem;border:1px solid rgba(255,255,255,0.06);
+    }
+    .menu-btn .ico{width:30px;font-size:1.1rem;text-align:center;}
+    .menu-btn:hover{background:rgba(0,0,0,0.14);transform:translateX(2px);}
+    .menu-btn.active{background:rgba(0,0,0,0.22);}
+    .sidebar-footer{margin-top:auto;font-size:0.72rem;opacity:0.9;text-align:center;padding-top:4px;}
+
+    /* ---------- Collapsed Sidebar (Small Menu) ---------- */
+    .layout.sidebar-collapsed .sidebar{
+      width:var(--sidebar-collapsed-width);
+      min-width:var(--sidebar-collapsed-width);
+      padding-left:8px;padding-right:8px;
+    }
+    .layout.sidebar-collapsed .menu-btn{padding:10px 6px;font-size:0.78rem;}
+    .layout.sidebar-collapsed .menu-btn div:not(.ico){display:none;}
+    .menu-btn[data-tooltip]:hover::after{
+      content:attr(data-tooltip);
+      position:fixed;
+      left: calc(var(--sidebar-collapsed-width) + 12px);
+      top: auto;
+      transform:translateY(-50%);
+      background:#063a35;color:#fff;padding:6px 8px;border-radius:6px;font-size:0.82rem;white-space:nowrap;
+      box-shadow:0 6px 18px rgba(0,0,0,0.18);
+    }
+
+    /* ---------- Main Content Area ---------- */
+    .main{flex:1;padding:16px 14px;overflow:auto;background:linear-gradient(180deg,#fbf9f6,#f9f7f3);transition:margin .18s ease;height:100vh;}
+    .page-title{font-size:1.25rem;font-weight:800;color:#063a35;margin-bottom:6px;}
+    .page-sub{color:var(--muted);margin-bottom:12px;font-size:0.86rem;}
+    
+    /* Cards & Inputs */
+    .card{background:#fff;border-radius:12px;padding:12px;border:1px solid #e8eceb;box-shadow:0 6px 18px rgba(4,10,12,0.06);max-width:1100px;margin-bottom:12px;}
+    .label{font-weight:700;color:#07403a;margin-bottom:6px;}
+    input[type="text"],input[type="number"],input[type="date"],select{width:100%;padding:8px;border-radius:9px;border:1px solid #d6dbda;font-size:0.92rem;background:#fff;}
+    .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+    .col{flex:1;min-width:120px;}
+    .btn{background:var(--accent);color:#eafff9;border:none;padding:9px 12px;border-radius:10px;font-weight:800;cursor:pointer;}
+    .btn:disabled{background:#ccc;cursor:not-allowed;}
+    .btn-outline{background:#fff;color:var(--accent);border:1px solid var(--accent);padding:8px 12px;border-radius:10px;cursor:pointer;}
+    
+    /* Tables */
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:8px;border-bottom:1px solid #eef2f1;text-align:left}
+    th{background:#fbfbfb}
+    .small{font-size:0.85rem;color:var(--muted)}
+    
+    /* Topbar & Product Buttons */
+    .topbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;padding:6px;background:#ffffffdd;border-radius:10px;border:1px solid #e5e7eb;backdrop-filter:blur(6px);overflow:auto;z-index:900}
+    .prod-btn{
+      border-radius:10px;border:1px solid #cbd5e1;background:#f3f4f6;padding:8px;min-width:140px;cursor:pointer;display:flex;flex-direction:column;gap:4px;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      flex-shrink:0;
+    }
+    .prod-btn .small{opacity:0.9;}
+    .prod-btn .availQty {
+      font-weight: 800;
+      color: #064e3b;
+      margin-top:4px;
+      font-size:0.92rem;
+    }
+    .prod-btn.active{
+      background: #ffffff;
+      border-color: rgba(6,78,59,0.95);
+      box-shadow: 0 8px 22px rgba(6,78,59,0.14);
+      transform: translateY(-6px);
+    }
+
+    /* ---------- Mobile Specific ---------- */
+    .menu-toggle{position:fixed;left:12px;bottom:12px;padding:8px 10px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-weight:700;display:block;z-index:1300;}
+    @media(min-width:901px){ .menu-toggle{display:none;} }
+
+    .mobile-overlay{
+      display:none;
+      position:fixed;left:0;top:0;right:0;bottom:0;background:var(--overlay);z-index:1100;
+      transition:opacity .16s ease; opacity:0;
+    }
+    .mobile-overlay.show{ display:block; opacity:1; }
+
+    @media(max-width:900px){
+      #leftSidebar {
+        transform: translateX(-240px);
+        position: fixed; top: 0; bottom: 0; left: 0; width: var(--sidebar-width);
+      }
+      .layout.mobile-open #leftSidebar { transform: translateX(0); }
+      body { overflow: auto !important; }
+      .main { overflow-y: auto !important; padding-bottom: 80px; }
+      .topbar { padding: 8px; gap: 10px; }
+      .prod-btn { min-width: 120px; padding: 6px; }
+    }
+    /* ============ NEW SELLER REGISTER CSS ============ */
+      .toggle-container {
+        display: flex; background: #e0e7e5; padding: 4px; border-radius: 99px; margin-bottom: 12px; user-select: none;
+      }
+      .toggle-btn {
+        flex: 1; text-align: center; padding: 8px; border-radius: 99px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; color: #4b5563;
+      }
+      .toggle-btn.active {
+        background: #fff; color: #0f766e; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      .seller-table { width: 100%; font-size: 0.85rem; border-collapse: collapse; }
+      .seller-table th { background: #f0fdfa; color: #0f766e; padding: 6px; text-align: left; }
+      .seller-table td { padding: 8px 6px; border-bottom: 1px solid #eee; }
+      .total-bar {
+        background: #0f766e; color: #fff; padding: 8px; border-radius: 8px; margin-top: 10px;
+        display: flex; justify-content: space-between; font-weight: bold;
+      }
+    /* Radio Button Group Styling */
+      .radio-group { display: flex; gap: 10px; margin-top: 4px; }
+      .radio-group label {
+        flex: 1; text-align: center; background: #fff; border: 1px solid #d1d5db; padding: 8px;
+        border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
+      }
+      .radio-group input[type="radio"] { display: none; }
+      .radio-group input[type="radio"]:checked + label {
+        background: #0f766e; color: #fff; border-color: #0f766e; font-weight: 600;
+      }	
+    /* ================= FINAL MICRO UX POLISH ================= */
+
+    /* Input focus clarity */
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #0f766e;
+      box-shadow: 0 0 0 3px rgba(15,118,110,0.18);
+      background: #ffffff;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+
+    /* Readonly amount field */
+    input[readonly] {
+      background: #f9fafb;
+      font-weight: 700;
+      color: #065f46;
+    }
+
+    /* Buttons micro interaction */
+    .btn,
+    .btn-outline {
+      transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+    }
+
+    .btn:hover {
+      box-shadow: 0 8px 18px rgba(6,78,59,0.22);
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-outline:hover {
+      background: rgba(15,118,110,0.08);
+    }
+
+    /* Party input visual hint */
+      input[list="partyMasterList"] {
+      background-image: linear-gradient(
+        90deg,
+        rgba(15,118,110,0.08),
+        rgba(15,118,110,0)
+      );
+    }
+
+    input[list="partyMasterList"]:focus {
+      background-image: none;
+    }
+
+    /* Product button premium feel */
+    .prod-btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prod-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at center,
+        rgba(255,255,255,0.6),
+        transparent 70%
+      );
+      opacity: 0;
+      transition: opacity .15s ease;
+    }
+
+    .prod-btn:hover::after {
+      opacity: 1;
+    }
+
+    .prod-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Table readability */
+    table tr:hover td {
+      background: #f0fdfa;
+    }
+
+    table td {
+      transition: background .12s ease;
+    }
+
+    /* Smooth page transition */
+    #pageContainer {
+      animation: fadeSlide .18s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile tap feel */
+    @media (max-width:900px){
+      .menu-btn:active,
+      .prod-btn:active,
+      .btn:active {
+        transform: scale(0.95);
+      }
+    }
+  
+  </style>
+</head>
+<body>
+<datalist id="partyMasterList"></datalist>
+
+<div class="layout" id="appLayout" aria-hidden="false">
+  
+  <aside class="sidebar" id="leftSidebar" role="navigation" aria-label="Main menu">
+    <div class="brand">मेनु / Menu</div>
+    <div class="sidebar-note small">Online Mode</div>
+
+    <nav class="menu" id="leftMenu">
+      <div class="menu-btn active" data-panel="home" data-tooltip="Dashboard" onclick="switchPanel(event)">
+        <div class="ico">🏠</div><div>Dashboard</div>
+      </div>
+      <div class="menu-btn" data-panel="cashCounter" data-tooltip="P1 Cash" onclick="switchPanel(event)">
+        <div class="ico">💵</div><div>P1 Cash</div>
+      </div>
+      <div class="menu-btn" data-panel="calcPage" data-tooltip="P2 Calc" onclick="switchPanel(event)">
+        <div class="ico">⚖️</div><div>P2 Calc</div>
+      </div>
+      <div class="menu-btn" data-panel="purchase" data-tooltip="P3 Purchase" onclick="switchPanel(event)">
+        <div class="ico">🛒</div><div>P3 Purchase</div>
+      </div>
+      <div class="menu-btn" data-panel="sale" data-tooltip="P4 Sale" onclick="switchPanel(event)">
+        <div class="ico">₹</div><div>P4 Sale</div>
+      </div>
+      <div class="menu-btn" data-panel="ledger" data-tooltip="P6 Ledger" onclick="switchPanel(event)">
+        <div class="ico">📒</div><div>P6 Ledger</div>
+      </div>
+      <div class="menu-btn" data-panel="products" data-tooltip="P7 Products" onclick="switchPanel(event)">
+        <div class="ico">📦</div><div>P7 Products</div>
+      </div>
+      <div class="menu-btn" data-panel="p8" data-tooltip="P8 Seller 1" onclick="switchPanel(event)">
+        <div class="ico">👤</div><div>P8 Seller 1</div>
+      </div>
+      <div class="menu-btn" data-panel="p9" data-tooltip="P9 Seller 2" onclick="switchPanel(event)">
+        <div class="ico">👤</div><div>P9 Seller 2</div>
+      </div>
+      <div class="menu-btn" data-panel="p10" data-tooltip="P10 Seller 3" onclick="switchPanel(event)">
+        <div class="ico">👤</div><div>P10 Seller 3</div>
+      </div>
+      <div class="menu-btn" onclick="refreshAllData()" data-tooltip="Sync Data">
+        <div class="ico">🔄</div><div>Sync Data</div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">v2.5 — Seller Fix</div>
+  </aside>
+  <main class="main" id="mainArea" role="main" tabindex="0">
+    <div class="topbar" id="productsTopBar" aria-hidden="false"></div>
+    <div id="pageContainer"></div>
+  </main>
+</div>
+
+<div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>
+<button class="menu-toggle" id="menuToggleBtn" aria-label="Open menu">☰</button>
+
+
+<template id="tpl-home">
+  <section class="card">
+    <div class="page-title">Dashboard (Online)</div>
+    <div class="page-sub">डेटा Google Sheet से आ रहा है। इंटरनेट चालू रखें।</div>
+    <div class="row">
+      <div class="col card"><div class="label">Data Status</div>
+        <div class="small">Products: <span id="dashProductsCount">0</span></div>
+        <div class="small">Sales: <span id="dashSalesCount">0</span></div>
+        <div class="small">Purchases: <span id="dashPurchasesCount">0</span></div>
+        <div style="margin-top:10px">
+            <button class="btn" onclick="refreshAllData()">Force Refresh</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-cashCounter">
+  <section>
+    <div class="page-title">P1 — Cash Counter</div>
+    <div class="page-sub">Notes counting tool (Calculates locally, does not save to sheet).</div>
+    <div class="card">
+      <div class="label">Denomination Qty</div>
+      <div id="cashDenomsTpl"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <div class="label">Cash Total</div>
+        <div id="cashTotalTpl" style="font-weight:800;color:#064e3b">₹0</div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="btn-outline" onclick="cash_resetCurrent()">Reset</button>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-calcPage">
+  <section>
+    <div class="page-title">P2 — Rate × Weight Calculator</div>
+    <div class="page-sub">
+      દાગીના વજન નાખી Amount કાઢવા માટેનું system
+    </div>
+
+    <div class="card">
+
+      <div class="label">Weight / Case</div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input
+            id="p2_weightInput"
+            type="number"
+            step="0.01"
+            placeholder="KG"
+            style="flex:1"
+        />
+
+        <button class="btn" onclick="p2_addWeight()">ADD</button>
+
+        <input
+            id="p2_caseInput"
+            type="number"
+            placeholder="Case"
+            style="width:90px"
+        />
+
+        <button class="btn-outline" onclick="p2_addCases()">CASE</button>
+    </div>
+
+
+      <!-- WEIGHT LIST -->
+      <div id="p2_weightList"
+           style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"></div>
+
+      <div class="small" style="margin-top:6px">
+        કુલ વજન: <b id="p2_totalKg">0.00</b> KG
+        <span id="p2_manualCaseBox" style="display:none">
+          | કુલ દાગીના: <b id="p2_manualCases">0</b>
+        </span>
+      </div>
+
+
+      <!-- RATE -->
+      <div style="margin-top:12px">
+        <div class="label">વેચાણ દર (20 KG દીઠ)</div>
+        <input id="p2_rate" type="number" placeholder="ઉદાહરણ: 279">
+      </div>
+      <div class="label">Commission / Rounding</div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn" onclick="p2_setFixedComm()">FIX 7%</button>
+        <button class="btn-outline" onclick="p2_openManualComm()">MANUAL %</button>
+        <button id="p2_adjustBtn" class="btn" onclick="p2_toggleAdjust()">ON</button>
+      </div>
+
+    </div>
+
+      
+
+      <!-- CALCULATE -->
+      <!-- CALCULATE + RESET -->
+      <div style="display:flex; gap:8px; margin-top:12px">
+        <button class="btn" style="flex:1"
+          onclick="p2_calculate()">ગણતરી કરો</button>
+
+        <button class="btn-outline" style="flex:1"
+          onclick="p2_reset()">RESET</button>
+      </div>
+
+
+      <!-- RESULT -->
+      <div style="text-align:center;margin-top:14px">
+        <div style="font-size:1.8rem;font-weight:900;color:#065f46">
+          ₹<span id="p2_result">0</span>
+        </div>
+      </div>
+
+      <!-- CUSTOMER PAID -->
+      <div style="margin-top:10px">
+        <div class="label">Customer Paid ₹</div>
+        <input
+          id="p2_paid"
+          type="number"
+          placeholder="e.g. 1000"
+          oninput="p2_calcChange()"
+        />
+      </div>
+
+      <!-- CHANGE SUGGESTION -->
+      <div
+        id="p2_changeBox"
+        style="margin-top:6px;
+               font-weight:900;
+               font-size:1rem;
+               color:#065f46">
+      </div>
+
+      
+  </section>
+</template>
+
+
+
+<template id="tpl-purchase">
+  <section>
+    <div class="page-title">P3 — Purchase Entry</div>
+    <div class="page-sub">Directly saves to Google Sheet.</div>
+    <div class="card">
+      <div class="row">
+        <div class="col">
+          <div class="label">Type (DR/CR)</div>
+          <select id="purchaseDCTpl"><option value="DR">Debit</option><option value="CR" selected>Credit</option></select>
+        </div>
+        <div class="col"><div class="label">Party</div><input id="purchasePartyTpl" type="text" list="partyMasterList"></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="col"><div class="label">Date</div><input id="purchaseDateTpl" type="date"></div>
+        <div class="col"><div class="label">Bill No.</div><input id="purchaseBillTpl" type="text"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="label">Product</div>
+        <select id="purchaseProductTpl"></select>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="col"><div class="label">Rate (20kg)</div><input id="purchaseRateTpl" type="number"></div>
+        <div class="col"><div class="label">Katta (Bags)</div><input id="purchaseKattaTpl" type="number"></div>
+        <div class="col"><div class="label">Total Weight (KG)</div><input id="purchaseQtyTpl" type="number"></div>
+        <div class="col"><div class="label">Total ₹</div><input id="purchaseTotalTpl" type="text" readonly></div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn" onclick="savePurchaseTpl()">Save to Cloud</button>
+          <button class="btn-outline" onclick="renderAndShow('purchase')">Clear</button>
+      </div>
+      <div id="purchaseMsgTpl" class="small" style="margin-top:8px"></div>
+
+      <div style="margin-top:18px;padding-top:12px;border-top:1px dashed #e6efec;">
+        <div class="label">Add New Product (Online)</div>
+        <div class="row" style="margin-top:6px;">
+          <div class="col">
+            <input id="addProdNameP3" type="text" placeholder="Product name (e.g. Potato)">
+          </div>
+          <div class="col" style="max-width:160px;">
+            <input id="addProdRateP3" type="number" placeholder="Rate (20kg)">
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn" onclick="addProductFromPurchase()">Add Product</button>
+        </div>
+        <div id="addProdMsgP3" class="small" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-sale">
+  <section>
+    <div class="page-title">P4 — Owner Slip (FAST)</div>
+    <div class="page-sub">Select product → fill slip → WhatsApp</div>
+
+    <!-- PRODUCT SELECT VIEW -->
+    <div id="p4SelectView" class="card">
+      <div class="label">Select Product</div>
+      <div id="p4ProductGrid" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+    </div>
+    <!-- MOBILE PARTY CARDS -->
+    <div id="p4PartyPanel" style="display:none;margin-top:8px;">
+      <div class="small" style="margin-bottom:6px;color:#0f766e;font-weight:700">
+        Select Party
+      </div>
+      <div id="p4PartyGrid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+    <!-- 🔥 P4 PARCHI REGISTER -->
+    <div id="p4RegisterView" class="card" style="margin-top:12px; display:none;">
+        <div class="label">📋 Parchi Register</div>
+
+        <div style="max-height:260px;overflow:auto;border:1px solid #e5e7eb;border-radius:8px">
+          <table>
+            <thead>
+              <tr>
+                <th>Party</th>
+                <th>Date</th>
+                <th>Bags</th>
+                <th>Total</th>
+                <th>P</th>
+                <th>B</th>
+                <th>D</th>
+                <th>X</th>
+              </tr>
+            </thead>
+            <tbody id="p4RegisterBody"></tbody>
+          </table>
+        </div>
+
+        <div class="total-bar" style="margin-top:8px">
+            <div>Total (Active)</div>
+            <div id="p4RegisterTotal">₹0</div>
+        </div>
+    </div>
+
+    <!-- FORM VIEW -->
+    <div id="p4FormView" class="card" style="display:none;">
+      <div class="label">
+        Product: <span id="p4SelectedProduct" style="color:#0f766e;font-weight:800"></span>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div class="label">Party</div>
+          <input id="salePartyTpl" oninput="filterP4PartyCards(this.value)">
+        </div>
+        <div class="col">
+          <div class="label">Date</div>
+          <input id="saleDateTpl" type="date">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div class="label">Rate (20kg)</div>
+          <input id="saleRateTpl" type="number">
+        </div>
+        <div class="col">
+          <div class="label">Katta</div>
+          <input id="saleKattaTpl" type="number">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <div class="label">Token Advance</div>
+          <input id="saleTokenTpl" type="number">
+        </div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="btn" onclick="saveParchiOnly()">💾 Save Entry</button>
+        <button class="btn-outline" onclick="viewSlipPreview()">🧾 View Slip</button>
+        <button class="btn-outline" onclick="resetP4()">🔄 Change Product</button>
+      </div>
+    </div>
+  </section>
+</template>
+
+
+
+
+<template id="tpl-ledger">
+  <section>
+    <div class="page-title">P6 — Ledger</div>
+    <div class="page-sub">Fetches live from Google Sheet.</div>
+    <div class="card">
+      <div class="row">
+        <div class="col"><div class="label">Party Filter</div><input id="ledgerPartyTpl" type="text" onkeyup="showLedgerTpl()"></div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;"><button class="btn" onclick="refreshAllData()">Refresh Data</button></div>
+      <div id="ledgerSummaryTpl" style="margin-top:8px;font-weight:700;color:#064e3b"></div>
+      <div style="margin-top:8px" class="table-wrap"><table><thead><tr><th>Date</th><th>Party</th><th>Type</th><th>Dr</th><th>Cr</th></tr></thead><tbody id="ledgerTableBodyTpl"></tbody></table></div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-products">
+  <section>
+    <div class="page-title">P7 — Products List</div>
+    <div class="page-sub">Live stock from Google Sheet.</div>
+    <div class="card">
+       <div id="p7ListArea" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-p8">
+  <section>
+    <div class="page-title">P8 — Seller 1</div>
+    <div class="page-sub">Quick Sale Entry for Seller 1 (Saves to Sheet).</div>
+    <div class="card" style="border-top: 4px solid #0f766e;">
+      <div id="seller1FormArea"></div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-p9">
+  <section>
+    <div class="page-title">P9 — Seller 2</div>
+    <div class="page-sub">Quick Sale Entry for Seller 2 (Saves to Sheet).</div>
+    <div class="card" style="border-top: 4px solid #d97706;">
+      <div id="seller2FormArea"></div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-p10">
+  <section>
+    <div class="page-title">P10 — Seller 3</div>
+    <div class="page-sub">Quick Sale Entry for Seller 3 (Saves to Sheet).</div>
+    <div class="card" style="border-top: 4px solid #7c3aed;">
+      <div id="seller3FormArea"></div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-saleFormSmall">
+  <div>
+    <div class="toggle-container">
+      <div class="toggle-btn active" data-view="form">📝 New Entry</div>
+      <div class="toggle-btn" data-view="register">📋 Sale Register</div>
+    </div>
+
+    <div id="sec-form">
+      <div class="label">
+        Product:
+        <span class="sprodTpl" style="color:#0f766e;font-weight:800"></span>
+    </div>
+    <div class="small" style="color:#b45309">
+      ⚠ Product change karne ke liye upar Top Bar se product select kare
+    </div>
+
+      
+      <div class="row">
+        <div class="col"><label>Party Name</label><input class="partyTpl" list="partyMasterList" placeholder="Select Party"></div>
+        <div class="col"><label>Date</label><input class="dateTpl" type="date"></div>
+      </div>
+
+      <div style="margin-top:8px;">
+        <label class="label" style="font-size:0.85rem">Payment Mode</label>
+        <div class="radio-group">
+          <input type="radio" id="payCredit" name="payMode" value="Udhar" checked>
+          <label for="payCredit">Udhar</label>
+          <input type="radio" id="payCash" name="payMode" value="Cash">
+          <label for="payCash">Rokda (Cash)</label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px;">
+         <div class="col"><label>Rate (20kg)</label><input class="rateTpl" type="number" placeholder="₹"></div>
+         <div class="col"><label>Nag (Bags)</label><input class="nagTpl" type="number" placeholder="Qty"></div>
+         <div class="col"><label>Weight (Kg)</label><input class="weightTpl" type="number" placeholder="Total Kg"></div>
+      </div>
+
+      
+         <div class="col">
+            <label style="font-size:0.8rem">Comm (%)</label>
+            <input class="commTpl" type="number" value="6" placeholder="%">
+         </div>
+         <div class="col" style="display:flex; flex-direction:column; justify-content:center;">
+            <span class="small" style="font-size:0.75rem">Cess: <b>0.8%</b></span>
+            <span class="small" style="font-size:0.75rem">Majuri: <b>₹6/Bag</b></span>
+         </div>
+      </div>
+
+      <div class="row" style="margin-top:8px;">
+         <div class="col" style="flex:2"><label>Remarks</label><input class="remTpl" type="text" placeholder="Note..."></div>
+         <div class="col" style="flex:1"><label>Total ₹</label><input class="totalTpl" type="text" readonly style="font-weight:bold; font-size:1.1rem; color:#0f766e;"></div>
+      </div>
+      
+      <div class="calc-info small" style="text-align:right; color:#0f766e; margin-top:2px;"></div>
+
+      <div style="margin-top:12px;">
+          <button class="btn saveSaleSmall" style="width:100%; padding:12px;">SAVE SALE</button>
+      </div>
+      <div class="small msgSmall" style="margin-top:8px; text-align:center;"></div>
+    </div>
+
+    <div id="sec-register" style="display:none;">
+       <div style="max-height:350px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+         <table class="seller-table">
+           <thead><tr><th>Party / Details</th><th>Weight</th><th>Total</th></tr></thead>
+           <tbody class="tbody-register"></tbody>
+         </table>
+       </div>
+       <div class="total-bar">
+          <div>Total Sale:</div>
+          <div class="total-val">₹0</div>
+       </div>
+       <div style="text-align:center; margin-top:10px;">
+         <button class="btn-outline" style="font-size:0.8rem" onclick="refreshAllData()">🔄 Refresh List</button>
+       </div>
+    </div>
+  </div>
+</template>
+
+
+<script>
+
+// ###############################################################
+//          PART 1: CONFIGURATION & GLOBAL VARIABLES
+// ###############################################################
+
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw1x6QXL8rOmrGPzZ-4gyuwJKUJGUYnUaDLC5Dg2yr0vkW2isEa6Kj5m7rmWQDpoefF2Q/exec";
+
+// Local State
+let products = []; 
+let purchases = [];
+let sales = [];
+let ledgerEntries = [];
+let currentProductId = null;
+let parties = [];
+
+// Helpers (छोटे-मोटे फंक्शन)
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+function updateSellerProductInstant(){
+  const prod = products.find(p => String(p.id) === String(currentProductId));
+  if(!prod) return;
+
+  document.querySelectorAll('.sprodTpl').forEach(el=>{
+    el.textContent = prod.name;
+  });
+}
+
+// पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए
+// पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए सही फंक्शन
+function fillPartyDatalist(){
+  const dl = document.getElementById("partyMasterList");
+  if(!dl) return;
+
+  dl.innerHTML = "";
+
+  const set = new Set();
+
+  parties.forEach(p=>{
+    if(typeof p === "string"){
+      set.add(p.trim());
+    } 
+    else if(p && p.name){
+      set.add(String(p.name).trim());
+    }
+  });
+
+  set.forEach(name=>{
+    if(name){
+      const opt = document.createElement("option");
+      opt.value = name;
+      dl.appendChild(opt);
+    }
+  });
+
+  console.log("✅ Party datalist updated:", set.size);
+}
+
+// Google Sheet से पार्टी डेटा लोड करने के लिए
+async function loadPartiesFromSheet(){
+  parties = [];
+  try {
+    const out = await fetchFromSheetAction("getParties");
+    if(out.status === "ok"){
+      // Backend data array ko parties variable mein save karein
+      parties = out.data || [];
+      console.log("Parties loaded from sheet:", parties.length);
+    }
+  } catch(e) {
+    console.error("Party loading failed:", e);
+  }
+}
+
+
+
+function checkInternet() {
+  if (!navigator.onLine) {
+    alert("❌ NO INTERNET CONNECTION.\nकृपया इंटरनेट चेक करें। काम रोका गया है।");
+    return false;
+  }
+  if (!WEB_APP_URL || WEB_APP_URL.length < 10) {
+    alert("❌ CONFIG ERROR: Script URL missing in code.");
+    return false;
+  }
+  return true;
+}
+
+function productEmoji(name){
+  const n = String(name||'').toLowerCase();
+  if(n.includes('બટેટા')||n.includes('potato')) return '🥔';
+  if(n.includes('કાંદા')||n.includes('onion')) return '🧅';
+  if(n.includes('ટમેટા')||n.includes('tomato')) return '🍅';
+  return '📦';
+}
+
+
+// ###############################################################
+//          PART 2: DATA LOADING (Fetching from Sheet)
+// ###############################################################
+
+// 🔥 Sale ke baad sirf required data refresh
+async function refreshAfterSale(){
+  try{
+    await Promise.all([
+      loadProductsFromSheet(), // stock update
+      loadSalesFromSheet()     // seller register
+    ]);
+    buildProductsTopBar();
+    updateDashboardCounts();
+  } catch(e){
+    console.error("refreshAfterSale error", e);
+  }
+}
+
+async function refreshAllData(){
+  if(!checkInternet()) return;
+
+  let topbar = document.getElementById('productsTopBar');
+  const refreshBtn = topbar ? topbar.querySelector('.prod-btn') : null;
+
+  try{
+    if(refreshBtn) {
+      refreshBtn.textContent = '⏳ Loading...';
+      refreshBtn.style.pointerEvents = 'none';
+      refreshBtn.style.opacity = '0.6';
+    }
+
+    console.log("Fetching from Google Sheet...");
+
+    await Promise.all([
+      loadProductsFromSheet(),
+      // ❌ loadPartiesFromSheet()  <<< REMOVED (IMPORTANT)
+      loadPurchasesFromSheet(),
+      loadSalesFromSheet(),
+      loadLedgerFromSheet()
+    ]);
+
+    // ⚠️ Party list YAHAN reload nahi hogi
+    // Sirf datalist refill (local memory se)
+    fillPartyDatalist();
+
+    buildProductsTopBar();
+    updateDashboardCounts();
+
+    const activePanel = document.querySelector('.menu-btn.active')?.dataset.panel;
+    if(activePanel === 'ledger') showLedgerTpl();
+    if(activePanel === 'products') onPageInit_products();
+
+  } catch(err){
+    console.error("Refresh Error:", err);
+    alert("Data load failed: " + err.message);
+  } finally {
+    if(refreshBtn) {
+      refreshBtn.textContent = '🔄 Refresh';
+      refreshBtn.style.pointerEvents = '';
+      refreshBtn.style.opacity = '1';
+    }
+  }
+}
+
+
+/* --- API CALL HELPER --- */
+async function fetchFromSheetAction(action, payload = {}) {
+  if(!checkInternet()) throw new Error("No Internet");
+  
+  const fd = new FormData();
+  const data = Object.assign({ action }, payload);
+  fd.append("data", JSON.stringify(data));
+  
+  try {
+    const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+    const json = await res.json();
+    return json;
+  } catch (e) {
+    throw new Error("Network/Server Error: " + e.message);
+  }
+}
+
+/* --- Load Functions --- */
+async function loadProductsFromSheet(){
+  products = []; 
+  const out = await fetchFromSheetAction("getProducts");
+  if(out.status !== "ok") throw new Error(out.msg);
+  
+  products = (out.data || []).map(p => ({
+  id: String(p.id),
+  name: p.name,
+  stock: Number(p.stock_kg) || 0,
+  stock_katta: Number(p.stock_katta) || 0,
+  rate: Number(p.rate_20kg) || 0
+}));
+
+
+}
+
+async function loadPurchasesFromSheet(){
+  purchases = [];
+  const out = await fetchFromSheetAction("getPurchases");
+  if(out.status === "ok") {
+    purchases = (out.data || []).map(r => ({
+      date: r.date,
+      party_name: r.party_name,
+      product_id: r.product_id,
+      qty_kg: Number(r.qty_kg),
+      qty_katta: Number(r.qty_katta),
+      rate_20kg: Number(r.rate_20kg),
+      total: Number(r.total)
+    }));
+  }
+}
+
+
+async function loadSalesFromSheet(){
+  sales = [];
+  const out = await fetchFromSheetAction("getSales");
+  if(out.status === "ok") {
+    sales = (out.data || []).map(r => ({
+      date: r.date,
+      party_name: r.party_name,
+      product_id: r.product_id,
+      qty_kg: Number(r.qty_kg),
+      qty_katta: Number(r.qty_katta),
+      rate_20kg: Number(r.rate_20kg),
+      commission_amt: Number(r.commission_amt),
+      cess_amt: Number(r.cess_amt),
+      majuri_amt: Number(r.majuri_amt),
+      total: Number(r.total),
+      seller: r.seller || ""
+    }));
+  }
+}
+
+
+async function loadLedgerFromSheet(){
+  ledgerEntries = [];
+  const out = await fetchFromSheetAction("getLedger");
+  if(out.status === "ok") {
+    ledgerEntries = out.data || [];
+  }
+}
+
+async function ensurePartyExists(partyName){
+  if(!partyName) return;
+
+  const clean = partyName.trim().replace(/\s+/g,' ');
+  const key = clean.toUpperCase();
+
+  // Local check
+  const exists = parties.some(p=>{
+    const n = typeof p === "string" ? p : p.name;
+    return String(n || "").toUpperCase() === key;
+  });
+
+  if(exists){
+    return; // already exists
+  }
+
+  console.log("➕ Adding new party:", clean);
+
+  try {
+    const out = await fetchFromSheetAction("addParty", { name: clean });
+
+    if(out.status === "ok"){
+      // 🔥 Local + UI update immediately
+      parties.push({ name: clean });
+      fillPartyDatalist();
+      console.log("✅ Party added successfully");
+    } else {
+      console.error("❌ Party add failed:", out.msg);
+    }
+  } catch(e){
+    console.error("❌ Party add error:", e);
+  }
+}
+
+
+// ###############################################################
+//          PART 3: SAVE FUNCTIONS (Sending to Sheet)
+// ###############################################################
+
+async function savePurchaseTpl(){
+  if(!checkInternet()) return;
+
+  const party = document.getElementById('purchasePartyTpl').value.trim();
+  await ensurePartyExists(party);
+  const date = document.getElementById('purchaseDateTpl').value || todayStr();
+  const pid = document.getElementById('purchaseProductTpl').value || '';
+  const rate20 = Number(document.getElementById('purchaseRateTpl').value || 0);
+  const katta = Number(document.getElementById('purchaseKattaTpl').value || 0);
+  const kg = Number(document.getElementById('purchaseQtyTpl').value || 0);
+  const totalKg = Number(kg || 0);
+  const msgEl = document.getElementById('purchaseMsgTpl');
+
+  if(!party || !pid || !rate20 || !totalKg){ 
+    alert('Please fill required fields'); return; 
+  }
+
+  const perKg = rate20/20;
+  const total = perKg * totalKg;
+
+  // UI Lock
+  if(msgEl) { msgEl.textContent = '⏳ Saving to Google Sheet...'; msgEl.style.color='blue'; }
+  const saveBtn = document.querySelector('#tpl-purchase .btn');
+  if(saveBtn) saveBtn.disabled = true;
+
+  try {
+    const out = await fetchFromSheetAction("purchase", {
+      date,
+      party_id: '',
+      party_name: party,
+      product_id: String(pid),
+      qty_kg: totalKg,
+      qty_katta: katta,
+      rate_20kg: rate20,
+      total,
+      bill: document.getElementById('purchaseBillTpl').value || ''
+    });
+
+
+    if(out.status !== "ok") throw new Error(out.msg || "Server returned error");
+
+    if(msgEl) { msgEl.textContent = '✅ Saved Successfully!'; msgEl.style.color='#16a34a'; }
+    
+    await refreshAllData(); 
+
+    // Clear Form
+    document.getElementById('purchasePartyTpl').value = '';
+    document.getElementById('purchaseKattaTpl').value = '';
+    document.getElementById('purchaseQtyTpl').value = '';
+    document.getElementById('purchaseTotalTpl').value = '';
+
+  } catch(err) {
+    console.error(err);
+    if(msgEl) { msgEl.textContent = '❌ Failed: ' + err.message; msgEl.style.color='red'; }
+  } finally {
+    if(saveBtn) saveBtn.disabled = false;
+  }
+}
+
+async function loadP4Register(){
+
+  if(!currentProductId) return;
+
+  const body = document.getElementById('p4RegisterBody');
+  const totalBox = document.getElementById('p4RegisterTotal');
+  const wrap = document.getElementById('p4RegisterView');
+
+  if(!body || !totalBox || !wrap){
+    setTimeout(loadP4Register, 150);
+    return;
+  }
+
+  // 🔥 THIS IS THE MISSING LINE
+  wrap.style.display = 'block';
+
+  const out = await fetchFromSheetAction("getParchiByProduct",{
+    product_id: String(currentProductId)
+  });
+
+  if(out.status !== "ok") return;
+
+  body.innerHTML = "";
+  let total = 0;
+
+  out.data.slice().reverse().forEach(r=>{
+    const tr = document.createElement('tr');
+    if(r.cancelled){
+      tr.style.opacity = "0.45";
+    } else {
+      total += Number(r.total_amount || 0);
+    }
+    tr.innerHTML = `
+      <td>${r.party_name}</td>
+      <td>${r.date}</td>
+      <td>${r.bags}</td>
+      <td>₹${r.total_amount || '-'}</td>
+      <td>✔</td>
+      <td>${r.bill_done ? "✔" : `<button onclick="updateParchi('${r.id}','bill')">✔</button>`}</td>
+      <td>${r.delivery_done ? "✔" : `<button onclick="updateParchi('${r.id}','delivery')">✔</button>`}</td>
+      <td>${r.cancelled ? "✖" : `<button onclick="updateParchi('${r.id}','cancel')">✖</button>`}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  totalBox.textContent = "₹" + total;
+}
+
+
+
+async function updateParchi(id,type){
+  if(type==="cancel" && !confirm("Cancel this parchi?")) return;
+
+  await fetchFromSheetAction("updateParchiStatus",{
+    id,
+    type,
+    user:"P4"
+  });
+
+  // 🔥 slight delay so sheet write finishes
+  setTimeout(loadP4Register, 150);
+}
+
+
+
+
+async function addProductFromPurchase(){
+  if(!checkInternet()) return;
+
+  const nameEl = document.getElementById('addProdNameP3');
+  const rateEl = document.getElementById('addProdRateP3');
+  const msgEl = document.getElementById('addProdMsgP3');
+  
+  const name = nameEl.value.trim();
+  const rate = rateEl.value;
+
+  if(!name){ alert("Name required"); return; }
+
+  if(msgEl) { msgEl.textContent = 'Adding...'; }
+
+  try {
+    const out = await fetchFromSheetAction("addProduct", { name, rate });
+    if(out.status !== "ok") throw new Error(out.msg);
+
+    if(msgEl) { msgEl.textContent = 'Product Added!'; msgEl.style.color = 'green'; }
+    nameEl.value = ''; rateEl.value = '';
+    
+    await refreshAllData(); 
+
+  } catch(err) {
+    if(msgEl) { msgEl.textContent = 'Failed: ' + err.message; msgEl.style.color = 'red'; }
+  }
+}
+
+function buildP4ProductGrid(){
+  const grid = document.getElementById('p4ProductGrid');
+  if(!grid) return;
+
+  grid.innerHTML = '';
+
+  products.forEach(p=>{
+    // ❌ Zero stock hide
+    if(p.stock <= 0 && p.stock_katta <= 0) return;
+
+    const lowKg = p.stock < 100;
+    const lowBags = p.stock_katta < 5;
+
+    const btn = document.createElement('div');
+    btn.className = 'prod-btn';
+
+    btn.innerHTML = `
+      <div style="font-weight:800">
+        ${productEmoji(p.name)} ${p.name}
+      </div>
+
+      <div class="small" style="color:${lowKg ? '#dc2626' : '#065f46'}">
+        KG: ${p.stock}
+      </div>
+
+      <div class="small" style="color:${lowBags ? '#dc2626' : '#065f46'}">
+        Bags: ${p.stock_katta}
+      </div>
+
+      ${lowBags ? `<div class="small" style="color:#dc2626;font-weight:700">
+        ⚠ Low Bags
+      </div>` : ``}
+    `;
+
+    btn.onclick = ()=> p4SelectProduct(p.id);
+    grid.appendChild(btn);
+  });
+}
+
+
+
+function p4SelectProduct(id){
+  currentProductId = String(id);
+
+  const prod = products.find(p => String(p.id) === currentProductId);
+  if(!prod){
+    alert("Product not found");
+    return;
+  }
+
+  // Show selected product name
+  document.getElementById('p4SelectedProduct').textContent = prod.name;
+
+  // Auto-fill date & rate
+  document.getElementById('saleDateTpl').value = todayStr();
+  document.getElementById('saleRateTpl').value = prod.rate || '';
+
+  // Toggle views
+  document.getElementById('p4SelectView').style.display = 'none';
+  document.getElementById('p4FormView').style.display = 'block';
+
+  // Focus for speed
+  setTimeout(()=>{
+    document.getElementById('salePartyTpl')?.focus();
+  },100);
+  document.getElementById('p4PartyPanel').style.display = 'none';
+  // 🔥 SHOW + LOAD REGISTER
+  document.getElementById('p4RegisterView').style.display = 'block';
+  loadP4Register();
+}
+
+
+
+
+
+
+
+function resetP4(){
+  currentProductId = null;
+
+  document.getElementById('salePartyTpl').value = '';
+  document.getElementById('saleRateTpl').value = '';
+  document.getElementById('saleKattaTpl').value = '';
+  document.getElementById('saleTokenTpl').value = '';
+
+  document.getElementById('p4FormView').style.display = 'none';
+  document.getElementById('p4SelectView').style.display = 'block';
+  document.getElementById('p4RegisterView').style.display = 'none';
+  const pp = document.getElementById('p4PartyPanel');
+  if(pp) pp.style.display = 'none';
+
+  buildP4ProductGrid(); // ✅ add this
+}
+function isMobile(){
+  return window.innerWidth <= 900;
+}
+
+
+
+
+
+function buildP4PartyCards(){
+  const panel = document.getElementById('p4PartyPanel');
+  const grid  = document.getElementById('p4PartyGrid');
+  if(!panel || !grid) return;
+
+  grid.innerHTML = '';
+
+  // recent first (last 10)
+  const recent = (sales || [])
+    .map(s=>s.party_name)
+    .filter(Boolean)
+    .slice(-10)
+    .reverse();
+
+  const set = new Set();
+  recent.forEach(n=>set.add(n));
+  (parties||[]).forEach(p=>{
+    const n = typeof p === 'string' ? p : p.name;
+    if(n) set.add(n);
+  });
+
+  Array.from(set).slice(0,12).forEach(name=>{
+    const b = document.createElement('div');
+    b.className = 'p4-party-btn';
+    b.textContent = name;
+    b.onclick = ()=>{
+      document.getElementById('salePartyTpl').value = name;
+      panel.style.display = 'none';
+    };
+    grid.appendChild(b);
+  });
+}
+
+function filterP4PartyCards(keyword){
+  const grid = document.getElementById('p4PartyGrid');
+  if(!grid) return;
+
+  const k = keyword.toLowerCase();
+
+  grid.querySelectorAll('.p4-party-btn').forEach(btn=>{
+    const name = btn.textContent.toLowerCase();
+    btn.style.display = name.includes(k) ? 'block' : 'none';
+  });
+}
+
+
+
+
+// ###############################################################
+//          PART 4: UI & NAVIGATION CONTROLLERS
+// ###############################################################
+async function saveParchiOnly(){
+
+  if(!currentProductId){
+    alert("Product select karo");
+    return;
+  }
+
+  const party = document.getElementById('salePartyTpl').value.trim();
+  const date  = document.getElementById('saleDateTpl').value || todayStr();
+  const rate  = document.getElementById('saleRateTpl').value;
+  const katta = document.getElementById('saleKattaTpl').value;
+
+  if(!party || !rate || !katta){
+    alert("Party / Rate / Katta required");
+    return;
+  }
+
+  const prod = products.find(p => String(p.id) === String(currentProductId));
+  if(!prod){
+    alert("Product error");
+    return;
+  }
+
+  // 🔥 ONLY SAVE
+  await fetchFromSheetAction("addParchi",{
+    date,
+    product_id: String(currentProductId),
+    product_name: prod.name,
+    party_name: party,
+    bags: Number(katta),
+    weight_kg: 0,
+    total_amount: 0
+  });
+
+  await loadP4Register();
+
+  // Clear only entry fields
+  document.getElementById('salePartyTpl').value = '';
+  document.getElementById('saleKattaTpl').value = '';
+
+  if(isMobile()){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+function viewSlipPreview(){
+
+  if(!currentProductId){
+    alert("Product select karo");
+    return;
+  }
+
+  const party = document.getElementById('salePartyTpl').value.trim();
+  const date  = document.getElementById('saleDateTpl').value || todayStr();
+  const rate  = document.getElementById('saleRateTpl').value;
+  const katta = document.getElementById('saleKattaTpl').value;
+
+  const prod = products.find(p => String(p.id) === String(currentProductId));
+  if(!prod){
+    alert("Product error");
+    return;
+  }
+
+  const msg =
+`PARCHI SLIP
+Product: ${prod.name}
+Party: ${party || '-'}
+Date: ${date}
+Bags: ${katta || '-'}
+Rate: ₹${rate || '-'}`;
+
+  // 🔥 TEMP preview (printer later)
+  alert(msg);
+}
+
+
+
+
+function buildProductsTopBar(){
+  const box = document.getElementById('productsTopBar');
+  if(!box) return;
+  box.innerHTML = '';
+
+  // Refresh Btn
+  const rb = document.createElement('div');
+  rb.className = 'prod-btn';
+  rb.innerHTML = '<b>🔄 Refresh</b>';
+  rb.onclick = refreshAllData;
+  box.appendChild(rb);
+
+  if(products.length === 0){
+    const hint = document.createElement('div');
+    hint.className = 'prod-btn';
+    hint.innerHTML = '<small>No Data (Check Internet)</small>';
+    box.appendChild(hint);
+    return;
+  }
+
+  products.forEach(p=>{
+    if(p.stock <= 0) return; // Hide 0 stock
+    const btn = document.createElement('div');
+    btn.className = 'prod-btn';
+    btn.dataset.productId = String(p.id);
+    btn.innerHTML = `<div style="font-weight:700">${productEmoji(p.name)} ${p.name}</div><div class="small">Stock:<span class="availQty">${p.stock} KG | ${p.stock_katta} Bags</span></div>`;
+    btn.onclick = ()=>{ selectProductTopbar(p.id); };
+    if(String(currentProductId) === String(p.id)) btn.classList.add('active');
+    box.appendChild(btn);
+  });
+}
+
+function selectProductTopbar(id){
+  currentProductId = String(id);
+  localStorage.setItem('selectedProductId', currentProductId);
+
+  buildProductsTopBar();
+
+  const prod = products.find(p => String(p.id) === String(currentProductId));
+
+  // 🔥 If P4 page is open, behave like p4SelectProduct
+  const p4Form = document.getElementById('p4FormView');
+  const p4Register = document.getElementById('p4RegisterView');
+  const p4Select = document.getElementById('p4SelectView');
+  const nameBox = document.getElementById('p4SelectedProduct');
+
+  if(prod && nameBox){
+    nameBox.textContent = prod.name;
+  }
+
+  if(p4Form && p4Register){
+    // Hide product select grid if visible
+    if(p4Select) p4Select.style.display = 'none';
+
+    // Show form + register
+    p4Form.style.display = 'block';
+    p4Register.style.display = 'block';
+
+    // Auto fill date & rate (safe)
+    const d = document.getElementById('saleDateTpl');
+    const r = document.getElementById('saleRateTpl');
+    if(d) d.value = todayStr();
+    if(r) r.value = prod?.rate || '';
+
+    // Load parchi register
+    loadP4Register();
+  }
+
+  setTimeout(updateSellerProductInstant, 0);
+}
+
+
+
+
+
+function renderPage(templateId){
+  const tpl = document.getElementById('tpl-' + templateId);
+  const container = document.getElementById('pageContainer');
+  container.innerHTML = '';
+  if(tpl) container.appendChild(document.importNode(tpl.content, true));
+  
+  // Initialize specific page logic
+  if(templateId === 'purchase') onPageInit_purchase();
+  if(templateId === 'sale') onPageInit_sale();
+  if(templateId === 'ledger') onPageInit_ledger();
+  if(templateId === 'cashCounter') onPageInit_cashCounter();
+
+  // 🔥 ADD THIS LINE (ONLY CHANGE)
+  if(templateId === 'calcPage') p2_reset();
+  
+  // New Pages
+  if(templateId === 'products') onPageInit_products();
+  if(templateId === 'p8') loadSellerForm('seller1FormArea', 'Seller 1');
+  if(templateId === 'p9') loadSellerForm('seller2FormArea', 'Seller 2');
+  if(templateId === 'p10') loadSellerForm('seller3FormArea', 'Seller 3');
+  
+  updateDashboardCounts();
+  updateTopBarVisibility(templateId);
+}
+
+
+function renderAndShow(templateId){
+  document.querySelectorAll('.menu-btn').forEach(b=>b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('.menu-btn')).find(x=>x.dataset.panel === templateId);
+  if(btn) btn.classList.add('active');
+  renderPage(templateId);
+}
+
+function switchPanel(e){
+  const btn = e.currentTarget;
+  renderAndShow(btn.dataset.panel);
+  if(window.innerWidth <= 900) closeMobileDrawer();
+}
+
+/* --- Misc UI Helpers --- */
+function updateDashboardCounts(){
+  const p = document.getElementById('dashProductsCount');
+  const s = document.getElementById('dashSalesCount');
+  const u = document.getElementById('dashPurchasesCount');
+  if(p) p.textContent = products.length;
+  if(s) s.textContent = sales.length;
+  if(u) u.textContent = purchases.length;
+}
+
+function updateTopBarVisibility(pid){
+  const tb = document.getElementById('productsTopBar');
+  if(!tb) return;
+
+  if(['home','cashCounter','calcPage'].includes(pid)){
+    tb.style.display = 'none';
+  } else {
+    tb.style.display = 'flex';
+  }
+}
+
+/* --- Calculations (Local Logic) --- */
+function updatePurchaseTotalTpl(){
+  const rate20 = Number(document.getElementById('purchaseRateTpl').value || 0);
+  const katta = Number(document.getElementById('purchaseKattaTpl').value || 0);
+  const kg = Number(document.getElementById('purchaseQtyTpl').value || 0);
+  const out = document.getElementById('purchaseTotalTpl');
+  if(out) out.value = ((rate20/20) * kg).toFixed(2);
+}
+
+
+
+
+
+// ###############################################################
+//          PART 5: PAGE LOGIC - PURCHASE & SALE (Init)
+// ###############################################################
+
+function onPageInit_purchase(){
+  document.getElementById('purchaseDateTpl').value = todayStr();
+  fillPartyDatalist();
+
+  const sel = document.getElementById('purchaseProductTpl');
+  if(sel){
+    sel.innerHTML = '<option value="">Select Product</option>';
+    products.forEach(p=>{
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  ['purchaseRateTpl','purchaseKattaTpl','purchaseQtyTpl'].forEach(id=>{
+     const el = document.getElementById(id);
+     if(el) el.addEventListener('input', updatePurchaseTotalTpl);
+  });
+
+  // ✅ PARTY MASTER AUTOCOMPLETE
+  
+}
+
+function onPageInit_sale(){
+  fillPartyDatalist();
+  buildP4ProductGrid();
+
+  if(isMobile()){
+    document.getElementById('salePartyTpl')?.removeAttribute('readonly');
+    document.getElementById('saleKattaTpl')?.removeAttribute('readonly');
+    document.getElementById('saleTokenTpl')?.removeAttribute('readonly');
+    document.getElementById('saleRateTpl')?.removeAttribute('readonly');
+
+    const partyInp = document.getElementById('salePartyTpl');
+    const panel = document.getElementById('p4PartyPanel');
+
+    if(partyInp && panel){
+      partyInp.onclick = (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        panel.style.display = 'block';
+        buildP4PartyCards();
+      };
+    }
+
+    // 🔥 MOBILE ORDER FIX (REGISTER ENTRY KE NICHE)
+    const form = document.getElementById('p4FormView');
+    const reg  = document.getElementById('p4RegisterView');
+    if(form && reg){
+      form.parentNode.insertBefore(reg, form.nextSibling);
+    }
+
+  } else {
+    document.getElementById('salePartyTpl')?.removeAttribute('readonly');
+    document.getElementById('saleKattaTpl')?.removeAttribute('readonly');
+    document.getElementById('saleTokenTpl')?.removeAttribute('readonly');
+  }
+    // 🔥 IF PRODUCT ALREADY SELECTED → SHOW FORM + REGISTER
+  if(currentProductId){
+    const prod = products.find(p => String(p.id) === String(currentProductId));
+
+    if(prod){
+      // Hide product grid
+      document.getElementById('p4SelectView').style.display = 'none';
+
+      // Show form + register
+      document.getElementById('p4FormView').style.display = 'block';
+      document.getElementById('p4RegisterView').style.display = 'block';
+
+      // Set product name & defaults
+      document.getElementById('p4SelectedProduct').textContent = prod.name;
+      document.getElementById('saleDateTpl').value = todayStr();
+      document.getElementById('saleRateTpl').value = prod.rate || '';
+
+      // 🔥 LOAD REGISTER (THIS WAS MISSING)
+      loadP4Register();
+    }
+  }
+
+}
+
+
+
+
+
+
+
+// ###############################################################
+//          PART 6: PAGE LOGIC - LEDGER
+// ###############################################################
+
+function onPageInit_ledger(){
+  showLedgerTpl();
+}
+
+function showLedgerTpl(){
+  const el = document.getElementById('ledgerPartyTpl');
+  const partyFilter = el ? String(el.value).trim().toLowerCase() : '';
+  const tbody = document.getElementById('ledgerTableBodyTpl');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  
+  if(ledgerEntries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5">Loading or No Data...</td></tr>';
+    return;
+  }
+
+  let d=0, c=0;
+  ledgerEntries.slice().reverse().forEach(e=>{
+    const pname = e.party_name || e.party || '';
+    if(partyFilter && !String(pname).toLowerCase().includes(partyFilter)) return;
+    d += Number(e.debit||0); c += Number(e.credit||0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${e.date.slice(0,10)}</td><td>${e.party_name || e.party || ''}</td><td>${e.type}</td>
+                    <td>${e.debit?e.debit:'-'}</td><td>${e.credit?e.credit:'-'}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('ledgerSummaryTpl').textContent = 
+    `Dr: ₹${d} | Cr: ₹${c} | Net: ₹${d-c}`;
+}
+
+
+// ###############################################################
+//          PART 7: PAGE LOGIC - PRODUCTS & SELLERS
+// ###############################################################
+
+function onPageInit_products(){
+  const area = document.getElementById('p7ListArea');
+  if(!area) return;
+  area.innerHTML = '';
+  if(products.length === 0) area.innerHTML = '<div>No products loaded. Click Refresh.</div>';
+  
+  products.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.minWidth = '150px'; div.style.padding='10px'; div.style.textAlign='center';
+    div.innerHTML = `<div style="font-size:1.5rem">${productEmoji(p.name)}</div>
+                     <div style="font-weight:bold;margin-top:4px">${p.name}</div>
+                     <div style="color:#064e3b;font-weight:700">Stock: ${p.stock} KG</div>
+                     <div class="small">Rate: ₹${p.rate}</div>`;
+    area.appendChild(div);
+  });
+}
+
+function loadSellerForm(containerId, sellerName){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+
+  if(!currentProductId){
+  container.innerHTML = `
+    <div class="card" style="border:1px dashed #f59e0b;background:#fffbeb">
+      <div style="font-weight:700;color:#b45309;margin-bottom:6px">
+        ⚠️ Product Not Selected
+      </div>
+      <div class="small">
+        Please select a product from the <b>top bar</b> to start selling.
+      </div>
+    </div>
+  `;
+
+  // 🔥 Make sure topbar is visible
+  const tb = document.getElementById('productsTopBar');
+  if(tb) tb.style.display = 'flex';
+
+  return;
+}
+
+
+  container.innerHTML = '';
+
+  
+  const tpl = document.getElementById('tpl-saleFormSmall');
+  const node = document.importNode(tpl.content, true);
+  
+  // --- A. Init ---
+  const prod = products.find(p=>String(p.id)===String(currentProductId));
+  node.querySelector('.sprodTpl').textContent = prod ? prod.name : 'No Product Selected';
+  node.querySelector('.dateTpl').value = todayStr();
+  
+  // Unique Radio IDs
+  const rnd = Math.floor(Math.random()*10000);
+  const radioCredit = node.querySelector('#payCredit');
+  const radioCash = node.querySelector('#payCash');
+  const labelCredit = node.querySelector('label[for="payCredit"]');
+  const labelCash = node.querySelector('label[for="payCash"]');
+  if(radioCredit){
+    radioCredit.id = "pc_"+rnd; radioCredit.name="pm_"+rnd; labelCredit.setAttribute('for',"pc_"+rnd);
+    radioCash.id = "pk_"+rnd; radioCash.name="pm_"+rnd; labelCash.setAttribute('for',"pk_"+rnd);
+  }
+
+  // --- B. MANDI CALCULATION LOGIC ---
+  const elRate = node.querySelector('.rateTpl');
+  const elWeight = node.querySelector('.weightTpl');
+  const elNag = node.querySelector('.nagTpl');
+  const elComm = node.querySelector('.commTpl');
+  const elTotal = node.querySelector('.totalTpl');
+  const elInfo = node.querySelector('.calc-info');
+
+  const doCalculate = () => {
+      const r = parseFloat(elRate.value) || 0;    // Rate
+      const w = parseFloat(elWeight.value) || 0;  // Weight
+      const n = parseFloat(elNag.value) || 0;     // Nag (Bags)
+      const c = parseFloat(elComm.value) || 0;    // Commission %
+      
+      // Cess Fixed: 0.8% | Majuri Fixed: 6 Rs/Bag
+      const CESS_PCT = 0.8;
+      const MAJURI_RATE = 6;
+
+      if(r > 0 && w > 0){
+          // 1. Base Amount (Rate/20 * Weight)
+          const baseAmt = (r / 20) * w;
+          
+          // 2. Add Expenses
+          const commAmt = baseAmt * (c / 100);
+          const cessAmt = baseAmt * (CESS_PCT / 100);
+          const majuriAmt = n * MAJURI_RATE;
+
+          // 3. Final Total
+          const finalVal = Math.round(baseAmt + commAmt + cessAmt + majuriAmt);
+          
+          elTotal.value = finalVal;
+          
+          // Optional: Show breakdown (Small text below total)
+          // elInfo.textContent = `Base: ${Math.round(baseAmt)} + Exp: ${Math.round(commAmt+cessAmt+majuriAmt)}`;
+      } else {
+          elTotal.value = '';
+          elInfo.textContent = '';
+      }
+  };
+
+  // Triggers
+  elRate.addEventListener('input', doCalculate);
+  elWeight.addEventListener('input', doCalculate);
+  elNag.addEventListener('input', doCalculate);
+  elComm.addEventListener('input', doCalculate);
+
+
+  // --- C. Toggle Logic ---
+  const toggles = node.querySelectorAll('.toggle-btn');
+  const formSec = node.getElementById('sec-form');
+  const regSec = node.getElementById('sec-register');
+  toggles.forEach(btn => {
+    btn.addEventListener('click', ()=>{
+       toggles.forEach(b => b.classList.remove('active')); btn.classList.add('active');
+       if(btn.dataset.view === 'form') { formSec.style.display='block'; regSec.style.display='none'; }
+       else { formSec.style.display='none'; regSec.style.display='block'; renderRegister(); }
+    });
+  });
+
+  function renderRegister(){
+     const tbody = container.querySelector('.tbody-register');
+     const totalEl = container.querySelector('.total-val');
+     tbody.innerHTML = '';
+     const mySales = sales.filter(s => s.seller === sellerName);
+     let grandTotal = 0;
+     mySales.slice().reverse().forEach(s => {
+        grandTotal += s.total;
+        const tr = document.createElement('tr');
+        // Remove extra info from party name for cleaner view if needed
+        tr.innerHTML = `<td>
+                          <div style="font-weight:600">${s.party_name}</div>
+                          <div class="small">${s.date.slice(0,10)}</div>
+                        </td>
+                        <td>${s.qty_kg} kg | ${s.qty_katta} katta</td>
+                        <td style="font-weight:bold;color:#0f766e">₹${s.total}</td>
+                        `;
+        tbody.appendChild(tr);
+     });
+     totalEl.textContent = '₹' + grandTotal;
+     if(mySales.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;padding:15px">No Sales</td></tr>';
+  }
+
+  // --- D. Save Logic ---
+  node.querySelector('.saveSaleSmall').addEventListener('click', async (e)=>{
+
+    // 🔴 PRODUCT MUST BE SELECTED
+    if(!currentProductId){
+      alert("Please select product from top bar");
+      return;
+    }
+
+    const btn = e.target;
+    const msg = container.querySelector('.msgSmall');
+    const party = container.querySelector('.partyTpl').value.trim();
+    if(!party){
+      alert("Party name required");
+      return;
+    }
+    await ensurePartyExists(party);
+
+    const date = container.querySelector('.dateTpl').value;
+    const r = container.querySelector('.rateTpl').value;
+    const nag = container.querySelector('.nagTpl').value;
+    const totalKg = Number(container.querySelector('.weightTpl').value || 0);
+    const prod = products.find(p => String(p.id) === String(currentProductId));
+    if(prod){
+      if(totalKg > prod.stock){
+        alert("❌ KG stock insufficient\nAvailable: " + prod.stock + " KG");
+        return;
+      }
+      if(Number(nag || 0) > prod.stock_katta){
+        alert("❌ Katta stock insufficient\nAvailable: " + prod.stock_katta + " Bags");
+        return;
+      }
+}
+
+
+
+    const rem = container.querySelector('.remTpl').value.trim();
+
+     
+     let payMode = "Udhar";
+     const checkedRadio = container.querySelector(`input[name="pm_${rnd}"]:checked`);
+     if(checkedRadio) payMode = checkedRadio.value;
+
+     if(!party || !currentProductId || !totalKg || !r) { alert("Data Missing"); return; }
+
+     
+     btn.disabled = true; btn.textContent = "Saving..."; msg.textContent = "Sending...";
+     try {
+       // Save Format: "Party [Cash] (10 Bags) - Note (Seller 1)"
+       let d = ` [${payMode}]`;
+       if(nag) d += ` (${nag} Bags)`;
+       if(rem) d += ` - ${rem}`;
+       
+       const out = await fetchFromSheetAction("sale", {
+        date,
+        party_name: party,
+        product_id: String(currentProductId),
+        qty_kg: totalKg,
+        qty_katta: Number(nag || 0),
+        rate_20kg: Number(r),
+        commission_pct: Number(elComm.value || 0),
+        seller: sellerName
+      });
+
+       if(out.status !== "ok") throw new Error(out.msg);
+       msg.textContent = "✅ Saved!"; msg.style.color = "green";
+       
+       // Clear
+       container.querySelector('.partyTpl').value='';
+       container.querySelector('.nagTpl').value='';
+       container.querySelector('.weightTpl').value='';
+       container.querySelector('.remTpl').value='';
+       container.querySelector('.totalTpl').value='';
+       await refreshAfterSale();
+     } catch(err){ msg.textContent = "❌ "+err.message; msg.style.color="red"; }
+     finally { btn.disabled = false; btn.textContent = "SAVE SALE"; }
+  });
+  fillPartyDatalist();
+  container.appendChild(node);
+}
+
+
+// ###############################################################
+//          PART 8: MOBILE DRAWER & APP INIT
+// ###############################################################
+
+function handleMenuToggle(){
+  const layout = document.getElementById('appLayout');
+  if(window.innerWidth <= 900){
+     layout.classList.contains('mobile-open') ? closeMobileDrawer() : openMobileDrawer();
+  } else {
+     layout.classList.toggle('sidebar-collapsed');
+  }
+}
+function openMobileDrawer(){
+  document.getElementById('appLayout').classList.add('mobile-open');
+  document.getElementById('mobileOverlay').classList.add('show');
+}
+function closeMobileDrawer(){
+  document.getElementById('appLayout').classList.remove('mobile-open');
+  document.getElementById('mobileOverlay').classList.remove('show');
+}
+document.getElementById('mobileOverlay').addEventListener('click', closeMobileDrawer);
+document.getElementById('menuToggleBtn').addEventListener('click', handleMenuToggle);
+
+/* --- Initialization --- */
+window.addEventListener('DOMContentLoaded', ()=>{
+   try{ currentProductId = localStorage.getItem('selectedProductId'); }catch(e){}
+   initApp();
+});
+
+async function initApp(){
+  renderAndShow('home');
+
+  // 🔥 PARTY ONLY ONCE (APP START)
+  await loadPartiesFromSheet();
+  fillPartyDatalist();
+
+  // बाकी data
+  refreshAllData();
+}
+
+
+
+// ###############################################################
+//          PART 9: CASH COUNTER LOGIC (Local)
+// ###############################################################
+
+const CASH_DENOMS = [500,200,100,50,20,10,5,2,1];
+let cashCurrent = new Map();
+function onPageInit_cashCounter(){
+  CASH_DENOMS.forEach(d=>cashCurrent.set(d,0));
+  renderCashDenoms(); cash_updateTotals();
+}
+function renderCashDenoms(){
+  const c = document.getElementById('cashDenomsTpl'); if(!c) return; c.innerHTML='';
+  CASH_DENOMS.forEach(d=>{
+     const pcs = cashCurrent.get(d)||0;
+     const div = document.createElement('div');
+     div.style.display='flex'; div.style.justifyContent='space-between'; div.style.padding='6px';
+     div.innerHTML = `<b>₹${d}</b> <input style="width:100px" type="number" value="${pcs}" oninput="updateCash(${d},this.value)"> <b>₹${d*pcs}</b>`;
+     c.appendChild(div);
+  });
+}
+window.updateCash = function(d,v){ cashCurrent.set(d, Number(v)); renderCashDenoms(); cash_updateTotals(); }
+function cash_updateTotals(){
+  let t=0; cashCurrent.forEach((v,k)=>t+=v*k);
+  const el = document.getElementById('cashTotalTpl');
+  if(el) el.textContent = '₹'+t;
+}
+window.cash_resetCurrent = function(){ onPageInit_cashCounter(); }
+
+
+// ###############################################################
+//          PART 10: CALCULATOR LOGIC (Local)
+// ###############################################################
+// ===================================================
+// P2 — RATE × WEIGHT (CLEAN LOGIC)
+// ===================================================
+let p2_caseCount = 0; // 🔥 actual case count
+let p2_weights = [];
+let p2_mode = null; 
+let p2_commissionPct = 7; // default 7%
+let p2_adjustEnabled = true; // +5 / -5 ON by default
+
+
+// null | 'manual' | 'case'
+
+function p2_addWeight(){
+  // ❌ Block if case mode already used
+  if(p2_mode === 'case'){
+    alert("❌ Case Shortcut already used.\nReset karo ya sirf ek mode use karo.");
+    return;
+  }
+
+  const inp = document.getElementById('p2_weightInput');
+  const val = parseFloat(inp.value);
+  if(!val || val <= 0) return;
+
+  p2_mode = 'manual';   // 🔒 lock mode
+  document.getElementById('p2_caseInput').disabled = true;
+
+  p2_weights.push(val);
+  inp.value = '';
+  p2_render();
+}
+
+
+function p2_addCases(){
+  // ❌ Block if manual mode already used
+  if(p2_mode === 'manual'){
+    alert("❌ Manual weight already added.\nReset karo ya sirf ek mode use karo.");
+    return;
+  }
+
+  const inp = document.getElementById('p2_caseInput');
+  const cases = parseInt(inp.value);
+  if(!cases || cases <= 0) return;
+
+  const KG_PER_CASE = 50;
+
+  p2_mode = 'case';   // 🔒 lock mode
+  document.getElementById('p2_weightInput').disabled = true;
+
+  p2_caseCount += cases;                // ✅ REAL CASE COUNT
+  p2_weights.push(cases * KG_PER_CASE); // total KG
+
+  inp.value = '';
+  p2_render();
+}
+
+
+
+
+function p2_remove(index){
+  p2_weights.splice(index, 1);
+  p2_render();
+}
+
+function p2_render(){
+  const box = document.getElementById('p2_weightList');
+  box.innerHTML = '';
+
+  let totalKg = 0;
+
+  p2_weights.forEach((w,i)=>{
+    totalKg += w;
+
+    const chip = document.createElement('div');
+    chip.className = 'p4-party-btn';
+    chip.innerHTML = `${w} KG ✖`;
+    chip.onclick = ()=>p2_remove(i);
+    box.appendChild(chip);
+  });
+
+  // Total KG always
+  document.getElementById('p2_totalKg').textContent = totalKg.toFixed(2);
+
+  // 👇 ONLY MANUAL MODE → show case count
+  const caseBox = document.getElementById('p2_manualCaseBox');
+  const caseCount = document.getElementById('p2_manualCases');
+
+  if(p2_mode === 'manual'){
+    caseBox.style.display = 'inline';
+    caseCount.textContent = p2_weights.length;
+}
+  else if(p2_mode === 'case'){
+    caseBox.style.display = 'inline';
+    caseCount.textContent = p2_caseCount;
+}
+else {
+  caseBox.style.display = 'none';
+}
+
+}
+
+
+function p2_calculate(){
+  const rate = Number(document.getElementById('p2_rate').value);
+  if(!rate || p2_weights.length === 0) return;
+
+  const totalKg = p2_weights.reduce((a,b)=>a+b,0);
+
+  // 🔥 TRADITIONAL CASE CALCULATION
+  const cases = (p2_mode === 'case') ? p2_caseCount : p2_weights.length;
+  const majuri = cases * 6;
+
+
+
+  const base = (rate / 20) * totalKg;
+  const comm = base * (p2_commissionPct / 100);
+  const cess = base * 0.008;
+
+  let subTotal = base + comm + cess + majuri; // ❌ NO ROUND HERE
+  let finalAmt = subTotal;
+
+
+  if(p2_adjustEnabled){
+  // 🔥 +5 / −5 MANDI RULE (Nearest 10 based on last part)
+  const base10 = Math.floor(finalAmt / 10) * 10;
+  const lastPart = finalAmt - base10;
+
+  if(lastPart >= 5){
+    finalAmt = base10 + 10;
+  } else {
+    finalAmt = base10;
+  }
+}
+
+
+  document.getElementById('p2_result').textContent = finalAmt;
+
+}
+
+function p2_setFixedComm(){
+  p2_commissionPct = 7;
+}
+
+
+function p2_openManualComm(){
+  const val = prompt("Manual Commission % dalo (example: 5, 6.5)");
+  if(val === null) return;
+
+  const pct = parseFloat(val);
+  if(isNaN(pct) || pct < 0) {
+    alert("❌ Galat value");
+    return;
+  }
+
+  p2_commissionPct = pct;
+}
+
+
+function p2_reset(){
+  p2_weights = [];
+  p2_caseCount = 0;
+  p2_mode = null;   // 🔓 unlock mode
+
+  document.getElementById('p2_weightInput').value = '';
+  document.getElementById('p2_caseInput').value = '';
+  document.getElementById('p2_rate').value = '';
+  document.getElementById('p2_result').textContent = '0';
+  document.getElementById('p2_totalKg').textContent = '0.00';
+  document.getElementById('p2_weightList').innerHTML = '';
+
+  // 🔓 Re-enable both inputs
+  document.getElementById('p2_weightInput').disabled = false;
+  document.getElementById('p2_caseInput').disabled = false;
+
+  // ✅ COMMISSION RESET (BAS YE ADD)
+  p2_commissionPct = 7;
+  p2_adjustEnabled = true;
+
+  const btn = document.getElementById('p2_adjustBtn');
+    if(btn){
+      btn.textContent = 'ON';
+      btn.className = 'btn';
+  }
+  const paidInp = document.getElementById('p2_paid');
+  const box = document.getElementById('p2_changeBox');
+  if(paidInp) paidInp.value = '';
+  if(box) box.textContent = '';
+}
+
+
+
+function p2_whatsapp(){
+  const name = document.getElementById('p2_customer').value || 'Customer';
+  const amt  = document.getElementById('p2_result').textContent;
+  const adv  = document.getElementById('p2_advance').value || 0;
+
+  const msg =
+`P2 Calculation
+Customer: ${name}
+Total Amount: ₹${amt}
+Advance: ₹${adv}`;
+
+  alert(msg);
+}
+
+// 🔥 ENTER / DONE = ADD (Mobile + Desktop)
+// Only for P2 Weight Input (Safe & Mobile-first)
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){
+    const el = document.activeElement;
+
+    // ✅ Only trigger when P2 weight input is active
+    if(el && el.id === 'p2_weightInput'){
+      e.preventDefault();   // ❌ prevent page submit / reload
+      p2_addWeight();       // ✅ ADD weight
+    }
+  }
+});
+
+function p2_toggleAdjust(){
+  p2_adjustEnabled = !p2_adjustEnabled;
+
+  const btn = document.getElementById('p2_adjustBtn');
+  if(!btn) return;
+
+  if(p2_adjustEnabled){
+    btn.textContent = 'ON';
+    btn.className = 'btn';
+  } else {
+    btn.textContent = 'OFF';
+    btn.className = 'btn-outline';
+  }
+}
+function p2_calcChange(){
+  const total = Number(
+    document.getElementById('p2_result')?.textContent || 0
+  );
+  const paid = Number(
+    document.getElementById('p2_paid')?.value || 0
+  );
+  const box = document.getElementById('p2_changeBox');
+
+  if(!box || !total || !paid){
+    if(box) box.textContent = '';
+    return;
+  }
+
+  const diff = paid - total;
+
+  if(diff > 0){
+    box.textContent = `💸 ₹${diff} wapas dene he`;
+    box.style.color = '#065f46';
+  }
+  else if(diff < 0){
+    box.textContent = `⚠️ ₹${Math.abs(diff)} aur lene he`;
+    box.style.color = '#b91c1c';
+  }
+  else{
+    box.textContent = '✅ Full payment received';
+    box.style.color = '#16a34a';
+  }
+}
+
+
+// ###############################################################
+//          PART 11: EXPORTS (Global Access)
+// ###############################################################
+
+window.switchPanel = switchPanel;
+window.renderAndShow = renderAndShow;
+window.savePurchaseTpl = savePurchaseTpl;
+window.addProductFromPurchase = addProductFromPurchase;
+window.showLedgerTpl = showLedgerTpl;
+window.refreshAllData = refreshAllData;
+window.selectProductTopbar = selectProductTopbar;
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./sw.js")
+        .then(() => console.log("✅ Mandi PWA Ready"))
+        .catch(err => console.error("❌ SW Error", err));
+    });
+  }
+
+</script>
+</body>
+</html>

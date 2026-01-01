@@ -60,12 +60,26 @@ function loadMySoftwares() {
         .then(r => r.json())
         .then(list => {
             const box = document.getElementById("list");
-            box.innerHTML = list.map(s => `
+            box.innerHTML = list.map(s => {
+                // 1. Sheet ke naam ko folder name jaisa banayein
+                // Example: "Cash Calculator" -> "cash-calculator"
+                // Example: "Avadh" -> "avadh"
+                const folderName = s.software_name.toLowerCase().trim().replace(/\s+/g, '-');
+                
+                // 2. Folder ka sahi rasta (Path)
+                const appPath = `apps/${folderName}/index.html`;
+
+                return `
                 <div class="card">
                     <h3>${s.software_name}</h3>
                     <p>Status: <b class="${s.status.toLowerCase()}">${s.status}</b></p>
-                    <button onclick="location.href='apps/cash-calculator/index.html'" ${s.status !== 'ACTIVE' ? 'disabled' : ''}>OPEN</button>
+                    <button onclick="location.href='${appPath}'" ${s.status !== 'ACTIVE' ? 'disabled' : ''}>OPEN</button>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            document.getElementById("list").innerText = "Software load nahi ho paye.";
         });
 }

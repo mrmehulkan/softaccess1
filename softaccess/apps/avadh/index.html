@@ -220,7 +220,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbz5q_8d1DNKr6L_Xiyw7dO7pA7vNsVhWdCSAKRrjCb34KdNMYhsvZB0XF1PqTzrYTm3/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyvOzaBugC-p2bZTDPKety2JNgJrHX_6WaioLfced8Sczj9MNHSu9v9RH0FD3I8A4KU/exec";
         const PASSWORD = "admin123";
         let productMaster = [];
         let currentMode = "SALE";
@@ -303,33 +303,70 @@
         }
 
         async function saveAllEntries() {
-            const rows = document.querySelectorAll("#tableBody tr");
-            const entries = [];
-            const billId = currentMode.charAt(0) + "-2526-" + Date.now().toString().slice(-4);
-            
-            let totalTaxable = 0;
-            let totalGST = 0;
+                const rows = document.querySelectorAll("#tableBody tr");
+                const entries = [];
 
-            rows.forEach(r => {
-                const item = r.cells[1].querySelector("input").value;
-                if (!item) return;
-                const q = Number(r.cells[2].querySelector("input").value);
-                const p = Number(r.cells[4].querySelector("input").value);
-                const g = Number(r.cells[5].querySelector("input").value);
-                
-                const taxable = q * p;
-                const gstAmt = taxable * g / 100;
-                totalTaxable += taxable;
-                totalGST += gstAmt;
+                let totalTaxable = 0;
+                let totalGST = 0;
 
-                entries.push({ billId, date: new Date().toLocaleDateString(), entryType: currentMode, item: item, qty: q, unit: r.cells[3].querySelector("input").value, price: p, gst: g, totalWithGST: (taxable + gstAmt).toFixed(2) });
-            });
+                rows.forEach(r => {
+                    const item = r.cells[1].querySelector("input").value;
+                    if (!item) return;
 
-            const bill = { billId, date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), grandTotal: (totalTaxable + totalGST).toFixed(2), taxable: totalTaxable.toFixed(2), gstAmount: totalGST.toFixed(2), items: entries };
-            
-            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveEntries", data: { entries, bill } }) }).then(r => r.json());
-            if (res.success) { showToast("✅ Saved!"); populateAndPrint(bill); }
-        }
+                    const q = Number(r.cells[2].querySelector("input").value);
+                    const p = Number(r.cells[4].querySelector("input").value);
+                    const g = Number(r.cells[5].querySelector("input").value);
+
+                    const taxable = q * p;
+                    const gstAmt = taxable * g / 100;
+
+                    totalTaxable += taxable;
+                    totalGST += gstAmt;
+
+                    entries.push({
+                        date: new Date().toLocaleDateString(),
+                        entryType: currentMode,
+                        item: item,
+                        qty: q,
+                        unit: r.cells[3].querySelector("input").value,
+                        price: p,
+                        gst: g,
+                        totalWithGST: (taxable + gstAmt).toFixed(2)
+                    });
+                });
+
+                if (entries.length === 0) {
+                    alert("No items to save");
+                    return;
+                }
+
+                const bill = {
+                    billId: "",   // backend fill karega
+                    date: new Date().toLocaleDateString(),
+                    time: new Date().toLocaleTimeString(),
+                    grandTotal: (totalTaxable + totalGST).toFixed(2),
+                    taxable: totalTaxable.toFixed(2),
+                    gstAmount: totalGST.toFixed(2),
+                    items: entries
+                };
+
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "saveEntries",
+                        data: { entries, bill }
+                    })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    bill.billId = res.billId;   // ✅ backend bill number
+                    showToast("✅ Saved!");
+                    populateAndPrint(bill);
+                } else {
+                    alert("Save failed");
+                }
+            }
+
 
         function populateAndPrint(bill) {
             document.getElementById("p_billNo").textContent = bill.billId;

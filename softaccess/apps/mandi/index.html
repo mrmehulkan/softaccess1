@@ -2,18 +2,6 @@
 <html lang="hi">
 <head>
   <meta charset="utf-8" />
-  <script>
-      // Security Guard: Check if user is logged in
-      (function() {
-          const userId = localStorage.getItem("user_id"); // user.js dwara save kiya gaya ID
-
-          if (!userId) {
-              // Agar login nahi hai, toh alert dikhao aur bahar phenk do
-              alert("⚠️ Unauthorized Access!\nPlease login via SoftAccess Portal.");
-              window.location.href = "../../index.html"; // Root Login page ka rasta
-          }
-      })();
-  </script>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mandi System — Seller Fixed</title>
    <!-- ✅ PWA ADD -->
@@ -288,7 +276,72 @@
         transform: scale(0.95);
       }
     }
-  
+    /* 🔒 HARD BLOCK SELLER FORM WHEN REGISTER IS ACTIVE */
+    #sec-register .seller-form-section,
+    #sec-register .remTpl,
+    #sec-register .totalTpl,
+    #sec-register .saveSaleSmall {
+      display: none !important;
+}
+    /* ================= SELLER POPUP (STEP-1) ================= */
+    .seller-popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      z-index: 2000;
+    }
+
+    .seller-popup {
+      background: #ffffff;
+      width: 92%;
+      max-width: 420px;
+      margin: 80px auto;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+
+    .seller-popup-header {
+      font-weight: 800;
+      color: #0f766e;
+      margin-bottom: 10px;
+    }
+
+    .seller-popup-footer {
+      margin-top: 12px;
+      text-align: right;
+    }
+    
+    /* 🔧 FIX: SHOW ALL CHECKBOXES IN CUSTOMIZE POPUP */
+    #popupColumnTogglePanel {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr);  
+      gap: 8px 12px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    #popupColumnTogglePanel label {
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    /* 🔧 FIX: FORCE CHECKBOX VISIBILITY IN CUSTOMIZE POPUP */
+    #popupColumnTogglePanel input[type="checkbox"] {
+      appearance: auto;
+      -webkit-appearance: checkbox;
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    #popupColumnTogglePanel label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
   </style>
 </head>
 <body>
@@ -334,16 +387,6 @@
       <div class="menu-btn" onclick="refreshAllData()" data-tooltip="Sync Data">
         <div class="ico">🔄</div><div>Sync Data</div>
       </div>
-      
-      <a href="../../dashboard.html" style="text-decoration:none; color:inherit;">
-          <div class="menu-btn" data-tooltip="Back to Apps">
-            <div class="ico">⬅️</div><div>Back to Apps</div>
-          </div>
-      </a>
-
-      <div class="menu-btn" onclick="logoutUser()" data-tooltip="Logout" style="color: #fda4af;">
-        <div class="ico">🚪</div><div>Logout</div>
-      </div>      
     </nav>
     <div class="sidebar-footer">v2.5 — Seller Fix</div>
   </aside>
@@ -698,12 +741,28 @@
 
 <template id="tpl-saleFormSmall">
   <div>
-    <div class="toggle-container">
+    <div class="toggle-container" style="align-items:center">
       <div class="toggle-btn active" data-view="form">📝 New Entry</div>
       <div class="toggle-btn" data-view="register">📋 Sale Register</div>
+
+      <!-- ⚙ Customize -->
+      <div class="toggle-btn"
+           style="flex:0; padding:6px 10px"
+           onclick="openSellerPopup()">
+        ⚙
+      </div>
+
+      <!-- 🔍 Filter -->
+      <div class="toggle-btn"
+           style="flex:0; padding:6px 10px"
+           onclick="openSellerFilterPopup()">
+        🔍
+      </div>
     </div>
 
-    <div id="sec-form">
+    
+
+    <div id="sec-form" class="seller-form-section">
       <div class="label">
         Product:
         <span class="sprodTpl" style="color:#0f766e;font-weight:800"></span>
@@ -718,20 +777,42 @@
         <div class="col"><label>Date</label><input class="dateTpl" type="date"></div>
       </div>
 
+      <!-- ✅ NEW PAYMENT TYPE (REPLACEMENT) -->
       <div style="margin-top:8px;">
-        <label class="label" style="font-size:0.85rem">Payment Mode</label>
-        <div class="radio-group">
-          <input type="radio" id="payCredit" name="payMode" value="Udhar" checked>
-          <label for="payCredit">Udhar</label>
-          <input type="radio" id="payCash" name="payMode" value="Cash">
-          <label for="payCash">Rokda (Cash)</label>
+        <label class="label" style="font-size:0.85rem">Payment Type</label>
+
+        <div class="radio-group payment-type-group">
+          <input type="radio" id="ptCash" name="paymentType" value="CASH" checked>
+          <label for="ptCash">CASH</label>
+
+          <input type="radio" id="ptGpay" name="paymentType" value="GPAY">
+          <label for="ptGpay">GPAY</label>
+
+          <input type="radio" id="ptUdhar" name="paymentType" value="UDHAR">
+          <label for="ptUdhar">UDHAR</label>
+
+          <input type="radio" id="ptPartial" name="paymentType" value="PARTIAL">
+          <label for="ptPartial">PARTIAL</label>
         </div>
       </div>
+
 
       <div class="row" style="margin-top:8px;">
          <div class="col"><label>Rate (20kg)</label><input class="rateTpl" type="number" placeholder="₹"></div>
          <div class="col"><label>Nag (Bags)</label><input class="nagTpl" type="number" placeholder="Qty"></div>
-         <div class="col"><label>Weight (Kg)</label><input class="weightTpl" type="number" placeholder="Total Kg"></div>
+         <div class="col">
+          <label>Weight (Kg)</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input class="weightTpl" type="number" placeholder="Total Kg" style="flex:1">
+            <button type="button"
+                    class="btn-outline"
+                    style="padding:6px 10px"
+                    onclick="openWeightCalcPopup(this)">
+              🧮
+            </button>
+          </div>
+        </div>
+
       </div>
 
       
@@ -745,44 +826,274 @@
          </div>
       </div>
 
-      <div class="row" style="margin-top:8px;">
-         <div class="col" style="flex:2"><label>Remarks</label><input class="remTpl" type="text" placeholder="Note..."></div>
-         <div class="col" style="flex:1"><label>Total ₹</label><input class="totalTpl" type="text" readonly style="font-weight:bold; font-size:1.1rem; color:#0f766e;"></div>
-      </div>
-      
-      <div class="calc-info small" style="text-align:right; color:#0f766e; margin-top:2px;"></div>
+      <div class="seller-form-only">
+        <div class="row" style="margin-top:8px;">
+          <div class="col" style="flex:2">
+            <label>Remarks</label>
+            <input class="remTpl" type="text">
+          </div>
 
-      <div style="margin-top:12px;">
-          <button class="btn saveSaleSmall" style="width:100%; padding:12px;">SAVE SALE</button>
+          <div class="col">
+            <label>GPay ₹</label>
+            <input class="gpayTpl" type="number" placeholder="0">
+          </div>
+
+          <div class="col">
+            <label>Cash ₹</label>
+            <input class="cashTpl" type="number" placeholder="0">
+          </div>
+
+          <div class="col">
+            <label>Total ₹</label>
+            <input class="totalTpl" type="text" readonly>
+          </div>
+        </div>
+
+
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn saveSaleSmall" style="flex:1">SAVE SALE</button>
+          <button class="btn-outline printSaleSmall" style="flex:1">PRINT</button>
+        </div>
+
+      </div>
+
       </div>
       <div class="small msgSmall" style="margin-top:8px; text-align:center;"></div>
     </div>
 
+    
+
+    <!-- 🔍 SELLER FILTER POPUP -->
+    <div class="seller-popup-overlay" id="sellerFilterPopup">
+      <div class="seller-popup">
+        <div class="seller-popup-header">
+          🔍 Sale Filters
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <input class="flt-party" placeholder="Party filter">
+          </div>
+          <div class="col">
+            <input class="flt-date" type="date">
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <input class="flt-product" placeholder="Product filter">
+          </div>
+          <div class="col">
+            <select class="flt-seller">
+              <option value="">All Sellers</option>
+              <option value="Seller 1">Seller 1</option>
+              <option value="Seller 2">Seller 2</option>
+              <option value="Seller 3">Seller 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="seller-popup-footer" style="display:flex;gap:8px;justify-content:space-between">
+          <button class="btn-outline" onclick="clearSellerFilters()">
+            CLEAR
+          </button>
+          <button class="btn-outline" onclick="closeSellerFilterPopup()">
+            DONE
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="sec-register" style="display:none;">
-       <div style="max-height:350px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+      <!-- 🧩 COLUMN VISIBILITY TOGGLE -->
+      <div class="card" style="margin-bottom:8px; display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="label">Columns</div>
+          <button class="btn-outline"
+                  style="font-size:0.8rem"
+                  onclick="toggleColumnPanel(this)">
+            ⚙ Customize
+          </button>
+        </div>
+
+        <div class="row"
+             id="columnTogglePanel"
+             style="display:none;margin-top:8px">
+          <label><input type="checkbox" data-col="date" checked> Date</label>
+          <label><input type="checkbox" data-col="party" checked> Party</label>
+          <label><input type="checkbox" data-col="product" checked> Product</label>
+          <label><input type="checkbox" data-col="kg" checked> Kg</label>
+          <label><input type="checkbox" data-col="bags" checked> Bags</label>
+          <label><input type="checkbox" data-col="rate" checked> Rate</label>
+          <label><input type="checkbox" data-col="comm" checked> Comm</label>
+          <label><input type="checkbox" data-col="cess" checked> Cess</label>
+          <label><input type="checkbox" data-col="majuri" checked> Majuri</label>
+          <label><input type="checkbox" data-col="total" checked> Total</label>
+          <label><input type="checkbox" data-col="seller" checked> Seller</label>
+        </div>
+      </div>
+
+      <!-- 🔍 SALE REGISTER FILTER BAR -->
+      <div class="card" style="margin-bottom:8px; display:none">
+        <div class="row">
+          <div class="col">
+            <input class="flt-party" placeholder="Party filter">
+          </div>
+
+          <div class="col">
+            <input class="flt-date" type="date">
+          </div>
+
+          <div class="col">
+            <input class="flt-product" placeholder="Product filter">
+          </div>
+
+          <div class="col">
+            <select class="flt-seller">
+              <option value="">All Sellers</option>
+              <option value="Seller 1">Seller 1</option>
+              <option value="Seller 2">Seller 2</option>
+              <option value="Seller 3">Seller 3</option>
+            </select>
+          </div>
+
+          <div class="col" style="max-width:90px">
+            <button class="btn-outline flt-clear">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      
+      <div style="max-height:350px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
          <table class="seller-table">
-           <thead><tr><th>Party / Details</th><th>Weight</th><th>Total</th></tr></thead>
-           <tbody class="tbody-register"></tbody>
+          <thead>
+            <tr>
+              <th data-col="date">Date</th>
+              <th data-col="party">Party</th>
+              <th data-col="product">Product</th>
+              <th data-col="kg">Kg</th>
+              <th data-col="bags">Bags</th>
+              <th data-col="rate">Rate</th>
+              <th data-col="comm">Comm ₹</th>
+              <th data-col="cess">Cess ₹</th>
+              <th data-col="majuri">Majuri ₹</th>
+              <th data-col="total">Total ₹</th>
+              <th data-col="seller">Seller</th>
+              <!-- 🆕 ADD ONLY -->
+              <th data-col="cash">Cash</th>
+              <th data-col="gpay">GPay</th>
+              <th data-col="udhar">Udhar</th>
+              <th data-col="partial">Partial</th>
+            </tr>
+          </thead>
+          <tbody class="tbody-register"></tbody>
          </table>
        </div>
        <div class="total-bar">
           <div>Total Sale:</div>
           <div class="total-val">₹0</div>
        </div>
+       <!-- 📦 PRODUCT SUMMARY (STEP-1: STRUCTURE ONLY) -->
+       <div class="card" id="productSummaryBox" style="margin-top:10px">
+         <div class="label">📦 Product Summary (Filtered View)</div>
+
+         <div style="overflow:auto">
+           <table style="width:100%; font-size:0.85rem">
+             <thead>
+               <tr>
+                 <th>Product</th>
+                 <th>Bags</th>
+                 <th>KG</th>
+                 <th>Total ₹</th>
+                 <th>Majuri ₹</th>
+               </tr>
+             </thead>
+             <tbody id="productSummaryBody">
+               <tr>
+                 <td colspan="5" style="text-align:center;color:#999">
+                   No summary yet
+                 </td>
+               </tr>
+             </tbody>
+           </table>
+         </div>
+       </div>
+
        <div style="text-align:center; margin-top:10px;">
          <button class="btn-outline" style="font-size:0.8rem" onclick="refreshAllData()">🔄 Refresh List</button>
        </div>
     </div>
+    <!-- 🔧 SELLER CUSTOMIZE POPUP -->
+    <div class="seller-popup-overlay" id="sellerCustomizePopup">
+      <div class="seller-popup">
+        <div class="seller-popup-header">
+          ⚙ Customize Columns
+        </div>
+
+        <!-- 👇 COLUMN VISIBILITY TOGGLE (MOVED HERE) -->
+        <div id="popupColumnTogglePanel" class="row" style="gap:10px;">
+          <label><input type="checkbox" data-col="date" checked> Date</label>
+          <label><input type="checkbox" data-col="party" checked> Party</label>
+          <label><input type="checkbox" data-col="product" checked> Product</label>
+          <label><input type="checkbox" data-col="kg" checked> Kg</label>
+          <label><input type="checkbox" data-col="bags" checked> Bags</label>
+          <label><input type="checkbox" data-col="rate" checked> Rate</label>
+          <label><input type="checkbox" data-col="comm" checked> Comm</label>
+          <label><input type="checkbox" data-col="cess" checked> Cess</label>
+          <label><input type="checkbox" data-col="majuri" checked> Majuri</label>
+          <label><input type="checkbox" data-col="total" checked> Total</label>
+          <label><input type="checkbox" data-col="seller" checked> Seller</label>
+          <label><input type="checkbox" data-col="cash" checked> Cash</label>
+          <label><input type="checkbox" data-col="gpay" checked> GPay</label>
+          <label><input type="checkbox" data-col="udhar" checked> Udhar</label>
+          <label><input type="checkbox" data-col="partial" checked> Partial</label>
+        </div>
+
+        <div class="seller-popup-footer">
+          <button class="btn-outline" onclick="closeSellerPopup()">
+            DONE
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- 🧮 WEIGHT CALCULATOR POPUP -->
+    <div class="seller-popup-overlay" id="weightCalcPopup">
+      <div class="seller-popup">
+        <div class="seller-popup-header">
+          🧮 Weight Calculator
+        </div>
+
+        <div style="display:flex;gap:6px">
+          <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:1">
+          <button class="btn-outline" onclick="addWeightItem()">➕</button>
+        </div>
+
+        <div id="wcList" style="margin-top:10px"></div>
+
+        <div style="margin-top:8px;font-weight:800;color:#065f46">
+          Total: <span id="wcTotal">0</span> KG
+        </div>
+
+        <div class="seller-popup-footer" style="display:flex;justify-content:space-between">
+          <button class="btn-outline" onclick="clearWeightCalc()">CLEAR ALL</button>
+          <button class="btn-outline" onclick="closeWeightCalcPopup()">DONE</button>
+        </div>
+      </div>
+    </div>
+
+
   </div>
+
 </template>
 
-<script src="../../user.js"></script>
+
 <script>
 
 // ###############################################################
 //          PART 1: CONFIGURATION & GLOBAL VARIABLES
 // ###############################################################
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzzLOJrp1aWQjZ5tW7qFh-POjJ06Ph7UZeZM4q3Khq5c-F6_2VpdaDiSoV8oX_UDocTtg/exec";
+
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztNKdb2Mkos4gJ4DUSKAphCAHleYIm7LC6ZOkOZ17saQ4pgWgwFzJ6OBA11KXMANP6Iw/exec";
 
 // Local State
 let products = []; 
@@ -1003,10 +1314,17 @@ async function loadSalesFromSheet(){
       cess_amt: Number(r.cess_amt),
       majuri_amt: Number(r.majuri_amt),
       total: Number(r.total),
-      seller: r.seller || ""
+      seller: r.seller || "",
+
+      // 🆕 PAYMENT (ADD ONLY)
+      payment_type: r.payment_type || "",
+      cash: Number(r.cash) || 0,
+      gpay: Number(r.gpay) || 0,
+      udhar: Number(r.udhar) || 0
     }));
   }
 }
+
 
 
 async function loadLedgerFromSheet(){
@@ -1712,6 +2030,150 @@ function showLedgerTpl(){
     `Dr: ₹${d} | Cr: ₹${c} | Net: ₹${d-c}`;
 }
 
+function renderRegister(){
+  const container = document.querySelector(
+    '#seller1FormArea, #seller2FormArea, #seller3FormArea'
+  );
+  if(!container) return;
+
+  const tbody   = container.querySelector('.tbody-register');
+  const totalEl = container.querySelector('.total-val');
+  if(!tbody || !totalEl) return;
+
+  tbody.innerHTML = '';
+  let grand = 0;
+
+  const fParty   = (container.querySelector('.flt-party')?.value || '').toLowerCase();
+  const fDate    = container.querySelector('.flt-date')?.value || '';
+  const fProduct = (container.querySelector('.flt-product')?.value || '').toLowerCase();
+  const fSeller  = container.querySelector('.flt-seller')?.value || '';
+
+  const rows = sales.filter(s=>{
+    if(fSeller && s.seller !== fSeller) return false;
+    if(fParty && !String(s.party_name).toLowerCase().includes(fParty)) return false;
+    if(fDate && String(s.date).slice(0,10) !== fDate) return false;
+
+    if(fProduct){
+      const prod = products.find(p=>String(p.id)===String(s.product_id));
+      const pname = prod ? prod.name.toLowerCase() : '';
+      if(!pname.includes(fProduct)) return false;
+    }
+    return true;
+  });
+
+  if(rows.length === 0){
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#999">No records</td></tr>`;
+    totalEl.textContent = '₹0';
+    return;
+  }
+
+  rows.slice().reverse().forEach(s=>{
+    const prod = products.find(p=>String(p.id)===String(s.product_id));
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-col="date">${String(s.date).slice(0,10)}</td>
+      <td data-col="party">${s.party_name}</td>
+      <td data-col="product">${prod ? prod.name : '-'}</td>
+      <td data-col="kg">${s.qty_kg}</td>
+      <td data-col="bags">${s.qty_katta}</td>
+      <td data-col="rate">₹${s.rate_20kg}</td>
+      <td data-col="comm">₹${s.commission_amt}</td>
+      <td data-col="cess">₹${s.cess_amt}</td>
+      <td data-col="majuri">₹${s.majuri_amt}</td>
+      <td data-col="total" style="font-weight:700;color:#0f766e">₹${s.total}</td>
+      <td data-col="seller">${s.seller}</td>
+      <!-- 🆕 PAYMENT COLUMNS (ADD ONLY) -->
+      <td data-col="cash">₹${s.cash || 0}</td>
+      <td data-col="gpay">₹${s.gpay || 0}</td>
+      <td data-col="udhar">₹${s.udhar || 0}</td>
+      <td data-col="partial">${(s.cash>0 && s.gpay>0) ? '✔' : '-'}</td>    
+    `;
+
+      
+    tbody.appendChild(tr);
+    grand += Number(s.total || 0);
+  });
+
+  totalEl.textContent = '₹' + grand;
+applyColumnPrefs();
+// 🔥 ADD THIS
+renderProductSummary(rows);
+}
+
+function toggleColumnPanel(btn){
+  const panel = btn.closest('.card').querySelector('#columnTogglePanel');
+  if(!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+}
+
+/* Save column preference (local only) */
+function saveColumnPrefs(){
+  const prefs = {};
+
+  document.querySelectorAll(
+    '#popupColumnTogglePanel input[type="checkbox"]'
+  ).forEach(cb=>{
+    prefs[cb.dataset.col] = cb.checked;
+  });
+
+  localStorage.setItem('saleColumnPrefs', JSON.stringify(prefs));
+}
+document.addEventListener('change', (e)=>{
+  if(e.target.matches('#columnTogglePanel input[type="checkbox"]')){
+    saveColumnPrefs();
+  }
+});
+function renderProductSummary(rows){
+  const body = document.getElementById('productSummaryBody');
+  if(!body) return;
+
+  body.innerHTML = '';
+
+  if(!rows || rows.length === 0){
+    body.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align:center;color:#999">
+          No summary
+        </td>
+      </tr>`;
+    return;
+  }
+
+  const map = {};
+
+  rows.forEach(s=>{
+    const prod = products.find(p=>String(p.id)===String(s.product_id));
+    const pname = prod ? prod.name : 'Unknown';
+
+    if(!map[pname]){
+      map[pname] = {
+        bags: 0,
+        kg: 0,
+        total: 0,
+        majuri: 0
+      };
+    }
+
+    map[pname].bags  += Number(s.qty_katta || 0);
+    map[pname].kg    += Number(s.qty_kg || 0);
+    map[pname].total += Number(s.total || 0);
+    map[pname].majuri+= Number(s.majuri_amt || 0);
+  });
+
+  Object.keys(map).forEach(name=>{
+    const r = map[name];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${name}</td>
+      <td>${r.bags}</td>
+      <td>${r.kg}</td>
+      <td>₹${Math.round(r.total)}</td>
+      <td>₹${Math.round(r.majuri)}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
 
 // ###############################################################
 //          PART 7: PAGE LOGIC - PRODUCTS & SELLERS
@@ -1750,6 +2212,25 @@ function loadSellerForm(containerId, sellerName){
       </div>
     </div>
   `;
+  ['.flt-party','.flt-date','.flt-product','.flt-seller'].forEach(cls=>{
+    const el = container.querySelector(cls);
+    if(el && !el.dataset.bind){
+      el.dataset.bind = "1";
+      el.addEventListener('input', renderRegister);
+      el.addEventListener('change', renderRegister);
+    }
+  });
+
+  const clr = container.querySelector('.flt-clear');
+  if(clr && !clr.dataset.bind){
+    clr.dataset.bind = "1";
+    clr.onclick = ()=>{
+      container.querySelectorAll(
+        '.flt-party,.flt-date,.flt-product,.flt-seller'
+      ).forEach(i=> i.value = '');
+      renderRegister();
+    };
+  }
 
   // 🔥 Make sure topbar is visible
   const tb = document.getElementById('productsTopBar');
@@ -1770,17 +2251,7 @@ function loadSellerForm(containerId, sellerName){
   node.querySelector('.sprodTpl').textContent = prod ? prod.name : 'No Product Selected';
   node.querySelector('.dateTpl').value = todayStr();
   
-  // Unique Radio IDs
-  const rnd = Math.floor(Math.random()*10000);
-  const radioCredit = node.querySelector('#payCredit');
-  const radioCash = node.querySelector('#payCash');
-  const labelCredit = node.querySelector('label[for="payCredit"]');
-  const labelCash = node.querySelector('label[for="payCash"]');
-  if(radioCredit){
-    radioCredit.id = "pc_"+rnd; radioCredit.name="pm_"+rnd; labelCredit.setAttribute('for',"pc_"+rnd);
-    radioCash.id = "pk_"+rnd; radioCash.name="pm_"+rnd; labelCash.setAttribute('for',"pk_"+rnd);
-  }
-
+  
   // --- B. MANDI CALCULATION LOGIC ---
   const elRate = node.querySelector('.rateTpl');
   const elWeight = node.querySelector('.weightTpl');
@@ -1812,7 +2283,8 @@ function loadSellerForm(containerId, sellerName){
           const finalVal = Math.round(baseAmt + commAmt + cessAmt + majuriAmt);
           
           elTotal.value = finalVal;
-          
+          // 🔥 ADD THIS LINE
+          handlePaymentLogic(container);
           // Optional: Show breakdown (Small text below total)
           // elInfo.textContent = `Base: ${Math.round(baseAmt)} + Exp: ${Math.round(commAmt+cessAmt+majuriAmt)}`;
       } else {
@@ -1828,41 +2300,53 @@ function loadSellerForm(containerId, sellerName){
   elComm.addEventListener('input', doCalculate);
 
 
-  // --- C. Toggle Logic ---
   const toggles = node.querySelectorAll('.toggle-btn');
-  const formSec = node.getElementById('sec-form');
-  const regSec = node.getElementById('sec-register');
+  const formSec = node.querySelector('#sec-form');
+  const regSec  = node.querySelector('#sec-register');
+
   toggles.forEach(btn => {
     btn.addEventListener('click', ()=>{
-       toggles.forEach(b => b.classList.remove('active')); btn.classList.add('active');
-       if(btn.dataset.view === 'form') { formSec.style.display='block'; regSec.style.display='none'; }
-       else { formSec.style.display='none'; regSec.style.display='block'; renderRegister(); }
+
+      toggles.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if(btn.dataset.view === 'form'){
+        formSec.style.display = 'block';
+        regSec.style.display  = 'none';
+
+        container.querySelectorAll('.seller-form-only')
+          .forEach(el => el.style.display = 'block');
+      }
+      else{
+        formSec.style.display = 'none';
+        regSec.style.display  = 'block';
+
+        container.querySelectorAll('.seller-form-only')
+          .forEach(el => el.style.display = 'none');
+
+        renderRegister();
+      }
+
+
     });
   });
 
-  function renderRegister(){
-     const tbody = container.querySelector('.tbody-register');
-     const totalEl = container.querySelector('.total-val');
-     tbody.innerHTML = '';
-     const mySales = sales.filter(s => s.seller === sellerName);
-     let grandTotal = 0;
-     mySales.slice().reverse().forEach(s => {
-        grandTotal += s.total;
-        const tr = document.createElement('tr');
-        // Remove extra info from party name for cleaner view if needed
-        tr.innerHTML = `<td>
-                          <div style="font-weight:600">${s.party_name}</div>
-                          <div class="small">${s.date.slice(0,10)}</div>
-                        </td>
-                        <td>${s.qty_kg} kg | ${s.qty_katta} katta</td>
-                        <td style="font-weight:bold;color:#0f766e">₹${s.total}</td>
-                        `;
-        tbody.appendChild(tr);
-     });
-     totalEl.textContent = '₹' + grandTotal;
-     if(mySales.length === 0) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#999;padding:15px">No Sales</td></tr>';
+  function hideSellerFormUI(container){
+    container.querySelectorAll(
+      '.remTpl, .totalTpl, .saveSaleSmall'
+    ).forEach(el=>{
+      el.style.display = 'none';
+    });
   }
 
+  function showSellerFormUI(container){
+    container.querySelectorAll(
+      '.remTpl, .totalTpl, .saveSaleSmall'
+    ).forEach(el=>{
+      el.style.display = '';
+    });
+  }
+  
   // --- D. Save Logic ---
   node.querySelector('.saveSaleSmall').addEventListener('click', async (e)=>{
 
@@ -1902,20 +2386,25 @@ function loadSellerForm(containerId, sellerName){
     const rem = container.querySelector('.remTpl').value.trim();
 
      
-     let payMode = "Udhar";
-     const checkedRadio = container.querySelector(`input[name="pm_${rnd}"]:checked`);
-     if(checkedRadio) payMode = checkedRadio.value;
+     
 
      if(!party || !currentProductId || !totalKg || !r) { alert("Data Missing"); return; }
 
      
      btn.disabled = true; btn.textContent = "Saving..."; msg.textContent = "Sending...";
      try {
-       // Save Format: "Party [Cash] (10 Bags) - Note (Seller 1)"
-       let d = ` [${payMode}]`;
-       if(nag) d += ` (${nag} Bags)`;
-       if(rem) d += ` - ${rem}`;
-       
+      // ===== PAYMENT DATA =====
+      const payType = container.querySelector(
+        '.payment-type-group input[type="radio"]:checked'
+      )?.value || 'CASH';
+
+      const cashAmt  = Number(container.querySelector('.cashTpl')?.value || 0);
+      const gpayAmt  = Number(container.querySelector('.gpayTpl')?.value || 0);
+      const totalAmt = Number(container.querySelector('.totalTpl')?.value || 0);
+
+      const udharAmt = Math.max(0, totalAmt - (cashAmt + gpayAmt));
+      
+      // Save Format: "Party [Cash] (10 Bags) - Note (Seller 1)"              
        const out = await fetchFromSheetAction("sale", {
         date,
         party_name: party,
@@ -1924,10 +2413,50 @@ function loadSellerForm(containerId, sellerName){
         qty_katta: Number(nag || 0),
         rate_20kg: Number(r),
         commission_pct: Number(elComm.value || 0),
-        seller: sellerName
+        seller: sellerName,
+
+        // 🔥 ADD ONLY THESE (STEP-5B)
+        payment_type: payType,
+        cash_amount: cashAmt,
+        gpay_amount: gpayAmt,
+        udhar_amount: udharAmt
+        
       });
 
+        
        if(out.status !== "ok") throw new Error(out.msg);
+       if(cashAmt > 0){
+        await fetchFromSheetAction("ledger", {
+          date,
+          party_name: "CASH",
+          type: "CR",
+          credit: cashAmt,
+          debit: 0,
+          remark: `Sale ${party} (${sellerName})`
+        });
+      }
+       if(gpayAmt > 0){
+         await fetchFromSheetAction("ledger", {
+           date,
+           party_name: "GPAY",
+           type: "CR",
+           credit: gpayAmt,
+           debit: 0,
+           remark: `Sale ${party} (${sellerName})`
+         });
+      }
+       if(udharAmt > 0){
+         await fetchFromSheetAction("ledger", {
+           date,
+           party_name: party,
+           type: "DR",
+           debit: udharAmt,
+           credit: 0,
+           remark: `Udhar Sale (${sellerName})`
+         });
+      }
+
+
        msg.textContent = "✅ Saved!"; msg.style.color = "green";
        
        // Clear
@@ -1937,14 +2466,183 @@ function loadSellerForm(containerId, sellerName){
        container.querySelector('.remTpl').value='';
        container.querySelector('.totalTpl').value='';
        await refreshAfterSale();
+       printSaleSlip({
+        date: date,
+        party: party,
+        seller: sellerName,
+        product: prod ? prod.name : '',
+        rate: r,
+        bags: Number(nag || 0),
+        kg: totalKg,
+        comm: Math.round((r/20)*totalKg*(Number(elComm.value||0)/100)),
+        cess: Math.round((r/20)*totalKg*0.008),
+        majuri: Number(nag||0) * 6,
+        total: totalAmt,
+        cash: cashAmt,
+        gpay: gpayAmt,
+        udhar: udharAmt
+      });
+
      } catch(err){ msg.textContent = "❌ "+err.message; msg.style.color="red"; }
      finally { btn.disabled = false; btn.textContent = "SAVE SALE"; }
   });
   fillPartyDatalist();
   container.appendChild(node);
+  // ================= PRINT BUTTON BIND (FINAL FIX) =================
+  const printBtn = container.querySelector('.printSaleSmall');
+
+  if(printBtn){
+    printBtn.addEventListener('click', ()=>{
+      const prod = products.find(p => String(p.id) === String(currentProductId));
+
+      if(!prod){
+        alert("❌ Product not selected");
+        return;
+      }
+
+      const date  = container.querySelector('.dateTpl')?.value || todayStr();
+      const party = container.querySelector('.partyTpl')?.value || '';
+      const rate  = container.querySelector('.rateTpl')?.value || 0;
+      const bags  = container.querySelector('.nagTpl')?.value || 0;
+      const kg    = container.querySelector('.weightTpl')?.value || 0;
+      const total = container.querySelector('.totalTpl')?.value || 0;
+      const cash  = Number(container.querySelector('.cashTpl')?.value || 0);
+      const gpay  = Number(container.querySelector('.gpayTpl')?.value || 0);
+      const udhar = Math.max(0, total - (cash + gpay));
+
+      printSaleSlip({
+        date,
+        party,
+        seller: sellerName,
+        product: prod.name,
+        rate,
+        bags,
+        kg,
+        comm: 0,
+        cess: 0,
+        majuri: bags * 6,
+        total,
+        cash,
+        gpay,
+        udhar
+      });
+    });
+  }
+
+  // ================= PAYMENT LOGIC BIND (STEP-3B) =================
+
+// Radio change
+node.querySelectorAll('.payment-type-group input[type="radio"]')
+  .forEach(r=>{
+    r.addEventListener('change', ()=>{
+      handlePaymentLogic(container);
+    });
+  });
+
+// Cash / GPay input change
+node.querySelector('.cashTpl')?.addEventListener('input', ()=>{
+  handlePaymentLogic(container);
+});
+
+node.querySelector('.gpayTpl')?.addEventListener('input', ()=>{
+  handlePaymentLogic(container);
+});
+
+// 🔥 Initial apply (default CASH)
+handlePaymentLogic(container);
+
+  // 🔥 FILTER EVENTS (ONCE ONLY)
+  ['.flt-party','.flt-date','.flt-product','.flt-seller'].forEach(cls=>{
+    const el = container.querySelector(cls);
+    if(el && !el.dataset.bind){
+      el.dataset.bind = "1";
+      el.addEventListener('input', renderRegister);
+      el.addEventListener('change', renderRegister);
+    }
+  });
+
+  const clr = container.querySelector('.flt-clear');
+  if(clr && !clr.dataset.bind){
+    clr.dataset.bind = "1";
+    clr.onclick = ()=>{
+      container.querySelectorAll(
+        '.flt-party,.flt-date,.flt-product,.flt-seller'
+      ).forEach(i=> i.value = '');
+      renderRegister();
+    };  
+  }
+
+  // 🔥 FILTER CLEAR BUTTON (ONE TIME BIND)
+  const clearBtn = container.querySelector('.flt-clear');
+  if(clearBtn && !clearBtn.dataset.binded){
+    clearBtn.dataset.binded = "1";
+    clearBtn.onclick = ()=>{
+        container.querySelector('.flt-party').value = '';
+        container.querySelector('.flt-date').value = '';
+        renderRegister();
+      };
+    }
+
 }
 
+function applyColumnPrefs(){
+  let prefs = {};
+  try{
+    prefs = JSON.parse(localStorage.getItem('saleColumnPrefs')) || {};
+  }catch(e){}
 
+  document.querySelectorAll('[data-col]').forEach(el=>{
+    const col = el.dataset.col;
+    if(col in prefs){
+      el.style.display = prefs[col] ? '' : 'none';
+    }
+  });
+}
+
+function handlePaymentLogic(container){
+  const payType = container.querySelector(
+    '.payment-type-group input[type="radio"]:checked'
+  )?.value;
+
+  const total = Number(container.querySelector('.totalTpl').value || 0);
+  const cashEl = container.querySelector('.cashTpl');
+  const gpayEl = container.querySelector('.gpayTpl');
+
+  let cash = Number(cashEl.value || 0);
+  let gpay = Number(gpayEl.value || 0);
+
+  // RESET
+  cashEl.disabled = false;
+  gpayEl.disabled = false;
+
+  if(payType === 'CASH'){
+    gpayEl.value = 0;
+    gpayEl.disabled = true;
+    cashEl.value = total;
+  }
+
+  if(payType === 'GPAY'){
+    cashEl.value = 0;
+    cashEl.disabled = true;
+    gpayEl.value = total;
+  }
+
+  if(payType === 'UDHAR'){
+    cashEl.value = 0;
+    gpayEl.value = 0;
+    cashEl.disabled = true;
+    gpayEl.disabled = true;
+  }
+
+  if(payType === 'PARTIAL'){
+    // दोनों खुलेंगे
+    if(cash + gpay > total){
+      alert("❌ Total se zyada payment allowed nahi");
+      cashEl.value = 0;
+      gpayEl.value = 0;
+    }
+  }
+}
 // ###############################################################
 //          PART 8: MOBILE DRAWER & APP INIT
 // ###############################################################
@@ -2280,6 +2978,94 @@ function p2_calcChange(){
     box.style.color = '#16a34a';
   }
 }
+function printSaleSlip(sale){
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sale Slip</title>
+<style>
+  body{
+    width:80mm;
+    margin:0;
+    padding:6px;
+    font-family: monospace;
+    font-size:12px;
+  }
+  .center{text-align:center}
+  .right{text-align:right}
+  .bold{font-weight:bold}
+  .big{font-size:14px}
+  .line{border-top:1px dashed #000;margin:6px 0}
+  table{width:100%;border-collapse:collapse}
+  td{padding:2px 0}
+</style>
+</head>
+<body>
+
+<div class="center bold big">MANDI SALE SLIP</div>
+<div class="center">--------------------</div>
+
+<table>
+<tr><td>Date</td><td class="right">${sale.date}</td></tr>
+<tr><td>Party</td><td class="right">${sale.party}</td></tr>
+<tr><td>Seller</td><td class="right">${sale.seller}</td></tr>
+</table>
+
+<div class="line"></div>
+
+<table>
+<tr><td>Product</td><td class="right">${sale.product}</td></tr>
+<tr><td>Rate (20kg)</td><td class="right">₹${sale.rate}</td></tr>
+<tr><td>Bags</td><td class="right">${sale.bags}</td></tr>
+<tr><td>Weight</td><td class="right">${sale.kg} KG</td></tr>
+</table>
+
+<div class="line"></div>
+
+<table>
+<tr><td>Commission</td><td class="right">₹${sale.comm}</td></tr>
+<tr><td>Cess</td><td class="right">₹${sale.cess}</td></tr>
+<tr><td>Majuri</td><td class="right">₹${sale.majuri}</td></tr>
+</table>
+
+<div class="line"></div>
+
+<table>
+<tr class="bold big">
+<td>TOTAL</td>
+<td class="right">₹${sale.total}</td>
+</tr>
+</table>
+
+<div class="line"></div>
+
+<div class="bold">Payment</div>
+<table>
+<tr><td>Cash</td><td class="right">₹${sale.cash}</td></tr>
+<tr><td>GPay</td><td class="right">₹${sale.gpay}</td></tr>
+<tr><td>Udhar</td><td class="right">₹${sale.udhar}</td></tr>
+</table>
+
+<div class="line"></div>
+<div class="center">🙏 Thank You 🙏</div>
+
+</body>
+</html>
+`;
+
+  const w = window.open('about:blank', '_blank');
+  if(!w){
+    alert("❌ Print popup blocked. Please allow popups.");
+    return;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  w.print();
+}
 
 
 // ###############################################################
@@ -2302,6 +3088,136 @@ if ("serviceWorker" in navigator) {
         .catch(err => console.error("❌ SW Error", err));
     });
   }
+// ================= SELLER POPUP CONTROL (STEP-1) =================
+function openSellerPopup(){
+  const p = document.getElementById('sellerCustomizePopup');
+  if(p) p.style.display = 'block';
+}
+
+function closeSellerPopup(){
+  const p = document.getElementById('sellerCustomizePopup');
+  if(p) p.style.display = 'none';
+}
+// ================= SELLER FILTER POPUP CONTROL =================
+function openSellerFilterPopup(){
+  const p = document.getElementById('sellerFilterPopup');
+  if(p) p.style.display = 'block';
+}
+
+function closeSellerFilterPopup(){
+  const p = document.getElementById('sellerFilterPopup');
+  if(p) p.style.display = 'none';
+}
+
+function clearSellerFilters(){
+  document.querySelectorAll(
+    '#sellerFilterPopup .flt-party, #sellerFilterPopup .flt-date, #sellerFilterPopup .flt-product, #sellerFilterPopup .flt-seller'
+  ).forEach(el => el.value = '');
+
+  // 🔥 Existing logic trigger
+  if(typeof renderRegister === 'function'){
+    renderRegister();
+  }
+}
+document.addEventListener('change', (e)=>{
+  if(e.target.matches('#popupColumnTogglePanel input[type="checkbox"]')){
+    saveColumnPrefs();
+    applyColumnPrefs();
+  }
+});
+// ================= WEIGHT CALCULATOR (STEP-1) =================
+let wcTargetInput = null;
+let wcWeights = [];
+
+function openWeightCalcPopup(btn){
+  wcTargetInput = btn.closest('.col').querySelector('.weightTpl');
+  wcWeights = [];
+  renderWeightCalc();
+  document.getElementById('weightCalcPopup').style.display = 'block';
+}
+
+function closeWeightCalcPopup(){
+  const sum = wcWeights.reduce((a,b)=>a+b,0);
+
+  if(wcTargetInput){
+    wcTargetInput.value = sum ? sum.toFixed(2) : '';
+
+    // 🔥 DIRECT CALCULATION CALL (IMPORTANT FIX)
+    const container = wcTargetInput.closest('.card');
+    if(container){
+      const rate   = container.querySelector('.rateTpl');
+      const nag    = container.querySelector('.nagTpl');
+      const comm   = container.querySelector('.commTpl');
+      const total  = container.querySelector('.totalTpl');
+
+      if(rate && total){
+        // same logic as doCalculate()
+        const r = parseFloat(rate.value) || 0;
+        const w = parseFloat(wcTargetInput.value) || 0;
+        const n = parseFloat(nag?.value) || 0;
+        const c = parseFloat(comm?.value) || 0;
+
+        const CESS_PCT = 0.8;
+        const MAJURI_RATE = 6;
+
+        if(r > 0 && w > 0){
+          const base = (r / 20) * w;
+          const commAmt = base * (c / 100);
+          const cessAmt = base * (CESS_PCT / 100);
+          const majuriAmt = n * MAJURI_RATE;
+
+          total.value = Math.round(base + commAmt + cessAmt + majuriAmt);
+        } else {
+          total.value = '';
+        }
+      }
+    }
+  }
+
+  document.getElementById('weightCalcPopup').style.display = 'none';
+}
+
+
+function addWeightItem(){
+  const inp = document.getElementById('wcInput');
+  const val = parseFloat(inp.value);
+  if(!val || val <= 0) return;
+  wcWeights.push(val);
+  inp.value = '';
+  renderWeightCalc();
+}
+
+function removeWeightItem(idx){
+  wcWeights.splice(idx,1);
+  renderWeightCalc();
+}
+
+function clearWeightCalc(){
+  wcWeights = [];
+  renderWeightCalc();
+}
+
+function renderWeightCalc(){
+  const box = document.getElementById('wcList');
+  const totalEl = document.getElementById('wcTotal');
+  box.innerHTML = '';
+  let sum = 0;
+
+  wcWeights.forEach((w,i)=>{
+    sum += w;
+    const row = document.createElement('div');
+    row.style.display='flex';
+    row.style.justifyContent='space-between';
+    row.style.padding='4px 0';
+    row.innerHTML = `
+      <span>${w} KG</span>
+      <button class="btn-outline" style="padding:2px 6px" onclick="removeWeightItem(${i})">❌</button>
+    `;
+    box.appendChild(row);
+  });
+
+  totalEl.textContent = sum.toFixed(2);
+}
 
 </script>
 </body>

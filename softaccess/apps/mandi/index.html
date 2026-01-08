@@ -2458,7 +2458,25 @@ function loadSellerForm(containerId, sellerName){
 
 
        msg.textContent = "✅ Saved!"; msg.style.color = "green";
-       
+       // 🔥 PAYMENT RESET (IMPORTANT FIX)
+       const cashEl = container.querySelector('.cashTpl');
+       const gpayEl = container.querySelector('.gpayTpl');
+
+       // reset values
+       if (cashEl) cashEl.value = '';
+       if (gpayEl) gpayEl.value = '';
+
+       // reset payment type to CASH
+       const cashRadio = container.querySelector(
+         '.payment-type-group input[value="CASH"]'
+       );
+       if (cashRadio) {
+         cashRadio.checked = true;
+       }
+
+       // re-apply payment logic (enable/disable inputs)
+       handlePaymentLogic(container);
+
        // Clear
        container.querySelector('.partyTpl').value='';
        container.querySelector('.nagTpl').value='';

@@ -851,8 +851,10 @@
 
 
         <div style="margin-top:12px; display:flex; gap:8px;">
-          <button class="btn saveSaleSmall" style="flex:1">SAVE SALE</button>
-          <button class="btn-outline printSaleSmall" style="flex:1">PRINT</button>
+          <div class="small billNoBox" 
+               style="text-align:center;font-weight:800;color:#065f46;"></div>
+          
+               <button class="btn saveSaleSmall" style="flex:1">SAVE SALE</button>
         </div>
 
       </div>
@@ -925,6 +927,7 @@
           <label><input type="checkbox" data-col="kg" checked> Kg</label>
           <label><input type="checkbox" data-col="bags" checked> Bags</label>
           <label><input type="checkbox" data-col="rate" checked> Rate</label>
+          <label><input type="checkbox" data-col="subtotal" checked> Sub Total</label>
           <label><input type="checkbox" data-col="comm" checked> Comm</label>
           <label><input type="checkbox" data-col="cess" checked> Cess</label>
           <label><input type="checkbox" data-col="majuri" checked> Majuri</label>
@@ -974,6 +977,7 @@
               <th data-col="kg">Kg</th>
               <th data-col="bags">Bags</th>
               <th data-col="rate">Rate</th>
+              <th data-col="subtotal">Sub Total ₹</th>
               <th data-col="comm">Comm ₹</th>
               <th data-col="cess">Cess ₹</th>
               <th data-col="majuri">Majuri ₹</th>
@@ -984,6 +988,8 @@
               <th data-col="gpay">GPay</th>
               <th data-col="udhar">Udhar</th>
               <th data-col="partial">Partial</th>
+              <th data-col="bill">Bill No</th>
+              <th data-col="action">Print</th>
             </tr>
           </thead>
           <tbody class="tbody-register"></tbody>
@@ -1001,11 +1007,15 @@
            <table style="width:100%; font-size:0.85rem">
              <thead>
                <tr>
-                 <th>Product</th>
-                 <th>Bags</th>
-                 <th>KG</th>
-                 <th>Total ₹</th>
-                 <th>Majuri ₹</th>
+                <th>Product</th>
+                <th>Bags</th>
+                <th>KG</th>
+                <th>Avg Rate (20kg)</th>
+                <th>Sub Total ₹</th>
+                <th>Comm ₹</th>
+                <th>Cess ₹</th>
+                <th>Majuri ₹</th>
+                <th>Final ₹</th>
                </tr>
              </thead>
              <tbody id="productSummaryBody">
@@ -1038,6 +1048,7 @@
           <label><input type="checkbox" data-col="kg" checked> Kg</label>
           <label><input type="checkbox" data-col="bags" checked> Bags</label>
           <label><input type="checkbox" data-col="rate" checked> Rate</label>
+          <label><input type="checkbox" data-col="subtotal" checked>Sub Total</label>
           <label><input type="checkbox" data-col="comm" checked> Comm</label>
           <label><input type="checkbox" data-col="cess" checked> Cess</label>
           <label><input type="checkbox" data-col="majuri" checked> Majuri</label>
@@ -1093,7 +1104,7 @@
 //          PART 1: CONFIGURATION & GLOBAL VARIABLES
 // ###############################################################
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbztNKdb2Mkos4gJ4DUSKAphCAHleYIm7LC6ZOkOZ17saQ4pgWgwFzJ6OBA11KXMANP6Iw/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyWCu9qcotgyhhSwS9fC04GQu47NJXXMx707R_W94v5ia92AAIcyfRWxbvnEUu9CH6xwA/exec";
 
 // Local State
 let products = []; 
@@ -1102,6 +1113,13 @@ let sales = [];
 let ledgerEntries = [];
 let currentProductId = null;
 let parties = [];
+
+// 🔥 IST SAFE DATE FORMATTER
+function toISTDate(dateStr){
+  const d = new Date(dateStr);
+  d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+  return d.toISOString().slice(0,10);
+}
 
 // Helpers (छोटे-मोटे फंक्शन)
 function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -1181,6 +1199,7 @@ function productEmoji(name){
   if(n.includes('ટમેટા')||n.includes('tomato')) return '🍅';
   return '📦';
 }
+
 
 
 // ###############################################################
@@ -1316,11 +1335,12 @@ async function loadSalesFromSheet(){
       total: Number(r.total),
       seller: r.seller || "",
 
-      // 🆕 PAYMENT (ADD ONLY)
       payment_type: r.payment_type || "",
       cash: Number(r.cash) || 0,
       gpay: Number(r.gpay) || 0,
-      udhar: Number(r.udhar) || 0
+      udhar: Number(r.udhar) || 0,
+
+      bill_no: r.bill_no || ""   // ✅ 🔥 THIS LINE WAS MISSING
     }));
   }
 }
@@ -2051,9 +2071,10 @@ function renderRegister(){
   const rows = sales.filter(s=>{
     if(fSeller && s.seller !== fSeller) return false;
     if(fParty && !String(s.party_name).toLowerCase().includes(fParty)) return false;
-    if(fDate && String(s.date).slice(0,10) !== fDate) return false;
+    if (fDate && toISTDate(s.date) !== fDate) return false;
 
     if(fProduct){
+      const subTotal = Math.round((Number(s.rate_20kg || 0) / 20) * Number(s.qty_kg || 0));
       const prod = products.find(p=>String(p.id)===String(s.product_id));
       const pname = prod ? prod.name.toLowerCase() : '';
       if(!pname.includes(fProduct)) return false;
@@ -2068,15 +2089,17 @@ function renderRegister(){
   }
 
   rows.slice().reverse().forEach(s=>{
+    const subTotal = Math.round((Number(s.rate_20kg || 0) / 20) * Number(s.qty_kg || 0));
     const prod = products.find(p=>String(p.id)===String(s.product_id));
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-col="date">${String(s.date).slice(0,10)}</td>
+      <td data-col="date">${toISTDate(s.date)}</td>
       <td data-col="party">${s.party_name}</td>
       <td data-col="product">${prod ? prod.name : '-'}</td>
       <td data-col="kg">${s.qty_kg}</td>
       <td data-col="bags">${s.qty_katta}</td>
       <td data-col="rate">₹${s.rate_20kg}</td>
+      <td data-col="subtotal">₹${subTotal}</td>
       <td data-col="comm">₹${s.commission_amt}</td>
       <td data-col="cess">₹${s.cess_amt}</td>
       <td data-col="majuri">₹${s.majuri_amt}</td>
@@ -2087,6 +2110,14 @@ function renderRegister(){
       <td data-col="gpay">₹${s.gpay || 0}</td>
       <td data-col="udhar">₹${s.udhar || 0}</td>
       <td data-col="partial">${(s.cash>0 && s.gpay>0) ? '✔' : '-'}</td>    
+      <td data-col="bill">${s.bill_no || '-'}</td>
+      <td data-col="action">
+        <button class="btn-outline"
+          onclick='reprintSale(${JSON.stringify(s)})'>
+          🖨️
+        </button>
+      </td>
+
     `;
 
       
@@ -2149,30 +2180,76 @@ function renderProductSummary(rows){
       map[pname] = {
         bags: 0,
         kg: 0,
+        subtotal: 0,
+        commission: 0,
+        cess: 0,
+        majuri: 0,
         total: 0,
-        majuri: 0
+        rate_value: 0   // 🔥 weighted calculation ke liye
       };
+
     }
 
-    map[pname].bags  += Number(s.qty_katta || 0);
-    map[pname].kg    += Number(s.qty_kg || 0);
+    const rowSub = (Number(s.rate_20kg || 0) / 20) * Number(s.qty_kg || 0);
+
+    map[pname].bags += Number(s.qty_katta || 0);
+    map[pname].kg += Number(s.qty_kg || 0);
+    map[pname].subtotal += rowSub;
+    map[pname].rate_value += rowSub;
+    map[pname].commission += Number(s.commission_amt || 0);
+    map[pname].cess += Number(s.cess_amt || 0);
+    map[pname].majuri += Number(s.majuri_amt || 0);
     map[pname].total += Number(s.total || 0);
-    map[pname].majuri+= Number(s.majuri_amt || 0);
   });
 
-  Object.keys(map).forEach(name=>{
+  Object.keys(map).forEach(name => {
     const r = map[name];
+
+    // 🔥 WEIGHTED AVERAGE RATE (FINAL FORMULA)
+    // 🔒 WEIGHTED AVERAGE RATE (NO ROUNDING)
+    const avgRateExact =
+      r.kg > 0
+        ? (r.subtotal / r.kg) * 20
+        : 0;
+
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${name}</td>
-      <td>${r.bags}</td>
-      <td>${r.kg}</td>
-      <td>₹${Math.round(r.total)}</td>
-      <td>₹${Math.round(r.majuri)}</td>
-    `;
+    <td>${name}</td>
+    <td>${r.bags}</td>
+    <td>${r.kg}</td>
+    <td>₹${avgRateExact.toFixed(2)}</td>
+    <td>₹${Math.round(r.subtotal)}</td>
+    <td>₹${Math.round(r.commission)}</td>
+    <td>₹${Math.round(r.cess)}</td>
+    <td>₹${Math.round(r.majuri)}</td>
+    <td><b>₹${Math.round(r.total)}</b></td>
+  `;
     body.appendChild(tr);
   });
+
 }
+  function reprintSale(s) {
+    const prod = products.find(p => String(p.id) === String(s.product_id));
+
+    printSaleSlip({
+      bill_no: s.bill_no,
+      date: s.date,
+      party: s.party_name,
+      seller: s.seller,
+      product: prod ? prod.name : '',
+      rate: s.rate_20kg,
+      bags: s.qty_katta,
+      kg: s.qty_kg,
+      comm: s.commission_amt,
+      cess: s.cess_amt,
+      majuri: s.majuri_amt,
+      total: s.total,
+      cash: s.cash,
+      gpay: s.gpay,
+      udhar: s.udhar
+    });
+  }
 
 
 // ###############################################################
@@ -2405,24 +2482,41 @@ function loadSellerForm(containerId, sellerName){
       const udharAmt = Math.max(0, totalAmt - (cashAmt + gpayAmt));
       
       // Save Format: "Party [Cash] (10 Bags) - Note (Seller 1)"              
+       const subTotal =
+         Math.round((Number(r) / 20) * Number(totalKg));
+
        const out = await fetchFromSheetAction("sale", {
-        date,
-        party_name: party,
-        product_id: String(currentProductId),
-        qty_kg: totalKg,
-        qty_katta: Number(nag || 0),
-        rate_20kg: Number(r),
-        commission_pct: Number(elComm.value || 0),
-        seller: sellerName,
+         date,
+         party_name: party,
+         product_id: String(currentProductId),
+         qty_kg: totalKg,
+         qty_katta: Number(nag || 0),
+         rate_20kg: Number(r),
 
-        // 🔥 ADD ONLY THESE (STEP-5B)
-        payment_type: payType,
-        cash_amount: cashAmt,
-        gpay_amount: gpayAmt,
-        udhar_amount: udharAmt
-        
-      });
+         subtotal: subTotal,   // 🔥 ADD THIS
 
+         commission_pct: Number(elComm.value || 0),
+         seller: sellerName,
+         payment_type: payType,
+         cash_amount: cashAmt,
+         gpay_amount: gpayAmt,
+         udhar_amount: udharAmt
+       });
+
+
+       console.log("RAW SALE RESPONSE:", out);
+
+       const billNo = out?.data?.bill_no || "";
+       console.log("🧾 BILL NO RECEIVED:", billNo);
+
+       // 🔥 SHOW BILL NO IN UI (STEP-4)
+       const billBox = container.querySelector('.billNoBox');
+       if (billBox && billNo) {
+         billBox.textContent = "🧾 Bill No: " + billNo;
+       }
+
+       // 🔐 STORE FOR PRINT
+       container.dataset.lastBillNo = billNo;
         
        if(out.status !== "ok") throw new Error(out.msg);
        if(cashAmt > 0){
@@ -2458,6 +2552,8 @@ function loadSellerForm(containerId, sellerName){
 
 
        msg.textContent = "✅ Saved!"; msg.style.color = "green";
+       // 🔥 background refresh (non-blocking)
+       setTimeout(refreshAfterSale, 50);
        // 🔥 PAYMENT RESET (IMPORTANT FIX)
        const cashEl = container.querySelector('.cashTpl');
        const gpayEl = container.querySelector('.gpayTpl');
@@ -2483,23 +2579,34 @@ function loadSellerForm(containerId, sellerName){
        container.querySelector('.weightTpl').value='';
        container.querySelector('.remTpl').value='';
        container.querySelector('.totalTpl').value='';
-       await refreshAfterSale();
-       printSaleSlip({
-        date: date,
-        party: party,
-        seller: sellerName,
-        product: prod ? prod.name : '',
-        rate: r,
-        bags: Number(nag || 0),
-        kg: totalKg,
-        comm: Math.round((r/20)*totalKg*(Number(elComm.value||0)/100)),
-        cess: Math.round((r/20)*totalKg*0.008),
-        majuri: Number(nag||0) * 6,
-        total: totalAmt,
-        cash: cashAmt,
-        gpay: gpayAmt,
-        udhar: udharAmt
-      });
+       
+       // ✅ PRINT CONFIRM POPUP (FINAL)
+       setTimeout(() => {
+         const ask = confirm(
+           `✅ Sale Saved Successfully\nBill No: ${billNo}\n\nPrint slip now?`
+         );
+
+         if (ask) {
+           printSaleSlip({
+             bill_no: billNo,
+             date: date,
+             party: party,
+             seller: sellerName,
+             product: prod ? prod.name : '',
+             rate: r,
+             bags: Number(nag || 0),
+             kg: totalKg,
+             comm: Math.round((r / 20) * totalKg * (Number(elComm.value || 0) / 100)),
+             cess: Math.round((r / 20) * totalKg * 0.008),
+             majuri: Number(nag || 0) * 6,
+             total: totalAmt,
+             cash: cashAmt,
+             gpay: gpayAmt,
+             udhar: udharAmt
+           });
+         }
+       }, 200);
+
 
      } catch(err){ msg.textContent = "❌ "+err.message; msg.style.color="red"; }
      finally { btn.disabled = false; btn.textContent = "SAVE SALE"; }
@@ -2508,46 +2615,8 @@ function loadSellerForm(containerId, sellerName){
   container.appendChild(node);
   // ================= PRINT BUTTON BIND (FINAL FIX) =================
   const printBtn = container.querySelector('.printSaleSmall');
-
-  if(printBtn){
-    printBtn.addEventListener('click', ()=>{
-      const prod = products.find(p => String(p.id) === String(currentProductId));
-
-      if(!prod){
-        alert("❌ Product not selected");
-        return;
-      }
-
-      const date  = container.querySelector('.dateTpl')?.value || todayStr();
-      const party = container.querySelector('.partyTpl')?.value || '';
-      const rate  = container.querySelector('.rateTpl')?.value || 0;
-      const bags  = container.querySelector('.nagTpl')?.value || 0;
-      const kg    = container.querySelector('.weightTpl')?.value || 0;
-      const total = container.querySelector('.totalTpl')?.value || 0;
-      const cash  = Number(container.querySelector('.cashTpl')?.value || 0);
-      const gpay  = Number(container.querySelector('.gpayTpl')?.value || 0);
-      const udhar = Math.max(0, total - (cash + gpay));
-
-      printSaleSlip({
-        date,
-        party,
-        seller: sellerName,
-        product: prod.name,
-        rate,
-        bags,
-        kg,
-        comm: 0,
-        cess: 0,
-        majuri: bags * 6,
-        total,
-        cash,
-        gpay,
-        udhar
-      });
-    });
-  }
-
-  // ================= PAYMENT LOGIC BIND (STEP-3B) =================
+  
+// ================= PAYMENT LOGIC BIND (STEP-3B) =================
 
 // Radio change
 node.querySelectorAll('.payment-type-group input[type="radio"]')
@@ -3026,6 +3095,7 @@ function printSaleSlip(sale){
 <div class="center">--------------------</div>
 
 <table>
+<tr><td>Bill No</td><td class="right bold">${sale.bill_no || '-'}</td></tr>
 <tr><td>Date</td><td class="right">${sale.date}</td></tr>
 <tr><td>Party</td><td class="right">${sale.party}</td></tr>
 <tr><td>Seller</td><td class="right">${sale.seller}</td></tr>

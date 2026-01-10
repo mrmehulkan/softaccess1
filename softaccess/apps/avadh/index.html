@@ -236,6 +236,48 @@
         let productMaster = [];
         let currentMode = "SALE";
 
+        document.getElementById("productForm").addEventListener("submit", async function (e) {
+                e.preventDefault(); // ❌ page reload रोकता है
+
+                const product = {
+                    productName: document.getElementById("productName").value.trim(),
+                    barcode: document.getElementById("productBarcode").value.trim(),
+                    unit: document.getElementById("productUnit").value,
+                    buyPrice: Number(document.getElementById("productBuyPrice").value),
+                    sellPrice: Number(document.getElementById("productSellPrice").value),
+                    gst: Number(document.getElementById("productGST").value),
+                    stock: Number(document.getElementById("productStock").value)
+                };
+
+                if (!product.productName || !product.barcode) {
+                    alert("Product Name & Barcode required");
+                    return;
+                }
+
+                // ❗ duplicate barcode protection
+                const exists = productMaster.find(p => p.barcode === product.barcode);
+                if (exists) {
+                    alert("❌ Barcode already exists");
+                    return;
+                }
+
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "addProduct",
+                        data: product
+                    })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    showToast("✅ Product Added");
+                    this.reset();
+                    await loadProductsFromSheet();   // refresh product list
+                    showSection("products");         // stay on product page
+                } else {
+                    alert("Product add failed");
+                }
+            });
         function findExistingRow(itemName) {
                 const rows = document.querySelectorAll("#tableBody tr");
                 for (let r of rows) {

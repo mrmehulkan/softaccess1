@@ -3650,18 +3650,22 @@ Advance: ₹${adv}`;
       totalEl.textContent = sum.toFixed(2);
     }
   function testAndroidPrint() {
-      const demo = {
+      const slip = {
         bill_no: "TEST123",
         party: "RAMLAL",
+        product: "POTATO",
+        rate: 120,
+        bags: 10,
         total: 1250
       };
 
       if (window.Android && Android.printSlip) {
-        Android.printSlip(JSON.stringify(demo));
+        Android.printSlip(JSON.stringify(slip));
       } else {
-        alert("Android bridge NOT found");
+        alert("❌ Android bridge NOT found");
       }
     }
+  
   </script>
 </body>
 

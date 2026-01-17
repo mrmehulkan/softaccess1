@@ -3660,7 +3660,7 @@ Advance: ₹${adv}`;
       };
 
       if (window.Android && Android.printSlip) {
-        Android.printSlip(JSON.stringify(slip));
+        Android.print(JSON.stringify(slip));
       } else {
         alert("❌ Android bridge NOT found");
       }

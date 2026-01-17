@@ -100,7 +100,7 @@ function loadMySoftwares() {
           // 📲 ANDROID APK
           if (folderName === "mandijapk") {
             action =
-              "download-apk:https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccesss/apps/mandijapk/app-release.apk";
+            "download-apk:https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccesss/apps/mandijapk/app-release.apk";
           }
           // 🌐 WEB SOFTWARE
           else {
@@ -151,3 +151,4 @@ document.addEventListener("click", function (e) {
     return;
   }
 });
+

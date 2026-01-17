@@ -3659,12 +3659,13 @@ Advance: ₹${adv}`;
         total: 1250
       };
 
-      if (window.Android && Android.printSlip) {
+      if (window.Android && Android.print) {   // ✅ CORRECT
         Android.print(JSON.stringify(slip));
       } else {
         alert("❌ Android bridge NOT found");
       }
     }
+
   
   </script>
 </body>

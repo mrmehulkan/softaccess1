@@ -683,6 +683,7 @@
       <div class="sidebar-note small">Online Mode</div>
 
       <nav class="menu" id="leftMenu">
+        <button onclick="testAndroidPrint()">TEST PRINT</button>
         <div class="menu-btn active" data-panel="home" data-tooltip="Dashboard" onclick="switchPanel(event)">
           <div class="ico">🏠</div>
           <div>Dashboard</div>
@@ -736,7 +737,7 @@
     </main>
   </div>
 
-  <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>
+  <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>  
   <button class="menu-toggle" id="menuToggleBtn" aria-label="Open menu">☰</button>
 
 
@@ -3648,7 +3649,19 @@ Advance: ₹${adv}`;
 
       totalEl.textContent = sum.toFixed(2);
     }
+  function testAndroidPrint() {
+      const demo = {
+        bill_no: "TEST123",
+        party: "RAMLAL",
+        total: 1250
+      };
 
+      if (window.Android && Android.printSlip) {
+        Android.printSlip(JSON.stringify(demo));
+      } else {
+        alert("Android bridge NOT found");
+      }
+    }
   </script>
 </body>
 

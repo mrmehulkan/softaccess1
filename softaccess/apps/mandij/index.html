@@ -13,6 +13,33 @@
   <meta name="apple-mobile-web-app-title" content="Mandi">
 
   <style>
+    /* 🔒 SELLER REGISTER FIXED HEADER + FOOTER */
+
+    .seller-table-wrap {
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* ONLY ROWS SCROLL */
+    .seller-table-body {
+      max-height: 320px;
+      /* 👈 yahin scroll hoga */
+      overflow-y: auto;
+    }
+
+    /* HEADER FIX LOOK */
+    .seller-table thead {
+      background: #f0fdfa;
+    }
+
+    /* FOOTER FIX LOOK */
+    .seller-table tfoot {
+      background: #ecfeff;
+    }
+
     .p4-party-btn {
       padding: 10px 12px;
       border-radius: 10px;
@@ -64,7 +91,7 @@
     .layout {
       display: flex;
       height: 100dvh;
-      width: 100%;      
+      width: 100%;
       transition: all .18s ease;
     }
 
@@ -332,11 +359,7 @@
     .menu-toggle {
       position: fixed;
       left: 12px;
-      bottom: calc(
-        env(safe-area-inset-bottom, 0px) +
-        var(--android-bottom-inset, 0px) +
-        16px
-      );
+      bottom: calc(env(safe-area-inset-bottom, 0px) + var(--android-bottom-inset, 0px) + 16px);
       padding: 8px 10px;
       border-radius: 999px;
       border: none;
@@ -453,16 +476,7 @@
       border-bottom: 1px solid #eee;
     }
 
-    .total-bar {
-      background: #0f766e;
-      color: #fff;
-      padding: 8px;
-      border-radius: 8px;
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      font-weight: bold;
-    }
+
 
     /* Radio Button Group Styling */
     .radio-group {
@@ -737,7 +751,7 @@
     </main>
   </div>
 
-  <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>  
+  <div id="mobileOverlay" class="mobile-overlay" aria-hidden="true"></div>
   <button class="menu-toggle" id="menuToggleBtn" aria-label="Open menu">☰</button>
 
 
@@ -1310,7 +1324,9 @@
       </div>
 
 
-      <div style="max-height:350px; overflow-y:auto; border:1px solid #eee; border-radius:8px;">
+      <div class="seller-table-wrap">
+
+        <!-- 🔒 FIXED HEADER -->
         <table class="seller-table">
           <thead>
             <tr>
@@ -1326,7 +1342,6 @@
               <th data-col="majuri">Majuri ₹</th>
               <th data-col="total">Total ₹</th>
               <th data-col="seller">Seller</th>
-              <!-- 🆕 ADD ONLY -->
               <th data-col="cash">Cash</th>
               <th data-col="gpay">GPay</th>
               <th data-col="udhar">Udhar</th>
@@ -1335,13 +1350,46 @@
               <th data-col="action">Print</th>
             </tr>
           </thead>
-          <tbody class="tbody-register"></tbody>
         </table>
+
+        <!-- 🔄 ONLY BODY SCROLL -->
+        <div class="seller-table-body">
+          <table class="seller-table">
+            <tbody class="tbody-register"></tbody>
+          </table>
+        </div>
+
+        <!-- 🔒 FIXED TOTAL ROW -->
+        <table class="seller-table">
+          <tfoot>
+            <tr style="background:#ecfeff;font-weight:800">
+              <td data-col="date">TOTAL</td>
+              <td data-col="party">–</td>
+              <td data-col="product">–</td>
+
+              <td data-col="kg" class="sum-kg">0</td>
+              <td data-col="bags" class="sum-bags">0</td>
+              <td data-col="rate">–</td>
+
+              <td data-col="subtotal" class="sum-subtotal">₹0</td>
+              <td data-col="comm" class="sum-comm">₹0</td>
+              <td data-col="cess" class="sum-cess">₹0</td>
+              <td data-col="majuri" class="sum-majuri">₹0</td>
+              <td data-col="total" class="sum-total">₹0</td>
+
+              <td data-col="seller">–</td>
+              <td data-col="cash" class="sum-cash">₹0</td>
+              <td data-col="gpay" class="sum-gpay">₹0</td>
+              <td data-col="udhar" class="sum-udhar">₹0</td>
+              <td data-col="partial">–</td>
+              <td data-col="bill">–</td>
+              <td data-col="action">–</td>
+            </tr>
+          </tfoot>
+        </table>
+
       </div>
-      <div class="total-bar">
-        <div>Total Sale:</div>
-        <div class="total-val">₹0</div>
-      </div>
+
       <!-- 📦 PRODUCT SUMMARY (STEP-1: STRUCTURE ONLY) -->
       <div class="card" id="productSummaryBox" style="margin-top:10px">
         <div class="label">📦 Product Summary (Filtered View)</div>
@@ -1363,7 +1411,7 @@
             </thead>
             <tbody id="productSummaryBody">
               <tr>
-                <td colspan="5" style="text-align:center;color:#999">
+                <td colspan="9" style="text-align:center;color:#999">
                   No summary yet
                 </td>
               </tr>
@@ -1558,6 +1606,10 @@
         ]);
         buildProductsTopBar();
         updateDashboardCounts();
+        // 🔥 ADD THIS
+        if (document.querySelector('.tbody-register')) {
+          renderRegister();
+        }
       } catch (e) {
         console.error("refreshAfterSale error", e);
       }
@@ -2394,30 +2446,35 @@ Rate: ₹${rate || '-'}`;
     }
 
     function renderRegister() {
-      const container = document.querySelector(
-        '#seller1FormArea, #seller2FormArea, #seller3FormArea'
-      );
-      if (!container) return;
+      const tbody = document.querySelector('.tbody-register');
+      if (!tbody) return;
 
-      const tbody = container.querySelector('.tbody-register');
-      const totalEl = container.querySelector('.total-val');
-      if (!tbody || !totalEl) return;
+      // ✅ सुधार 1: container को पहले डिफाइन करें
+      const container = tbody.closest('.card') || document;
 
-      tbody.innerHTML = '';
-      let grand = 0;
-
-      const fParty = (container.querySelector('.flt-party')?.value || '').toLowerCase();
+      // ✅ सुधार 2: फिल्टर्स की वैल्यू निकालें
+      const fParty = (container.querySelector('.flt-party')?.value || '').toLowerCase().trim();
       const fDate = container.querySelector('.flt-date')?.value || '';
-      const fProduct = (container.querySelector('.flt-product')?.value || '').toLowerCase();
+      const fProduct = (container.querySelector('.flt-product')?.value || '').toLowerCase().trim();
       const fSeller = container.querySelector('.flt-seller')?.value || '';
 
-      const rows = sales.filter(s => {
+      tbody.innerHTML = '';
+
+      const totals = { kg: 0, bags: 0, subtotal: 0, comm: 0, cess: 0, majuri: 0, total: 0, cash: 0, gpay: 0, udhar: 0 };
+
+      // ✅ सुधार 3: फिल्टरिंग लॉजिक को सही करें (s.party की जगह s.party_name)
+      const filteredRows = sales.filter(s => {
+        // Seller Filter
         if (fSeller && s.seller !== fSeller) return false;
+
+        // Party Filter (s.party_name इस्तेमाल करें)
         if (fParty && !String(s.party_name).toLowerCase().includes(fParty)) return false;
+
+        // Date Filter
         if (fDate && toISTDate(s.date) !== fDate) return false;
 
+        // Product Filter
         if (fProduct) {
-          const subTotal = Math.round((Number(s.rate_20kg || 0) / 20) * Number(s.qty_kg || 0));
           const prod = products.find(p => String(p.id) === String(s.product_id));
           const pname = prod ? prod.name.toLowerCase() : '';
           if (!pname.includes(fProduct)) return false;
@@ -2425,53 +2482,82 @@ Rate: ₹${rate || '-'}`;
         return true;
       });
 
-      if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#999">No records</td></tr>`;
-        totalEl.textContent = '₹0';
+      if (filteredRows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center">No Data Found</td></tr>';
+        resetRegisterTotals(container); // टोटल्स को 0 करने के लिए
+        renderProductSummary([]);
         return;
       }
 
-      rows.slice().reverse().forEach(s => {
+      filteredRows.slice().reverse().forEach(s => {
         const subTotal = Math.round((Number(s.rate_20kg || 0) / 20) * Number(s.qty_kg || 0));
         const prod = products.find(p => String(p.id) === String(s.product_id));
+
+        // टोटल्स अपडेट करें
+        totals.kg += Number(s.qty_kg || 0);
+        totals.bags += Number(s.qty_katta || 0);
+        totals.subtotal += subTotal;
+        totals.comm += Number(s.commission_amt || 0);
+        totals.cess += Number(s.cess_amt || 0);
+        totals.majuri += Number(s.majuri_amt || 0);
+        totals.total += Number(s.total || 0);
+        totals.cash += Number(s.cash || 0);
+        totals.gpay += Number(s.gpay || 0);
+        totals.udhar += Number(s.udhar || 0);
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td data-col="date">${toISTDate(s.date)}</td>
-      <td data-col="party">${s.party_name}</td>
-      <td data-col="product">${prod ? prod.name : '-'}</td>
-      <td data-col="kg">${s.qty_kg}</td>
-      <td data-col="bags">${s.qty_katta}</td>
-      <td data-col="rate">₹${s.rate_20kg}</td>
-      <td data-col="subtotal">₹${subTotal}</td>
-      <td data-col="comm">₹${s.commission_amt}</td>
-      <td data-col="cess">₹${s.cess_amt}</td>
-      <td data-col="majuri">₹${s.majuri_amt}</td>
-      <td data-col="total" style="font-weight:700;color:#0f766e">₹${s.total}</td>
-      <td data-col="seller">${s.seller}</td>
-      <!-- 🆕 PAYMENT COLUMNS (ADD ONLY) -->
-      <td data-col="cash">₹${s.cash || 0}</td>
-      <td data-col="gpay">₹${s.gpay || 0}</td>
-      <td data-col="udhar">₹${s.udhar || 0}</td>
-      <td data-col="partial">${(s.cash > 0 && s.gpay > 0) ? '✔' : '-'}</td>    
-      <td data-col="bill">${s.bill_no || '-'}</td>
-      <td data-col="action">
-        <button class="btn-outline"
-          onclick='reprintSale(${JSON.stringify(s)})'>
-          🖨️
-        </button>
-      </td>
-
-    `;
-
-
+            <td data-col="date">${toISTDate(s.date)}</td>
+            <td data-col="party">${s.party_name}</td>
+            <td data-col="product">${prod ? prod.name : '-'}</td>
+            <td data-col="kg">${s.qty_kg}</td>
+            <td data-col="bags">${s.qty_katta}</td>
+            <td data-col="rate">₹${s.rate_20kg}</td>
+            <td data-col="subtotal">₹${subTotal}</td>
+            <td data-col="comm">₹${Math.round(s.commission_amt)}</td>
+            <td data-col="cess">₹${s.cess_amt.toFixed(2)}</td>
+            <td data-col="majuri">₹${s.majuri_amt}</td>
+            <td data-col="total" style="font-weight:700;color:#0f766e">₹${Math.round(s.total)}</td>
+            <td data-col="seller">${s.seller}</td>
+            <td data-col="cash">₹${s.cash || 0}</td>
+            <td data-col="gpay">₹${s.gpay || 0}</td>
+            <td data-col="udhar">₹${s.udhar || 0}</td>
+            <td data-col="partial">${(s.cash > 0 && s.gpay > 0) ? '✔' : '-'}</td>
+            <td data-col="bill">${s.bill_no || '-'}</td>
+            <td data-col="action">
+                <button class="btn-outline" onclick='reprintSale(${JSON.stringify(s)})'>🖨️</button>
+            </td>
+        `;
         tbody.appendChild(tr);
-        grand += Number(s.total || 0);
       });
 
-      totalEl.textContent = '₹' + grand;
+      // ✅ सुधार 4: फुटर में टोटल्स दिखाएं
+      updateRegisterFooter(container, totals);
       applyColumnPrefs();
-      // 🔥 ADD THIS
-      renderProductSummary(rows);
+      renderProductSummary(filteredRows);
+    }
+
+    // टोटल्स अपडेट करने के लिए हेल्पर फंक्शन
+    function updateRegisterFooter(container, t) {
+      if (!container) return;
+      container.querySelector('.sum-kg').textContent = t.kg.toFixed(2);
+      container.querySelector('.sum-bags').textContent = t.bags;
+      container.querySelector('.sum-subtotal').textContent = '₹' + Math.round(t.subtotal);
+      container.querySelector('.sum-comm').textContent = '₹' + Math.round(t.comm);
+      container.querySelector('.sum-cess').textContent = '₹' + t.cess.toFixed(2);
+      container.querySelector('.sum-majuri').textContent = '₹' + t.majuri;
+      container.querySelector('.sum-total').textContent = '₹' + Math.round(t.total);
+      container.querySelector('.sum-cash').textContent = '₹' + Math.round(t.cash);
+      container.querySelector('.sum-gpay').textContent = '₹' + Math.round(t.gpay);
+      container.querySelector('.sum-udhar').textContent = '₹' + Math.round(t.udhar);
+    }
+
+    function resetRegisterTotals(container) {
+      const fields = ['.sum-kg', '.sum-bags', '.sum-subtotal', '.sum-comm', '.sum-cess', '.sum-majuri', '.sum-total', '.sum-cash', '.sum-gpay', '.sum-udhar'];
+      fields.forEach(f => {
+        const el = container.querySelector(f);
+        if (el) el.textContent = f.includes('sum-kg') || f.includes('sum-bags') ? '0' : '₹0';
+      });
     }
 
     function toggleColumnPanel(btn) {
@@ -2506,7 +2592,7 @@ Rate: ₹${rate || '-'}`;
       if (!rows || rows.length === 0) {
         body.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align:center;color:#999">
+        <td colspan="9" style="text-align:center;color:#999">
           No summary
         </td>
       </tr>`;
@@ -3649,7 +3735,7 @@ Advance: ₹${adv}`;
 
       totalEl.textContent = sum.toFixed(2);
     }
-  function testAndroidPrint() {
+    function testAndroidPrint() {
       const slip = {
         bill_no: "TEST123",
         party: "RAMLAL",
@@ -3666,7 +3752,7 @@ Advance: ₹${adv}`;
       }
     }
 
-  
+
   </script>
 </body>
 

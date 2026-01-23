@@ -1127,19 +1127,19 @@
 
 
       <div id="sec-form" class="seller-form-section">
-        <div class="label">
-          Product:
-          <span class="sprodTpl" style="color:#0f766e;font-weight:800"></span>
-        </div>
-        <div class="small" style="color:#b45309">
-          ⚠ Product change karne ke liye upar Top Bar se product select kare
-        </div>
-
-
+        
         <div class="row">
           <div class="col"><label>Party Name</label><input class="partyTpl" list="partyMasterList"
               placeholder="Select Party"></div>
           <div class="col"><label>Date</label><input class="dateTpl" type="date"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label class="label">Product</label>
+            <select class="sellerProductTpl">
+              <option value="">Select Product</option>
+            </select>
+          </div>
         </div>
 
         <!-- ✅ NEW PAYMENT TYPE (REPLACEMENT) -->
@@ -2707,43 +2707,7 @@ Rate: ₹${rate || '-'}`;
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      if (!currentProductId) {
-        container.innerHTML = `
-    <div class="card" style="border:1px dashed #f59e0b;background:#fffbeb">
-      <div style="font-weight:700;color:#b45309;margin-bottom:6px">
-        ⚠️ Product Not Selected
-      </div>
-      <div class="small">
-        Please select a product from the <b>top bar</b> to start selling.
-      </div>
-    </div>
-  `;
-        ['.flt-party', '.flt-date', '.flt-product', '.flt-seller'].forEach(cls => {
-          const el = container.querySelector(cls);
-          if (el && !el.dataset.bind) {
-            el.dataset.bind = "1";
-            el.addEventListener('input', renderRegister);
-            el.addEventListener('change', renderRegister);
-          }
-        });
-
-        const clr = container.querySelector('.flt-clear');
-        if (clr && !clr.dataset.bind) {
-          clr.dataset.bind = "1";
-          clr.onclick = () => {
-            container.querySelectorAll(
-              '.flt-party,.flt-date,.flt-product,.flt-seller'
-            ).forEach(i => i.value = '');
-            renderRegister();
-          };
-        }
-
-        // 🔥 Make sure topbar is visible
-        const tb = document.getElementById('productsTopBar');
-        if (tb) tb.style.display = 'flex';
-
-        return;
-      }
+      
 
 
       container.innerHTML = '';
@@ -2751,10 +2715,44 @@ Rate: ₹${rate || '-'}`;
 
       const tpl = document.getElementById('tpl-saleFormSmall');
       const node = document.importNode(tpl.content, true);
+        // ================= PRODUCT DROPDOWN INIT (STEP-6) =================
+      const prodSelect = node.querySelector('.sellerProductTpl');
+      if (prodSelect) {
+        prodSelect.innerHTML = '<option value="">Select Product</option>';
 
+        products.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = p.name;
+          if (String(p.id) === String(currentProductId)) {
+            opt.selected = true;
+          }
+          prodSelect.appendChild(opt);
+        });
+
+        // 🔥 On change → update currentProductId
+        prodSelect.addEventListener('change', () => {
+          currentProductId = prodSelect.value || null;
+          localStorage.setItem('selectedProductId', currentProductId || '');
+
+          // Auto-fill rate if available
+          const prod = products.find(p => String(p.id) === String(currentProductId));
+          if (prod) {
+            const rateEl = node.querySelector('.rateTpl');
+            if (rateEl) rateEl.value = prod.rate || '';
+          }
+          // 🔥 RESET dependent fields on product change
+          node.querySelector('.nagTpl').value = '';
+          node.querySelector('.weightTpl').value = '';
+          node.querySelector('.totalTpl').value = '';
+          node.querySelector('.commTpl').value = '6';
+        });
+        
+
+      }
+      
       // --- A. Init ---
       const prod = products.find(p => String(p.id) === String(currentProductId));
-      node.querySelector('.sprodTpl').textContent = prod ? prod.name : 'No Product Selected';
       node.querySelector('.dateTpl').value = todayStr();
 
 
@@ -2852,15 +2850,29 @@ Rate: ₹${rate || '-'}`;
           el.style.display = '';
         });
       }
+      // ================= SAVE BUTTON GUARD (STEP-7) =================
+      const saveBtn = node.querySelector('.saveSaleSmall');
 
+      function updateSaveState() {
+        if (!currentProductId) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Select Product';
+        } else {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'SAVE SALE';
+        }
+      }
+
+      // Initial state
+      updateSaveState();
+
+      // On product change
+      prodSelect?.addEventListener('change', updateSaveState);
+  
       // --- D. Save Logic ---
       node.querySelector('.saveSaleSmall').addEventListener('click', async (e) => {
 
-        // 🔴 PRODUCT MUST BE SELECTED
-        if (!currentProductId) {
-          alert("Please select product from top bar");
-          return;
-        }
+        
 
         const btn = e.target;
         const msg = container.querySelector('.msgSmall');
@@ -3042,6 +3054,31 @@ Rate: ₹${rate || '-'}`;
       });
       fillPartyDatalist();
       container.appendChild(node);
+      // ================= STEP-4 : DISABLE FIELDS UNTIL PRODUCT SELECT =================
+      const depFields = [
+        node.querySelector('.rateTpl'),
+        node.querySelector('.nagTpl'),
+        node.querySelector('.weightTpl'),
+        node.querySelector('.commTpl')
+      ];
+
+      function setProductDependentState(enabled) {
+        depFields.forEach(el => {
+          if (!el) return;
+          el.disabled = !enabled;
+          el.style.background = enabled ? '#ffffff' : '#f1f5f9';
+        });
+      }
+
+      // initial state
+      setProductDependentState(!!currentProductId);
+
+      // on product change
+      node.querySelector('.sellerProductTpl')?.addEventListener('change', () => {
+        setProductDependentState(!!currentProductId);
+      });
+
+
       // ================= PRINT BUTTON BIND (FINAL FIX) =================
       const printBtn = container.querySelector('.printSaleSmall');
 

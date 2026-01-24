@@ -689,7 +689,7 @@
 
 <body>
   <datalist id="partyMasterList"></datalist>
-
+  <datalist id="productMasterList"></datalist>
   <div class="layout" id="appLayout" aria-hidden="false">
 
     <aside class="sidebar" id="leftSidebar" role="navigation" aria-label="Main menu">
@@ -1127,7 +1127,7 @@
 
 
       <div id="sec-form" class="seller-form-section">
-        
+
         <div class="row">
           <div class="col"><label>Party Name</label><input class="partyTpl" list="partyMasterList"
               placeholder="Select Party"></div>
@@ -1136,9 +1136,7 @@
         <div class="row" style="margin-top:8px">
           <div class="col">
             <label class="label">Product</label>
-            <select class="sellerProductTpl">
-              <option value="">Select Product</option>
-            </select>
+            <input class="sellerProductTpl" list="productMasterList" placeholder="Search Product">
           </div>
         </div>
 
@@ -2707,7 +2705,7 @@ Rate: ₹${rate || '-'}`;
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      
+
 
 
       container.innerHTML = '';
@@ -2715,42 +2713,61 @@ Rate: ₹${rate || '-'}`;
 
       const tpl = document.getElementById('tpl-saleFormSmall');
       const node = document.importNode(tpl.content, true);
-        // ================= PRODUCT DROPDOWN INIT (STEP-6) =================
-      const prodSelect = node.querySelector('.sellerProductTpl');
-      if (prodSelect) {
-        prodSelect.innerHTML = '<option value="">Select Product</option>';
+      // ================= PRODUCT SEARCH INIT (LIKE PARTY) =================
+      const prodInput = node.querySelector('.sellerProductTpl');
+      const prodDL = document.getElementById('productMasterList');
+
+      if (prodInput && prodDL) {
+        prodDL.innerHTML = '';
 
         products.forEach(p => {
           const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.textContent = p.name;
-          if (String(p.id) === String(currentProductId)) {
-            opt.selected = true;
-          }
-          prodSelect.appendChild(opt);
+          opt.value = p.name;        // 🔥 typing by name
+          opt.dataset.pid = p.id;   // hidden id
+          prodDL.appendChild(opt);
         });
 
-        // 🔥 On change → update currentProductId
-        prodSelect.addEventListener('change', () => {
-          currentProductId = prodSelect.value || null;
-          localStorage.setItem('selectedProductId', currentProductId || '');
+        prodInput.addEventListener('change', () => {
+          const name = prodInput.value.trim();
 
-          // Auto-fill rate if available
-          const prod = products.find(p => String(p.id) === String(currentProductId));
-          if (prod) {
-            const rateEl = node.querySelector('.rateTpl');
-            if (rateEl) rateEl.value = prod.rate || '';
+          const prod = products.find(
+            p => p.name.toLowerCase() === name.toLowerCase()
+          );
+
+          if (!prod) {
+            currentProductId = null;
+
+            // 🔥 RESET EVERYTHING (IMPORTANT UX)
+            node.querySelector('.rateTpl').value = '';
+            node.querySelector('.nagTpl').value = '';
+            node.querySelector('.weightTpl').value = '';
+            node.querySelector('.totalTpl').value = '';
+            node.querySelector('.commTpl').value = '6';
+
+            setProductDependentState(false);
+            updateSaveState();
+            return;
           }
-          // 🔥 RESET dependent fields on product change
+
+
+          currentProductId = String(prod.id);
+          localStorage.setItem('selectedProductId', currentProductId);
+
+          // auto rate
+          const rateEl = node.querySelector('.rateTpl');
+          if (rateEl) rateEl.value = prod.rate || '';
+
+          // reset
           node.querySelector('.nagTpl').value = '';
           node.querySelector('.weightTpl').value = '';
           node.querySelector('.totalTpl').value = '';
           node.querySelector('.commTpl').value = '6';
-        });
-        
 
+          setProductDependentState(true);
+          updateSaveState();
+        });
       }
-      
+
       // --- A. Init ---
       const prod = products.find(p => String(p.id) === String(currentProductId));
       node.querySelector('.dateTpl').value = todayStr();
@@ -2867,12 +2884,12 @@ Rate: ₹${rate || '-'}`;
       updateSaveState();
 
       // On product change
-      prodSelect?.addEventListener('change', updateSaveState);
-  
+      prodInput?.addEventListener('change', updateSaveState);
+
       // --- D. Save Logic ---
       node.querySelector('.saveSaleSmall').addEventListener('click', async (e) => {
 
-        
+
 
         const btn = e.target;
         const msg = container.querySelector('.msgSmall');

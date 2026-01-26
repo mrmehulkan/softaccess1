@@ -1503,6 +1503,72 @@
     let currentProductId = null;
     let parties = [];
 
+    // 🔥 OFFLINE QUEUE INIT
+    let offlineQueue = [];
+    try {
+      offlineQueue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+
+      // 🔥 CLEANUP: Remove invalid 'ledger' actions that cause sync errors
+      const validQueue = offlineQueue.filter(item => item.action !== 'ledger');
+      if (validQueue.length !== offlineQueue.length) {
+        console.log('🧹 Removed', offlineQueue.length - validQueue.length, 'invalid ledger actions');
+        offlineQueue = validQueue;
+        localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+      }
+
+      console.log('📦 Offline Queue Loaded:', offlineQueue.length, 'items');
+    } catch (e) {
+      console.error('Offline queue load error', e);
+      offlineQueue = [];
+    }
+
+    // 🔥 AUTO SYNC LOGIC
+    let isSyncing = false; // Prevent multiple syncs
+
+    window.addEventListener('online', () => {
+      console.log("🌐 Back Online! Triggering auto-sync...");
+      // Delay slightly to ensure reliable connection
+      setTimeout(() => processOfflineQueue(true), 2000);
+    });
+
+    // Also try sync when app comes to foreground
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        processOfflineQueue(true);
+      }
+    });
+
+    function saveToQueue(action, payload) {
+      const item = {
+        id: Date.now() + Math.random().toString(36).substr(2, 5),
+        action,
+        payload,
+        timestamp: new Date().toISOString()
+      };
+      offlineQueue.push(item);
+      localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+      console.log('📥 Saved to offline queue:', item);
+
+      // Update Sync Button UI if possible
+      updateSyncBtnUI();
+    }
+
+    function updateSyncBtnUI() {
+      const btn = document.querySelector('.menu-btn[data-tooltip="Sync Data"] div:last-child');
+      if (btn) {
+        if (offlineQueue.length > 0) {
+          btn.textContent = `Sync Data (${offlineQueue.length})`;
+          btn.style.color = '#f59e0b';
+          btn.style.fontWeight = '800';
+        } else {
+          btn.textContent = 'Sync Data';
+          btn.style.color = '';
+          btn.style.fontWeight = '';
+        }
+      }
+    }
+
+
     // 🔥 IST SAFE DATE FORMATTER
     function toISTDate(dateStr) {
       const d = new Date(dateStr);
@@ -1522,7 +1588,6 @@
       });
     }
 
-    // पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए
     // पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए सही फंक्शन
     function fillPartyDatalist() {
       const dl = document.getElementById("partyMasterList");
@@ -1568,14 +1633,12 @@
     }
 
 
-
+    /* 
+       🔥 MODIFIED: Check Internet sets status but DOES NOT BLOCK
+       Returns true if Online, false if Offline
+    */
     function checkInternet() {
       if (!navigator.onLine) {
-        alert("❌ NO INTERNET CONNECTION.\nकृपया इंटरनेट चेक करें। काम रोका गया है।");
-        return false;
-      }
-      if (!WEB_APP_URL || WEB_APP_URL.length < 10) {
-        alert("❌ CONFIG ERROR: Script URL missing in code.");
         return false;
       }
       return true;
@@ -1597,6 +1660,9 @@
 
     // 🔥 Sale ke baad sirf required data refresh
     async function refreshAfterSale() {
+      // If offline, do nothing (local UI is enough)
+      if (!checkInternet()) return;
+
       try {
         await Promise.all([
           loadProductsFromSheet(), // stock update
@@ -1604,7 +1670,7 @@
         ]);
         buildProductsTopBar();
         updateDashboardCounts();
-        // 🔥 ADD THIS
+
         if (document.querySelector('.tbody-register')) {
           renderRegister();
         }
@@ -1613,8 +1679,86 @@
       }
     }
 
+    async function processOfflineQueue(isAuto = false) {
+      if (offlineQueue.length === 0) return;
+      if (isSyncing) return; // Block if already syncing
+
+      if (!checkInternet()) {
+        if (!isAuto) alert("❌ No internet for syncing.");
+        return;
+      }
+
+      isSyncing = true;
+      const total = offlineQueue.length;
+
+      let topbar = document.getElementById('productsTopBar');
+      const refreshBtn = topbar ? topbar.querySelector('.prod-btn') : null;
+      if (refreshBtn) refreshBtn.innerHTML = `<b>Syncing (0/${total})...</b>`;
+
+      let successCount = 0;
+      let lastError = "";
+
+      // Process sequentially to ensure order
+      // Create a copy to iterate
+      const queueCopy = [...offlineQueue];
+
+      for (let i = 0; i < queueCopy.length; i++) {
+        const item = queueCopy[i];
+        try {
+          if (refreshBtn) refreshBtn.textContent = `Syncing (${i + 1}/${total})...`;
+
+          console.log(`Syncing item ${i + 1}:`, item);
+          const fd = new FormData();
+          const data = Object.assign({ action: item.action }, item.payload);
+          fd.append("data", JSON.stringify(data));
+
+          const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+          const json = await res.json();
+
+          if (json.status === 'ok') {
+            // Remove from original queue array
+            const idx = offlineQueue.findIndex(x => x.id === item.id);
+            if (idx > -1) offlineQueue.splice(idx, 1);
+            localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+            successCount++;
+          } else {
+            console.error("Sync failed for item:", item, json);
+            lastError = "Server Error: " + (json.msg || "Unknown");
+          }
+
+        } catch (e) {
+          console.error("Sync network error for item:", item, e);
+          lastError = e.message; // Capture error
+          // Stop syncing if network breaks again
+          break;
+        }
+      }
+
+      updateSyncBtnUI();
+      isSyncing = false;
+
+      if (refreshBtn) refreshBtn.innerHTML = `<b>Synced ${successCount}/${total}</b>`;
+
+      if (successCount > 0) {
+        if (!isAuto) alert(`✅ Synced ${successCount} entries successfully.`);
+        await refreshAllData();
+      } else {
+        if (!isAuto && lastError) alert("⚠️ Sync incomplete. Error: " + lastError);
+      }
+    }
+
     async function refreshAllData() {
-      if (!checkInternet()) return;
+      // If offline queue exists, try to sync first
+      if (offlineQueue.length > 0 && navigator.onLine) {
+        // Auto process if online
+        await processOfflineQueue(true);
+        // Don't return, continue to refresh data
+      }
+
+      if (!checkInternet()) {
+        alert("⚠️ You are OFFLINE. Showing last loaded data.");
+        return;
+      }
 
       let topbar = document.getElementById('productsTopBar');
       const refreshBtn = topbar ? topbar.querySelector('.prod-btn') : null;
@@ -1636,12 +1780,11 @@
           loadLedgerFromSheet()
         ]);
 
-        // ⚠️ Party list YAHAN reload nahi hogi
-        // Sirf datalist refill (local memory se)
         fillPartyDatalist();
 
         buildProductsTopBar();
         updateDashboardCounts();
+        updateSyncBtnUI(); // Ensure sync count shows
 
         const activePanel = document.querySelector('.menu-btn.active')?.dataset.panel;
         if (activePanel === 'ledger') showLedgerTpl();
@@ -1652,7 +1795,7 @@
         alert("Data load failed: " + err.message);
       } finally {
         if (refreshBtn) {
-          refreshBtn.textContent = '🔄 Refresh';
+          refreshBtn.innerHTML = '<b>🔄 Refresh</b>';
           refreshBtn.style.pointerEvents = '';
           refreshBtn.style.opacity = '1';
         }
@@ -1661,20 +1804,62 @@
 
 
     /* --- API CALL HELPER --- */
+    /* 
+       🔥 MODIFIED: Handles Offline Gracefully 
+       If offline & write action -> Save to Queue & return FAKE OK
+    */
     async function fetchFromSheetAction(action, payload = {}) {
-      if (!checkInternet()) throw new Error("No Internet");
+      const isOnline = checkInternet();
 
-      const fd = new FormData();
-      const data = Object.assign({ action }, payload);
-      fd.append("data", JSON.stringify(data));
+      // READ Actions: Must have internet
+      const readActions = ['getProducts', 'getPurchases', 'getSales', 'getLedger', 'getParties', 'getParchiByProduct'];
 
-      try {
-        const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
-        const json = await res.json();
-        return json;
-      } catch (e) {
-        throw new Error("Network/Server Error: " + e.message);
+      if (readActions.includes(action)) {
+        if (!isOnline) {
+          // Return empty/dummy for reads if offline to prevent crash
+          return { status: 'error', msg: 'Offline Mode', data: [] };
+        }
       }
+
+      // If Online, try normal fetch
+      if (isOnline) {
+        try {
+          const fd = new FormData();
+          const data = Object.assign({ action }, payload);
+          fd.append("data", JSON.stringify(data));
+
+          const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+          const json = await res.json();
+          return json;
+        } catch (e) {
+          console.warn("Network call failed, switching to offline queue logic...", e);
+          // Fallthrough to offline logic below
+        }
+      }
+
+      // --- OFFLINE LOGIC ---
+      // If we are here, either !isOnline OR fetch failed
+
+      // Non-save actions (read) failing fallback
+      if (readActions.includes(action)) {
+        throw new Error("No Internet Connection");
+      }
+
+      // Save actions -> Add to Queue
+      saveToQueue(action, payload);
+
+      // Generate Fake Bill No if needed
+      let fakeData = {};
+      if (action === 'sale') {
+        fakeData.bill_no = "OFF-" + Math.floor(Math.random() * 1000);
+      }
+
+      return {
+        status: 'ok',
+        msg: 'Saved Locally (Offline)',
+        data: fakeData,
+        offline: true
+      };
     }
 
     /* --- Load Functions --- */
@@ -1788,7 +1973,8 @@
     // ###############################################################
 
     async function savePurchaseTpl() {
-      if (!checkInternet()) return;
+      // Offline allowed
+      // if (!checkInternet()) return;
 
       const party = document.getElementById('purchasePartyTpl').value.trim();
       await ensurePartyExists(party);
@@ -1913,7 +2099,10 @@
 
 
     async function addProductFromPurchase() {
-      if (!checkInternet()) return;
+      if (!checkInternet()) {
+        alert("Manage Products requires Internet connection.");
+        return;
+      }
 
       const nameEl = document.getElementById('addProdNameP3');
       const rateEl = document.getElementById('addProdRateP3');
@@ -2170,6 +2359,7 @@ Rate: ₹${rate || '-'}`;
 
 
     function buildProductsTopBar() {
+      updateSyncBtnUI();
       const box = document.getElementById('productsTopBar');
       if (!box) return;
       box.innerHTML = '';
@@ -2977,36 +3167,11 @@ Rate: ₹${rate || '-'}`;
           container.dataset.lastBillNo = billNo;
 
           if (out.status !== "ok") throw new Error(out.msg);
-          if (cashAmt > 0) {
-            await fetchFromSheetAction("ledger", {
-              date,
-              party_name: "CASH",
-              type: "CR",
-              credit: cashAmt,
-              debit: 0,
-              remark: `Sale ${party} (${sellerName})`
-            });
-          }
-          if (gpayAmt > 0) {
-            await fetchFromSheetAction("ledger", {
-              date,
-              party_name: "GPAY",
-              type: "CR",
-              credit: gpayAmt,
-              debit: 0,
-              remark: `Sale ${party} (${sellerName})`
-            });
-          }
-          if (udharAmt > 0) {
-            await fetchFromSheetAction("ledger", {
-              date,
-              party_name: party,
-              type: "DR",
-              debit: udharAmt,
-              credit: 0,
-              remark: `Udhar Sale (${sellerName})`
-            });
-          }
+
+          /* 
+             🔥 REMOVED: Separate ledger calls causing "Unknown action: ledger" error.
+             The 'sale' action now handles ledger entries (Cash/GPay/Udhar) on the server.
+          */
 
 
           msg.textContent = "✅ Saved!"; msg.style.color = "green";
@@ -3037,6 +3202,14 @@ Rate: ₹${rate || '-'}`;
           container.querySelector('.weightTpl').value = '';
           container.querySelector('.remTpl').value = '';
           container.querySelector('.totalTpl').value = '';
+
+          // 🔥 RESET PRODUCT (User Request)
+          currentProductId = null;
+          localStorage.removeItem('selectedProductId');
+          container.querySelector('.sellerProductTpl').value = '';
+          container.querySelector('.rateTpl').value = '';  // Clear rate as well
+          setProductDependentState(false);
+          updateSaveState();
 
           // ✅ PRINT CONFIRM POPUP (FINAL)
           setTimeout(() => {

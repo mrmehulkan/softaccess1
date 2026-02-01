@@ -274,7 +274,7 @@
                 display: block !important;
                 width: 72mm !important;
                 margin: 0;
-                padding: 1mm 2mm;
+                padding: 0mm 2mm;
             }
 
             #billPreview table {
@@ -561,43 +561,46 @@
                     style="width:100%; border-radius:0 0 8px 8px; margin-top:-20px; border-top:none; margin-bottom:20px;">
                     <i class="fas fa-plus"></i> Add New Row
                 </button>
+            </div>
 
-                <!-- FOOTER SECTION -->
-                <div class="summary-footer">
-                    <!-- ACTIONS -->
-                    <div style="display:flex; gap:10px; align-items:flex-start;">
-                        <button class="btn btn-danger" onclick="resetForm()"><i class="fas fa-trash-alt"></i> Clear
-                            Form</button>
-                    </div>
-
-                    <!-- SUMMARY CARD -->
-                    <div class="summary-card">
-                        <div class="summary-row">
-                            <span>Total Qty:</span>
-                            <span id="totalQtyDiv" style="font-weight:bold;">0</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Sub Total:</span>
-                            <span>₹ <span id="subTotalDiv">0.00</span></span>
-                        </div>
-                        <div class="summary-row" style="align-items:center;">
-                            <span>Discount:</span>
-                            <input type="number" id="discountInput" value="0"
-                                oninput="calculateGrandTotal(); saveState()"
-                                style="width:80px; padding:4px; border:1px solid #d1d5db; border-radius:4px; text-align:right;">
-                        </div>
-                        <div class="grand-total-row">
-                            <span>Grand Total:</span>
-                            <span>₹ <span id="grandTotalDiv">0.00</span></span>
-                        </div>
-                        <button class="btn btn-success" onclick="saveAllEntries()"
-                            style="width:100%; margin-top:15px; padding:12px; font-size:1rem;">
-                            <i class="fas fa-print"></i> Save & Print
-                        </button>
-                    </div>
+            <!-- Footer Balance -->
+            <div class="summary-footer">
+                <!-- ACTIONS -->
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <button class="btn btn-danger" onclick="resetForm()"><i class="fas fa-trash-alt"></i> Clear
+                        Form</button>
                 </div>
 
+                <!-- SUMMARY CARD -->
+                <div class="summary-card">
+                    <div class="summary-row">
+                        <span>Total Qty:</span>
+                        <span id="totalQtyDiv" style="font-weight:bold;">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Sub Total:</span>
+                        <span>₹ <span id="subTotalDiv">0.00</span></span>
+                    </div>
+                    <div class="summary-row" style="align-items:center;">
+                        <span>Discount:</span>
+                        <input type="number" id="discountInput" value="0" oninput="calculateGrandTotal(); saveState()"
+                            style="width:80px; padding:4px; border:1px solid #d1d5db; border-radius:4px; text-align:right;">
+                    </div>
+                    <div class="summary-row">
+                        <span>Round Off:</span>
+                        <span id="roundOffDiv">0.00</span>
+                    </div>
+                    <div class="grand-total-row">
+                        <span>Grand Total:</span>
+                        <span>₹ <span id="grandTotalDiv">0.00</span></span>
+                    </div>
+                    <button class="btn btn-success" onclick="saveAllEntries()"
+                        style="width:100%; margin-top:15px; padding:12px; font-size:1rem;">
+                        <i class="fas fa-print"></i> Save & Print
+                    </button>
+                </div>
             </div>
+
         </div>
 
         <div id="products" class="content-section">
@@ -614,8 +617,8 @@
                         <option value="kg">kg</option>
                         <option value="MTR">MTR</option>
                     </select>
-                    <input type="number" id="productBuyPrice" placeholder="Buy Price" step="any" required>
-                    <input type="number" id="productSellPrice" placeholder="Sell Price" step="any" required>
+                    <input type="number" id="productBuyPrice" placeholder="Buy Price" step="0.0001" required>
+                    <input type="number" id="productSellPrice" placeholder="Sell Price" step="0.0001" required>
                     <input type="number" id="productGST" placeholder="GST %" required>
                     <input type="number" id="productStock" placeholder="Stock" required>
                     <button type="submit" class="btn btn-primary">Add Product</button>
@@ -881,6 +884,26 @@
                     </div>
                 </div>
 
+                <!-- CLAIMS SECTION -->
+                <div
+                    style="margin-top:20px; border:1px solid #e5e7eb; border-radius:8px; padding:10px; background:#f9fafb;">
+                    <h4 style="color:#4b5563; border-bottom:1px solid #e5e7eb; padding-bottom:5px; margin-bottom:10px;">
+                        ♻️ Claims / Returns (Note Only) - <span id="totalClaims">0.00</span></h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; padding:8px;">Description</th>
+                                <th style="text-align:right; padding:8px;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimBody">
+                            <tr>
+                                <td colspan="2" style="text-align:center; padding:10px; color:#888;">No Claims</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <!-- CLOSING BALANCE -->
                 <div class="totals-wrapper"
                     style="margin-top:20px; border-top:2px solid var(--text); padding-top:15px; background:#eee; padding:15px; border-radius:8px;">
@@ -888,7 +911,8 @@
                         <div style="color:var(--success); font-weight:bold;">Total Aavak: ₹ <span
                                 id="totalCredit">0.00</span></div>
                         <div style="color:var(--accent); font-weight:bold;">Total Javak: ₹ <span
-                                id="totalDebit">0.00</span></div>
+                                id="totalDebit">0.00</span>
+                        </div>
                     </div>
                     <div class="grand-total-item" style="font-size:1.8rem; text-align:right; color:var(--primary);">
                         🌌 Closing Cash: ₹ <span id="closingBalance">0.00</span>
@@ -900,19 +924,24 @@
 
     <div id="billPreview">
         <center>
-            <h2 style="font-size:16px;"></h2>
-            <p style="font-size:11px; font-weight:bold;">(DEVKARAN NARSHIBHAI AND COMPANY)</p>
-            <p style="font-size:10px;">OPP. KAUSHIK COTTON, RAJKOT 360001</p>
-            <p style="font-size:10px;">Mo: +91 9898156791</p>
-            <div class="dash-line"></div>
-            <p style="font-size:11px; font-weight:bold;">TAX INVOICE</p>
-            <div class="dash-line"></div>
+            <h2 style="display:none;"></h2>
+            <p style="font-size:11px; font-weight:bold; margin-bottom:2px; margin-top:5px;">(DEVKARAN NARSHIBHAI AND
+                COMPANY)</p>
+            <p style="font-size:10px; margin:2px 0;">OPP. KAUSHIK COTTON, RAJKOT 360001</p>
+            <p style="font-size:10px; margin:2px 0;"><b>GSTIN:</b> 24AABFD5328B1Z3</p>
+            <p style="font-size:10px; margin:2px 0;">Mo: +91 9898156791</p>
+            <div class="dash-line" style="margin:5px 0;"></div>
+            <p style="font-size:11px; font-weight:bold; margin:2px 0;">TAX INVOICE</p>
+            <div class="dash-line" style="margin:5px 0;"></div>
         </center>
 
         <table style="width:100%; font-size:11px; border:none;">
             <tr>
                 <td><b>Bill No:</b> <span id="p_billNo"></span></td>
-                <td style="text-align:right;"><b>Date:</b> <span id="p_date"></span></td>
+                <td style="text-align:right;">
+                    <b>Date:</b> <span id="p_date"></span><br>
+                    <b>Time:</b> <span id="p_time"></span>
+                </td>
             </tr>
             <tr>
                 <td colspan="2"><b>Customer:</b> <span id="p_customer">Cash Account</span><br><b>Mobile:</b> <span
@@ -923,9 +952,10 @@
         <table style="width:100%; margin-top:5px;">
             <thead>
                 <tr style="border-bottom: 1px solid #000;">
-                    <th style="text-align:left; width:40%;">Item</th>
-                    <th style="text-align:center; width:15%;">Qty</th>
-                    <th style="text-align:center; width:20%;">Rate</th>
+                    <th style="text-align:left; width:35%;">Item</th>
+                    <th style="text-align:center; width:10%;">Qty</th>
+                    <th style="text-align:center; width:15%;">Rate</th>
+                    <th style="text-align:center; width:15%;">GST</th>
                     <th style="text-align:right; width:25%;">Amount</th>
                 </tr>
             </thead>
@@ -937,6 +967,7 @@
             <p>Discount: ₹ <span id="p_discount">0.00</span></p>
             <p>Taxable Amount: <span id="p_taxable">0.00</span></p>
             <p>GST Amount: <span id="p_gstAmount">0.00</span></p>
+            <p>Round Off: <span id="p_roundOff">0.00</span></p>
             <div class="dash-line"></div>
             <p style="font-size:14px; font-weight:bold;">
                 BILL AMOUNT: ₹ <span id="p_grand">0.00</span>
@@ -956,7 +987,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxERnHp6xWHknQtbWUEyJcwZIzhS1tLjf4i9m5UdXzjYwONGWSnt2sY84LjLShJNE7Q/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxD3zN8DAImUWcxSBzxluVFtAzggAjiTZGUHe-tDRmQyFARxRsrmXx5aZdZCQxTc1kh/exec";
         const PASSWORD_HASH = "YWRtaW4xMjM="; // Base64 for admin123
         let productMaster = [];
         let allEntryLogs = [];
@@ -1351,12 +1382,18 @@
 
         function formatTime(t) {
             if (!t) return "";
-            if (String(t).includes("T")) {
+            if (String(t).includes("T") || String(t).match(/^\d{2}:\d{2}/)) {
+                // If ISO or HH:mm, try to parse
                 let date = new Date(t);
-                if (isNaN(date.getTime())) return t;
-                return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                if (String(t).match(/^\d{2}:\d{2}$/)) {
+                    // specific case if just HH:mm passed (unlikely from ISO but possible)
+                    // Let's rely on Date parsing or just return if it looks like time
+                    return t;
+                }
+                if (isNaN(date.getTime())) return t; // Return original if parse fail
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
             }
-            return t;
+            return t; // Return as is if already formatted or simple string
         }
 
         function renderBillHistory(bills) {
@@ -1431,8 +1468,8 @@
             document.getElementById("e_productName").value = p.productName;
             document.getElementById("e_productBarcode").value = p.barcode;
             document.getElementById("e_productUnit").value = p.unit;
-            document.getElementById("e_productBuyPrice").value = p.buyPrice;
-            document.getElementById("e_productSellPrice").value = p.sellPrice;
+            document.getElementById("e_productBuyPrice").value = Number(p.buyPrice).toFixed(4);
+            document.getElementById("e_productSellPrice").value = Number(p.sellPrice).toFixed(4);
             document.getElementById("e_productGST").value = p.gst;
             document.getElementById("e_productStock").value = p.stock;
 
@@ -1524,7 +1561,13 @@
             document.querySelectorAll("#tableBody tr").forEach(r => sub += Number(r.cells[7].querySelector("input").value || 0));
             document.getElementById("subTotalDiv").textContent = sub.toFixed(2);
             const disc = Number(document.getElementById("discountInput").value) || 0;
-            document.getElementById("grandTotalDiv").textContent = (sub - disc).toFixed(2);
+
+            const totalBeforeRound = sub - disc;
+            const roundedTotal = Math.round(totalBeforeRound);
+            const roundOff = roundedTotal - totalBeforeRound;
+
+            document.getElementById("roundOffDiv").textContent = roundOff.toFixed(2);
+            document.getElementById("grandTotalDiv").textContent = roundedTotal.toFixed(2);
         }
 
         let whatsappWindow = null;
@@ -1618,12 +1661,10 @@
                 customerMobile: document.getElementById("customerMobile").value || "",
                 subtotal: sub,
                 discount: disc,
-                roundOff: 0,
-                taxable: totalTaxable,
-                gstAmount: totalGST,
-                grandTotal: (totalTaxable + totalGST).toFixed(2),
-                totalPCS: document.getElementById("totalQtyDiv").textContent,
-                grandTotal: (totalTaxable + totalGST).toFixed(2),
+                roundOff: document.getElementById("roundOffDiv").textContent,
+                taxable: totalTaxable.toFixed(2),
+                gstAmount: totalGST.toFixed(2),
+                grandTotal: document.getElementById("grandTotalDiv").textContent,
                 totalPCS: document.getElementById("totalQtyDiv").textContent,
                 items: entries,
                 paymentMode: selectedPaymentMode // ✅ Values: 'Cash', 'Debit', 'GPay'
@@ -1671,6 +1712,7 @@
         function populateAndPrint(bill) {
             document.getElementById("p_billNo").textContent = bill.billId;
             document.getElementById("p_date").textContent = bill.date;
+            document.getElementById("p_time").textContent = bill.time || "";
             document.getElementById("p_customer").textContent =
                 document.getElementById("customerName").value || "Cash Account";
             document.getElementById("p_mobile").textContent =
@@ -1683,17 +1725,22 @@
                 Number(document.getElementById("discountInput").value || 0).toFixed(2);
             document.getElementById("p_taxable").textContent = bill.taxable;
             document.getElementById("p_gstAmount").textContent = bill.gstAmount;
+            document.getElementById("p_roundOff").textContent = bill.roundOff || "0.00";
             document.getElementById("p_grand").textContent = bill.grandTotal;
 
             document.getElementById("p_items").innerHTML =
-                bill.items.map(i => `
+                bill.items.map(i => {
+                    const gstVal = (Number(i.qty) * Number(i.price) * (Number(i.gst) || 0)) / 100;
+                    return `
                         <tr>
                             <td>${i.item}</td>
                             <td style="text-align:center;">${i.qty}</td>
                             <td style="text-align:center;">${i.price}</td>
-                        <td style="text-align:right;">${i.totalWithGST}</td>
+                            <td style="text-align:center;">${gstVal.toFixed(2)}</td>
+                            <td style="text-align:right;">${i.totalWithGST}</td>
                         </tr>
-                    `).join('');
+                    `;
+                }).join('');
 
             document.getElementById("billPreview").style.display = "block";
             // ✅ CHANGED: Reset form effectively without reload
@@ -1800,20 +1847,52 @@
 
 
         async function reprintBill(billId) {
-            showToast("🔍 Fetching...");
+            // 1. Find Bill Summary from local cache (allBillLogs)
+            const billSummary = allBillLogs.find(b => b.billId === billId);
+
+            if (!billSummary) {
+                alert("Bill details not found in history. Please refresh.");
+                return;
+            }
+
+            showToast("🔍 Fetching Items...");
+
+            // 2. Fetch Items
             const res = await fetch(`${API_URL}?action=getEntries`).then(r => r.json());
             if (res.success) {
                 const items = res.data.filter(i => i.billId === billId);
                 if (items.length > 0) {
+
+                    // 3. Recalculate Taxable/GST breakdown from items (as these might not be in history row)
                     let t = 0, g = 0;
                     items.forEach(i => {
                         const taxable = Number(i.qty) * Number(i.price);
                         t += taxable;
-                        g += (taxable * Number(i.gst) / 100);
+                        g += (taxable * Number(i.gst || 0) / 100);
                     });
-                    const bill = { billId, date: items[0].date, grandTotal: (t + g).toFixed(2), taxable: t.toFixed(2), gstAmount: g.toFixed(2), items };
+
+                    // 4. Construct Bill Object using Summary (for Totals) + Items
+                    const bill = {
+                        billId: billSummary.billId,
+                        date: formatDate(billSummary.date), // Ensure format
+                        time: formatTime(billSummary.time), // 🔥 Ensure format matches AM/PM
+                        customerName: billSummary.customerName,
+                        customerMobile: billSummary.customerMobile,
+
+                        // 🔥 KEY FIX: Use Saved Values for Totals
+                        grandTotal: Number(billSummary.grandTotal).toFixed(2),
+                        roundOff: Number(billSummary.roundOff || 0).toFixed(2),
+                        discount: Number(billSummary.discount || 0).toFixed(2),
+
+                        taxable: t.toFixed(2),     // Derived from items
+                        gstAmount: g.toFixed(2),   // Derived from items
+                        items: items
+                    };
+
                     populateAndPrint(bill);
                     sendWhatsAppBill(bill);
+                } else {
+                    alert("No items found for this bill.");
                 }
             }
         }
@@ -2108,8 +2187,8 @@
                     <option value="kg">kg</option>
                     <option value="MTR">MTR</option>
                 </select>
-                <input type="number" id="e_productBuyPrice">
-                <input type="number" id="e_productSellPrice">
+                <input type="number" id="e_productBuyPrice" step="0.0001">
+                <input type="number" id="e_productSellPrice" step="0.0001">
                 <input type="number" id="e_productGST">
                 <input type="number" id="e_productStock">
 
@@ -2165,6 +2244,7 @@
             const dBody = document.getElementById("debitBody");
             const gBody = document.getElementById("gpayBody");
             const uBody = document.getElementById("udharBody");
+            const clBody = document.getElementById("claimBody"); // ✅ NEW Claim Body
 
             let tCredit = 0; // Cash Aavak
             let tDebit = 0;  // Cash Javak
@@ -2201,12 +2281,22 @@
                 }).join("");
             } else { uBody.innerHTML = ""; }
 
+            // 5. Render CLAIMS (Notes Only)
+            let tClaims = 0;
+            if (data.sysClaims) {
+                clBody.innerHTML = data.sysClaims.map(i => {
+                    tClaims += i.amount;
+                    return `<tr><td style='padding:5px;'>${i.remarks || 'Return'}</td><td style='text-align:right; font-weight:bold;'>${i.amount.toFixed(2)}</td></tr>`;
+                }).join("");
+            } else { clBody.innerHTML = ""; }
+
 
             // Update UI Totals
             document.getElementById("totalCredit").innerText = tCredit.toFixed(2);
             document.getElementById("totalDebit").innerText = tDebit.toFixed(2);
             document.getElementById("totalGPay").innerText = tGPay.toFixed(2);
             document.getElementById("totalUdhar").innerText = tUdhar.toFixed(2);
+            document.getElementById("totalClaims").innerText = tClaims.toFixed(2); // ✅ Show Total Claims
 
             // Total Business = Cash Sales + GPay + Udhar
             // Note: tCredit includes Manual Income too. For strict "Business Sales", we should sum only Sales.

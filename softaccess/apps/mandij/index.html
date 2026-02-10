@@ -15,30 +15,9 @@
   <style>
     /* 🔒 SELLER REGISTER FIXED HEADER + FOOTER */
 
-    .seller-table-wrap {
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      background: #fff;
-      overflow: hidden;
-    }
 
-    /* ONLY ROWS SCROLL */
-    .seller-table-body {
-      max-height: 320px;
-      /* 👈 yahin scroll hoga */
-      overflow-y: auto;
-    }
+    /* OLD SPLIT TABLE CSS REMOVED */
 
-    /* HEADER FIX LOOK */
-    .seller-table thead {
-      background: #f0fdfa;
-    }
-
-    /* FOOTER FIX LOOK */
-    .seller-table tfoot {
-      background: #ecfeff;
-    }
 
     .p4-party-btn {
       padding: 10px 12px;
@@ -458,10 +437,28 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
+    .seller-table-wrap {
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      overflow: auto;
+      /* Enable both scrolls */
+      max-height: 350px;
+      /* Vertical constraint */
+      position: relative;
+    }
+
+    /* REMOVED .seller-table-body (no longer needed) */
+
     .seller-table {
       width: 100%;
+      min-width: 900px;
+      /* Force scroll on small screens */
       font-size: 0.85rem;
-      border-collapse: collapse;
+      border-collapse: separate;
+      /* Required for sticky */
+      border-spacing: 0;
     }
 
     .seller-table th {
@@ -469,6 +466,19 @@
       color: #0f766e;
       padding: 6px;
       text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 0 #e5e7eb;
+    }
+
+    .seller-table tfoot td {
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      background: #ecfeff;
+      font-weight: 800;
+      box-shadow: 0 -1px 0 #e5e7eb;
     }
 
     .seller-table td {
@@ -880,67 +890,102 @@
     <section>
       <div class="page-title">P3 — Purchase Entry</div>
       <div class="page-sub">Directly saves to Google Sheet.</div>
-      <div class="card">
-        <div class="row">
-          <div class="col">
-            <div class="label">Type (DR/CR)</div>
-            <select id="purchaseDCTpl">
-              <option value="DR">Debit</option>
-              <option value="CR" selected>Credit</option>
-            </select>
-          </div>
-          <div class="col">
-            <div class="label">Party</div><input id="purchasePartyTpl" type="text" list="partyMasterList">
-          </div>
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <div class="col">
-            <div class="label">Date</div><input id="purchaseDateTpl" type="date">
-          </div>
-          <div class="col">
-            <div class="label">Bill No.</div><input id="purchaseBillTpl" type="text">
-          </div>
-        </div>
-        <div style="margin-top:8px;">
-          <div class="label">Product</div>
-          <select id="purchaseProductTpl"></select>
-        </div>
-        <div class="row" style="margin-top:8px;">
-          <div class="col">
-            <div class="label">Rate (20kg)</div><input id="purchaseRateTpl" type="number">
-          </div>
-          <div class="col">
-            <div class="label">Katta (Bags)</div><input id="purchaseKattaTpl" type="number">
-          </div>
-          <div class="col">
-            <div class="label">Total Weight (KG)</div><input id="purchaseQtyTpl" type="number">
-          </div>
-          <div class="col">
-            <div class="label">Total ₹</div><input id="purchaseTotalTpl" type="text" readonly>
-          </div>
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px;">
-          <button class="btn" onclick="savePurchaseTpl()">Save to Cloud</button>
-          <button class="btn-outline" onclick="renderAndShow('purchase')">Clear</button>
-        </div>
-        <div id="purchaseMsgTpl" class="small" style="margin-top:8px"></div>
 
-        <div style="margin-top:18px;padding-top:12px;border-top:1px dashed #e6efec;">
-          <div class="label">Add New Product (Online)</div>
-          <div class="row" style="margin-top:6px;">
+      <!-- TOGGLE BUTTONS -->
+      <div class="toggle-container" style="align-items:center;">
+        <div class="toggle-btn active" id="btn-purchase-form" onclick="togglePurchaseView('form')">📝 New Entry</div>
+        <div class="toggle-btn" id="btn-purchase-register" onclick="togglePurchaseView('register')">📋 Purchase Register
+        </div>
+      </div>
+
+      <!-- FORM SECTION -->
+      <div id="sec-purchase-form">
+        <div class="card">
+          <div class="row">
             <div class="col">
-              <input id="addProdNameP3" type="text" placeholder="Product name (e.g. Potato)">
+              <div class="label">Type (DR/CR)</div>
+              <select id="purchaseDCTpl">
+                <option value="DR">Debit</option>
+                <option value="CR" selected>Credit</option>
+              </select>
             </div>
-            <div class="col" style="max-width:160px;">
-              <input id="addProdRateP3" type="number" placeholder="Rate (20kg)">
+            <div class="col">
+              <div class="label">Party</div><input id="purchasePartyTpl" type="text" list="partyMasterList">
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <div class="col">
+              <div class="label">Date</div><input id="purchaseDateTpl" type="date">
+            </div>
+            <div class="col">
+              <div class="label">Bill / Code</div><input id="purchaseBillTpl" type="text">
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="label">Product</div>
+            <select id="purchaseProductTpl"></select>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <div class="col">
+              <div class="label">Rate (20kg)</div><input id="purchaseRateTpl" type="number">
+            </div>
+            <div class="col">
+              <div class="label">Katta (Bags)</div><input id="purchaseKattaTpl" type="number">
+            </div>
+            <div class="col">
+              <div class="label">Total Weight (KG)</div><input id="purchaseQtyTpl" type="number">
+            </div>
+            <div class="col">
+              <div class="label">Total ₹</div><input id="purchaseTotalTpl" type="text" readonly>
             </div>
           </div>
           <div style="margin-top:8px;display:flex;gap:8px;">
-            <button class="btn" onclick="addProductFromPurchase()">Add Product</button>
+            <button class="btn" onclick="savePurchaseTpl()">Save to Cloud</button>
+            <button class="btn-outline" onclick="renderAndShow('purchase')">Clear</button>
           </div>
-          <div id="addProdMsgP3" class="small" style="margin-top:8px;"></div>
+          <div id="purchaseMsgTpl" class="small" style="margin-top:8px"></div>
+
+          <div style="margin-top:18px;padding-top:12px;border-top:1px dashed #e6efec;">
+            <div class="label">Add New Product (Online)</div>
+            <div class="row" style="margin-top:6px;">
+              <div class="col">
+                <input id="addProdNameP3" type="text" placeholder="Product name (e.g. Potato)">
+              </div>
+              <div class="col" style="max-width:160px;">
+                <input id="addProdRateP3" type="number" placeholder="Rate (20kg)">
+              </div>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px;">
+              <button class="btn" onclick="addProductFromPurchase()">Add Product</button>
+            </div>
+            <div id="addProdMsgP3" class="small" style="margin-top:8px;"></div>
+          </div>
         </div>
       </div>
+
+      <!-- REGISTER SECTION -->
+      <div id="sec-purchase-register" style="display:none;">
+        <div class="seller-table-wrap">
+          <table class="seller-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Party</th>
+                <th>Product</th>
+                <th>Kg</th>
+                <th>Bags</th>
+                <th>Rate</th>
+                <th>Total ₹</th>
+              </tr>
+            </thead>
+            <tbody id="purchaseRegisterBody"></tbody>
+          </table>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <button class="btn-outline" style="font-size:0.8rem" onclick="refreshAllData()">🔄 Refresh List</button>
+        </div>
+      </div>
+
     </section>
   </template>
 
@@ -1112,6 +1157,8 @@
       <div class="toggle-container" style="align-items:center">
         <div class="toggle-btn active" data-view="form">📝 New Entry</div>
         <div class="toggle-btn" data-view="register">📋 Sale Register</div>
+        <div class="toggle-btn" data-view="offline_register" style="border:1px dashed #f59e0b; color:#b45309">📂 Offline
+          Sales</div>
 
         <!-- ⚙ Customize -->
         <div class="toggle-btn" style="flex:0; padding:6px 10px" onclick="openSellerPopup()">
@@ -1323,8 +1370,6 @@
 
 
       <div class="seller-table-wrap">
-
-        <!-- 🔒 FIXED HEADER -->
         <table class="seller-table">
           <thead>
             <tr>
@@ -1348,17 +1393,7 @@
               <th data-col="action">Print</th>
             </tr>
           </thead>
-        </table>
-
-        <!-- 🔄 ONLY BODY SCROLL -->
-        <div class="seller-table-body">
-          <table class="seller-table">
-            <tbody class="tbody-register"></tbody>
-          </table>
-        </div>
-
-        <!-- 🔒 FIXED TOTAL ROW -->
-        <table class="seller-table">
+          <tbody class="tbody-register"></tbody>
           <tfoot>
             <tr style="background:#ecfeff;font-weight:800">
               <td data-col="date">TOTAL</td>
@@ -1385,7 +1420,6 @@
             </tr>
           </tfoot>
         </table>
-
       </div>
 
       <!-- 📦 PRODUCT SUMMARY (STEP-1: STRUCTURE ONLY) -->
@@ -1420,6 +1454,33 @@
 
       <div style="text-align:center; margin-top:10px;">
         <button class="btn-outline" style="font-size:0.8rem" onclick="refreshAllData()">🔄 Refresh List</button>
+      </div>
+    </div>
+    <!-- 🔥 NEW OFFLINE REGISTER SECTION -->
+    <div id="sec-offline-register" style="display:none;">
+      <div class="card" style="margin-bottom:8px; border-left:4px solid #f59e0b">
+        <div class="label" style="color:#b45309">📂 Offline Queue (Saved on Device)</div>
+        <div class="small">These entries will sync automatically when internet is available.</div>
+      </div>
+
+      <div class="seller-table-wrap">
+        <table class="seller-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Party</th>
+              <th>Product</th>
+              <th>Kg</th>
+              <th>Rate</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody class="tbody-offline-register"></tbody>
+        </table>
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <button class="btn-outline" onclick="processOfflineQueue()">Force Sync Now</button>
       </div>
     </div>
     <!-- 🔧 SELLER CUSTOMIZE POPUP -->
@@ -1625,10 +1686,17 @@
         if (out.status === "ok") {
           // Backend data array ko parties variable mein save karein
           parties = out.data || [];
+          localStorage.setItem('cachedParties', JSON.stringify(parties));
           console.log("Parties loaded from sheet:", parties.length);
+        } else {
+          throw new Error("API Error");
         }
       } catch (e) {
-        console.error("Party loading failed:", e);
+        console.warn("Using offline cached parties...", e);
+        const cached = localStorage.getItem('cachedParties');
+        if (cached) {
+          parties = JSON.parse(cached);
+        }
       }
     }
 
@@ -1821,8 +1889,8 @@
         }
       }
 
-      // If Online, try normal fetch
-      if (isOnline) {
+      // If Online, try normal fetch (SKIP 'sale' for offline-first)
+      if (isOnline && action !== 'sale') {
         try {
           const fd = new FormData();
           const data = Object.assign({ action }, payload);
@@ -1865,18 +1933,28 @@
     /* --- Load Functions --- */
     async function loadProductsFromSheet() {
       products = [];
-      const out = await fetchFromSheetAction("getProducts");
-      if (out.status !== "ok") throw new Error(out.msg);
-
-      products = (out.data || []).map(p => ({
-        id: String(p.id),
-        name: p.name,
-        stock: Number(p.stock_kg) || 0,
-        stock_katta: Number(p.stock_katta) || 0,
-        rate: Number(p.rate_20kg) || 0
-      }));
-
-
+      try {
+        const out = await fetchFromSheetAction("getProducts");
+        if (out.status === "ok") {
+          products = (out.data || []).map(p => ({
+            id: String(p.id),
+            name: p.name,
+            stock: Number(p.stock_kg) || 0,
+            stock_katta: Number(p.stock_katta) || 0,
+            rate: Number(p.rate_20kg) || 0
+          }));
+          // 🔥 CACHE PRODUCTS
+          localStorage.setItem('cachedProducts', JSON.stringify(products));
+        } else {
+          throw new Error(out.msg);
+        }
+      } catch (e) {
+        console.warn("Using offline cached products...", e);
+        const cached = localStorage.getItem('cachedProducts');
+        if (cached) {
+          products = JSON.parse(cached);
+        }
+      }
     }
 
     async function loadPurchasesFromSheet() {
@@ -1986,8 +2064,10 @@
       const totalKg = Number(kg || 0);
       const msgEl = document.getElementById('purchaseMsgTpl');
 
-      if (!party || !pid || !rate20 || !totalKg) {
-        alert('Please fill required fields'); return;
+      const bill = document.getElementById('purchaseBillTpl').value.trim();
+
+      if (!party || !pid || !rate20 || !totalKg || !katta || !bill) {
+        alert('Please fill required fields (Bill/Code, Party, Product, Rate, Bags, Kg)'); return;
       }
 
       const perKg = rate20 / 20;
@@ -2020,6 +2100,9 @@
 
         // Clear Form
         document.getElementById('purchasePartyTpl').value = '';
+        document.getElementById('purchaseProductTpl').value = ''; // 🔥 Force re-select
+        document.getElementById('purchaseBillTpl').value = '';    // 🔥 Force re-enter
+        document.getElementById('purchaseRateTpl').value = '';    // 🔥 Force re-enter
         document.getElementById('purchaseKattaTpl').value = '';
         document.getElementById('purchaseQtyTpl').value = '';
         document.getElementById('purchaseTotalTpl').value = '';
@@ -2535,6 +2618,52 @@ Rate: ₹${rate || '-'}`;
 
     }
 
+    function togglePurchaseView(view) {
+      const formSec = document.getElementById('sec-purchase-form');
+      const regSec = document.getElementById('sec-purchase-register');
+      const btnForm = document.getElementById('btn-purchase-form');
+      const btnReg = document.getElementById('btn-purchase-register');
+
+      if (view === 'form') {
+        formSec.style.display = 'block';
+        regSec.style.display = 'none';
+        btnForm.classList.add('active');
+        btnReg.classList.remove('active');
+      } else {
+        formSec.style.display = 'none';
+        regSec.style.display = 'block';
+        btnForm.classList.remove('active');
+        btnReg.classList.add('active');
+        renderPurchaseRegister();
+      }
+    }
+
+    function renderPurchaseRegister() {
+      const tbody = document.getElementById('purchaseRegisterBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (purchases.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No Purchase Data Found</td></tr>';
+        return;
+      }
+
+      purchases.slice().reverse().forEach(p => {
+        const prod = products.find(x => String(x.id) === String(p.product_id));
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${toISTDate(p.date)}</td>
+          <td>${p.party_name}</td>
+          <td>${prod ? prod.name : '-'}</td>
+          <td>${p.qty_kg}</td>
+          <td>${p.qty_katta}</td>
+          <td>₹${p.rate_20kg}</td>
+          <td style="font-weight:700">₹${Math.round(p.total)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
     function onPageInit_sale() {
       fillPartyDatalist();
       buildP4ProductGrid();
@@ -3014,6 +3143,7 @@ Rate: ₹${rate || '-'}`;
       const toggles = node.querySelectorAll('.toggle-btn');
       const formSec = node.querySelector('#sec-form');
       const regSec = node.querySelector('#sec-register');
+      const offSec = node.querySelector('#sec-offline-register');
 
       toggles.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3024,23 +3154,79 @@ Rate: ₹${rate || '-'}`;
           if (btn.dataset.view === 'form') {
             formSec.style.display = 'block';
             regSec.style.display = 'none';
+            offSec.style.display = 'none';
 
             container.querySelectorAll('.seller-form-only')
               .forEach(el => el.style.display = 'block');
           }
-          else {
+          else if (btn.dataset.view === 'register') {
             formSec.style.display = 'none';
             regSec.style.display = 'block';
+            offSec.style.display = 'none';
 
             container.querySelectorAll('.seller-form-only')
               .forEach(el => el.style.display = 'none');
 
             renderRegister();
           }
+          else if (btn.dataset.view === 'offline_register') {
+            formSec.style.display = 'none';
+            regSec.style.display = 'none';
+            offSec.style.display = 'block';
 
+            container.querySelectorAll('.seller-form-only')
+              .forEach(el => el.style.display = 'none');
+
+            renderOfflineRegister();
+          }
 
         });
       });
+
+      // 🔥 OFFLINE REGISTER RENDERER
+      function renderOfflineRegister() {
+        const tbody = container.querySelector('.tbody-offline-register');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        const sales = offlineQueue.filter(x => x.action === 'sale');
+
+        if (sales.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999">No offline entries pending.</td></tr>';
+          return;
+        }
+
+        sales.slice().reverse().forEach(item => {
+          const s = item.payload;
+          const tr = document.createElement('tr');
+          const prod = products.find(p => String(p.id) === String(s.product_id));
+          const pname = prod ? prod.name : 'Unknown';
+
+          tr.innerHTML = `
+            <td>${s.date}</td>
+            <td>${s.party_name}</td>
+            <td>${pname}</td>
+            <td>${s.qty_kg} kg</td>
+            <td>₹${s.rate_20kg}</td>
+            <td style="font-weight:700">₹${Math.round(s.total || 0)}</td>
+            <td>
+               <button class="btn-outline" style="color:red;border-color:red;font-size:0.7rem;padding:4px 8px" onclick="deleteOfflineSale('${item.id}')">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      window.deleteOfflineSale = function (id) {
+        if (!confirm("Are you sure you want to DELETE this offline entry? It will validation be lost.")) return;
+        const idx = offlineQueue.findIndex(x => x.id === id);
+        if (idx > -1) {
+          offlineQueue.splice(idx, 1);
+          localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+          renderOfflineRegister();
+          updateSyncBtnUI();
+        }
+      };
 
       function hideSellerFormUI(container) {
         container.querySelectorAll(
@@ -3174,7 +3360,11 @@ Rate: ₹${rate || '-'}`;
           */
 
 
-          msg.textContent = "✅ Saved!"; msg.style.color = "green";
+          if (out.offline) {
+            msg.textContent = "✅ Saved to Queue"; msg.style.color = "#d97706";
+          } else {
+            msg.textContent = "✅ Saved!"; msg.style.color = "green";
+          }
           // 🔥 background refresh (non-blocking)
           setTimeout(refreshAfterSale, 50);
           // 🔥 PAYMENT RESET (IMPORTANT FIX)

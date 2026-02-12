@@ -638,6 +638,14 @@
                     </thead>
                     <tbody id="productListBody"></tbody>
                 </table>
+                <div id="productPagination"
+                    style="display:flex; justify-content:center; gap:15px; margin-top:15px; align-items:center;">
+                    <button id="btnPrevProduct" class="btn btn-primary" onclick="changeProductPage(-1)" disabled><i
+                            class="fas fa-arrow-left"></i> Prev</button>
+                    <span id="txtProductPage" style="font-weight:bold;">Page 1</span>
+                    <button id="btnNextProduct" class="btn btn-primary" onclick="changeProductPage(1)">Next <i
+                            class="fas fa-arrow-right"></i></button>
+                </div>
             </div>
         </div>
 
@@ -995,6 +1003,9 @@
         let allBillLogs = []; // Store bills locally
         let entryPage = 1;
         let billPage = 1;
+
+        let productPage = 1;
+        const productsPerPage = 10;
 
         // PAGINATION META
         let entryMeta = { total: 0, totalPages: 1 };
@@ -1376,7 +1387,25 @@
 
 
         function renderProducts() {
-            document.getElementById("productListBody").innerHTML = productMaster.map(p => `<tr><td>${p.productName}</td><td>${p.barcode}</td><td>${p.unit}</td><td>${p.stock}</td><td>${p.buyPrice}</td><td>${p.sellPrice}</td><td>${p.gst}%</td><td><button class="btn btn-danger"style="padding:5px 10px;"onclick="requestEditPassword('${p.barcode}')"><i class="fas fa-edit"></i></button></td></tr>`).join('');
+            const start = (productPage - 1) * productsPerPage;
+            const end = start + productsPerPage;
+            const paginatedProducts = productMaster.slice(start, end);
+
+            document.getElementById("productListBody").innerHTML = paginatedProducts.map(p => `<tr><td>${p.productName}</td><td>${p.barcode}</td><td>${p.unit}</td><td>${p.stock}</td><td>${p.buyPrice}</td><td>${p.sellPrice}</td><td>${p.gst}%</td><td><button class="btn btn-danger"style="padding:5px 10px;"onclick="requestEditPassword('${p.barcode}')"><i class="fas fa-edit"></i></button></td></tr>`).join('');
+
+            // Update Pagination UI
+            const totalPages = Math.ceil(productMaster.length / productsPerPage) || 1;
+            document.getElementById("txtProductPage").innerText = `Page ${productPage} of ${totalPages}`;
+            document.getElementById("btnPrevProduct").disabled = (productPage <= 1);
+            document.getElementById("btnNextProduct").disabled = (productPage >= totalPages);
+        }
+
+        function changeProductPage(step) {
+            const totalPages = Math.ceil(productMaster.length / productsPerPage) || 1;
+            const newPage = productPage + step;
+            if (newPage < 1 || newPage > totalPages) return;
+            productPage = newPage;
+            renderProducts();
         }
 
         function formatDate(d) {

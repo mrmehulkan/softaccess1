@@ -605,9 +605,14 @@
 
         <div id="products" class="content-section">
             <div class="card">
-                <h2>📦 Product Management <button class="btn btn-primary" onclick="loadProductsFromSheet(true)"
+                <h2>📦 Product Management
+                    <button class="btn btn-primary" onclick="loadProductsFromSheet(true)"
                         style="font-size:0.8rem; padding: 5px 10px; margin-left:10px;"><i class="fas fa-sync"></i>
-                        Refresh</button></h2>
+                        Refresh</button>
+                    <button class="btn btn-success" onclick="exportProductMaster()"
+                        style="font-size:0.8rem; padding: 5px 10px; margin-left:10px;"><i class="fas fa-file-excel"></i>
+                        Export</button>
+                </h2>
                 <form id="productForm"
                     style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:25px;">
                     <input type="text" id="productName" placeholder="Name" required>
@@ -623,6 +628,11 @@
                     <input type="number" id="productStock" placeholder="Stock" required>
                     <button type="submit" class="btn btn-primary">Add Product</button>
                 </form>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="productSearchInput" placeholder="🔍 Search Product by Name or Barcode..."
+                        oninput="productPage=1; renderProducts()"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -995,7 +1005,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzBH95yO-k5r8sWgCVyfDKYaSFKUNEiK99Ofu1SP3JFIKhKKZxwdTa8LSFz0sIlEIYuUg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyXZFUoZvHiMY5h2Fop9ChZb7sGFSURhxJAf4fJQ0UIr68b67eMnEBTLsIP5GMQ-SXnGw/exec";
         const BACKUP_API_URL = "https://script.google.com/macros/s/AKfycbyW6leDOGCnYzr6NomFeJFsSPJTg8YC4ikgBimoN93L2c76HXkObbN_lLmbX7wI39pZxQ/exec"; // 🔴 PASTE YOUR BACKUP URL HERE
         const PASSWORD_HASH = "YWRtaW4xMjM="; // Base64 for admin123
         let productMaster = [];
@@ -1031,7 +1041,7 @@
             }).then(r => r.json());
         }
 
-        const ENTRY_LIMIT = 20;
+        const ENTRY_LIMIT = 5000; // 🔥 LOAD ALL RECENT ENTRIES
         const BILL_LIMIT = 20;
         let offlineQueue = JSON.parse(localStorage.getItem("offlineQueue") || "[]");
         let currentMode = "SALE";
@@ -1325,20 +1335,33 @@
             showToast("🔄 Loading Data...");
 
             // Load Page 1
-            await fetchEntryPage(1);
+            await fetchEntryPage("reload"); // Force Reload
             await fetchBillPage(1);
         }
 
+        // ✅ REFACTORED: Load ALL entries for Client-Side Filtering
         async function fetchEntryPage(p) {
-            document.getElementById("entryLogBody").innerHTML = "<tr><td colspan='13' style='text-align:center; padding:20px;'>⏳ Loading...</td></tr>";
-            const res = await fetch(`${API_URL}?action=getEntries&page=${p}&limit=${ENTRY_LIMIT}`).then(r => r.json());
+            // Only fetch from server if it's the INITIAL load (or forced reload)
+            // But here, we just fetch once globally.
+            // Let's change this to "fetch entries" generally.
+
+            if (allEntryLogs.length > 0 && p !== "reload") {
+                // If data already exists, just change page locally
+                entryPage = (typeof p === 'number') ? p : 1;
+                filterLogs();
+                return;
+            }
+
+            document.getElementById("entryLogBody").innerHTML = "<tr><td colspan='13' style='text-align:center; padding:20px;'>⏳ Loading History...</td></tr>";
+
+            // Fetch ALL (Limit 5000)
+            const res = await fetch(`${API_URL}?action=getEntries&page=1&limit=${ENTRY_LIMIT}`).then(r => r.json());
 
             if (res.success) {
-                allEntryLogs = res.data.data; // New structure
-                entryMeta = res.data.meta;
-                entryPage = p;
-                filterLogs(); // This renders the table
-                updateEntryPaginationUI();
+                allEntryLogs = res.data.data; // Store ALL
+                entryPage = 1;
+                filterLogs(); // Filter & Render
+                showToast("✅ History Loaded");
             } else {
                 alert("Failed to load entries");
             }
@@ -1362,7 +1385,8 @@
         function changeEntryPage(step) {
             const newPage = entryPage + step;
             if (newPage < 1 || newPage > entryMeta.totalPages) return;
-            fetchEntryPage(newPage);
+            entryPage = newPage;
+            renderLogs(filteredEntryLogs); // Re-render with new page
         }
 
         function changeBillPage(step) {
@@ -1386,26 +1410,115 @@
 
 
 
+        let filteredEntryLogs = []; // Store filtered result for pagination
+
+        function getFilteredProducts() {
+            const query = document.getElementById("productSearchInput")?.value.toLowerCase().trim() || "";
+            if (!productMaster || !Array.isArray(productMaster)) return [];
+
+            return productMaster.filter(p => {
+                const name = String(p.productName || "").toLowerCase();
+                const barcode = String(p.barcode || "").toLowerCase();
+                return name.includes(query) || barcode.includes(query);
+            });
+        }
+
         function renderProducts() {
+            const filteredProducts = getFilteredProducts();
+
             const start = (productPage - 1) * productsPerPage;
             const end = start + productsPerPage;
-            const paginatedProducts = productMaster.slice(start, end);
+            const paginatedProducts = filteredProducts.slice(start, end);
 
             document.getElementById("productListBody").innerHTML = paginatedProducts.map(p => `<tr><td>${p.productName}</td><td>${p.barcode}</td><td>${p.unit}</td><td>${p.stock}</td><td>${p.buyPrice}</td><td>${p.sellPrice}</td><td>${p.gst}%</td><td><button class="btn btn-danger"style="padding:5px 10px;"onclick="requestEditPassword('${p.barcode}')"><i class="fas fa-edit"></i></button></td></tr>`).join('');
 
-            // Update Pagination UI
-            const totalPages = Math.ceil(productMaster.length / productsPerPage) || 1;
+            // Update Pagination UI based on FILTERED list
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage) || 1;
             document.getElementById("txtProductPage").innerText = `Page ${productPage} of ${totalPages}`;
             document.getElementById("btnPrevProduct").disabled = (productPage <= 1);
             document.getElementById("btnNextProduct").disabled = (productPage >= totalPages);
         }
 
         function changeProductPage(step) {
-            const totalPages = Math.ceil(productMaster.length / productsPerPage) || 1;
+            const filteredProducts = getFilteredProducts();
+
+            const totalPages = Math.ceil(filteredProducts.length / productsPerPage) || 1;
             const newPage = productPage + step;
             if (newPage < 1 || newPage > totalPages) return;
             productPage = newPage;
             renderProducts();
+        }
+
+        async function changeBillDate(billId, oldDate) {
+            const newDate = prompt("Enter New Date (DD/MM/YYYY) or (YYYY-MM-DD):", oldDate);
+            if (!newDate || newDate === oldDate) return;
+
+            // Simple format check (basic)
+            if (newDate.length < 8) {
+                alert("Invalid Date Format");
+                return;
+            }
+
+            // Convert to YYYY-MM-DD to be safe for Sheet? 
+            // Actually our Apps Script logic just takes value. 
+            // But let's standardise to YYYY-MM-DD if possible, or just send as string.
+            // Our sheet logic handles strings well.
+
+            if (!confirm(`Change date for Bill ${billId} from ${oldDate} to ${newDate}?`)) return;
+
+            showToast("⏳ Updating Date...");
+
+            try {
+                const res = await callAPI({
+                    action: "updateBillDate",
+                    data: { billId: billId, newDate: newDate }
+                });
+
+                if (res.success) {
+                    showToast("✅ Date Updated!");
+
+                    // Update Local Data (Cheat update to avoid full reload)
+                    const bill = allBillLogs.find(b => b.billId === billId);
+                    if (bill) bill.date = newDate;
+
+                    // Also update Entry Logs if present
+                    allEntryLogs.forEach(e => {
+                        if (e.billId === billId) e.date = newDate;
+                    });
+
+                    // Re-render
+                    renderBillHistory(allBillLogs);
+                    filterLogs(false); // Update Entry Report View if active
+                } else {
+                    alert("Update Failed: " + res.message);
+                }
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        function exportProductMaster() {
+            if (!productMaster || productMaster.length === 0) {
+                alert("No products to export!");
+                return;
+            }
+
+            const data = productMaster.map(p => ({
+                "Product Name": p.productName,
+                "Barcode": p.barcode,
+                "Unit": p.unit,
+                "Available Stock": p.stock,
+                "Buy Price": p.buyPrice,
+                "Sell Price": p.sellPrice,
+                "GST %": p.gst
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Products");
+
+            const dateStr = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+            XLSX.writeFile(wb, `ProductMaster_${dateStr}.xlsx`);
         }
 
         function formatDate(d) {
@@ -1437,7 +1550,13 @@
         function renderBillHistory(bills) {
             document.getElementById("billHistoryBody").innerHTML = bills.map(b => `<tr>
                 <td>${b.billId}</td>
-                <td>${formatDate(b.date)}</td>
+                <td>
+                    ${formatDate(b.date)} 
+                    <button class="btn-sm" style="padding:2px 5px; font-size:0.75rem; background:none; border:none; color:var(--primary);" 
+                        onclick="changeBillDate('${b.billId}', '${formatDate(b.date)}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
                 <td>${formatTime(b.time)}</td>
                 <td>${Number(b.subtotal || 0).toFixed(2)}</td>
                 <td>${Number(b.discount || 0).toFixed(2)}</td>
@@ -1453,7 +1572,14 @@
         }
 
         function renderLogs(logs) {
-            document.getElementById("entryLogBody").innerHTML = logs.map(l => `<tr>
+            // 1. Pagination Slice
+            const entriesPerPage = 20;
+            const start = (entryPage - 1) * entriesPerPage;
+            const end = start + entriesPerPage;
+            const paginated = logs.slice(start, end);
+
+            // 2. Render Table
+            document.getElementById("entryLogBody").innerHTML = paginated.map(l => `<tr>
                 <td>${l.billId || '---'}</td>
                 <td>${formatDate(l.date)}</td>
                 <td>${formatTime(l.time) || '--:--'}</td>
@@ -1467,7 +1593,15 @@
                 <td>${Number(l.totalWithGST).toFixed(2)}</td>
             </tr>`).join('');
 
-            // UPDATE FOOTER TOTALS
+            // 3. Update Pagination UI
+            const totalPages = Math.ceil(logs.length / entriesPerPage) || 1;
+            entryMeta = { totalPages: totalPages, page: entryPage };
+
+            document.getElementById("txtEntryPage").innerText = `Page ${entryPage} of ${totalPages}`;
+            document.getElementById("btnPrevEntry").disabled = (entryPage <= 1);
+            document.getElementById("btnNextEntry").disabled = (entryPage >= totalPages);
+
+            // 4. Update Footer Totals (BASED ON FILTERED LIST, NOT JUST PAGE)
             const tQty = logs.reduce((sum, l) => sum + Number(l.qty || 0), 0);
             const tAmt = logs.reduce((sum, l) => sum + Number(l.totalWithGST || 0), 0);
 
@@ -1631,11 +1765,26 @@
         }
 
         function exportLogs() {
-            if (allEntryLogs.length === 0) {
+            if (filteredEntryLogs.length === 0) {
                 alert("No data to export");
                 return;
             }
-            const ws = XLSX.utils.json_to_sheet(allEntryLogs);
+            // Export filtered list with pretty headers and formatting
+            const exportData = filteredEntryLogs.map(l => ({
+                "Bill ID": l.billId || "",
+                "Date": formatDate(l.date), // Uses existing helper (DD/MM/YYYY)
+                "Time": formatTime(l.time) || "",
+                "Type": l.entryType || "",
+                "Item": l.item || "",
+                "Barcode": l.barcode || "",
+                "Qty": l.qty || 0,
+                "Unit": l.unit || "",
+                "Price": l.price || 0,
+                "GST %": l.gst || 0,
+                "Total": l.totalWithGST || 0
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Entries");
             XLSX.writeFile(wb, "Billing_Report.xlsx");
@@ -2068,7 +2217,7 @@
                 addRow();
             }
         }
-        function filterLogs() {
+        function filterLogs(resetPage = true) {
             const startStr = document.getElementById("startFilter").value;
             const endStr = document.getElementById("endFilter").value;
             const type = document.getElementById("typeFilter").value;
@@ -2078,6 +2227,8 @@
             let end = endStr ? new Date(endStr) : null;
             if (start) start.setHours(0, 0, 0, 0);
             if (end) end.setHours(23, 59, 59, 999);
+
+
 
             // HELPER: Parse Any Date
             const parseDate = (dStr) => {
@@ -2136,7 +2287,14 @@
                 return true;
             });
 
-            renderLogs(filtered);
+            filteredEntryLogs = filtered; // Update Global Filtered List
+            // Reset to Page 1 on new filter
+            // But if called from pagination, we shouldn't reset?
+            // Actually changeEntryPage calls renderLogs, not filterLogs.
+            // So if filterLogs is called, it means criteria changed.
+            if (resetPage) entryPage = 1;
+
+            renderLogs(filteredEntryLogs);
         }
 
         function resetFilters() {
@@ -2144,7 +2302,7 @@
             document.getElementById("endFilter").value = "";
             document.getElementById("typeFilter").value = "ALL";
             document.getElementById("searchFilter").value = "";
-            filterLogs();
+            filterLogs(true);
         }
 
         async function searchBills() {

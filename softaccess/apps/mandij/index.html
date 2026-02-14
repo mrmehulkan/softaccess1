@@ -4543,9 +4543,13 @@ Advance: ₹${adv}`;
 
         let count = 0;
         for (i = 0; i < arr.length; i++) {
-          // Check if item starts with query (case insensitive)
-          // OR check if item contains query - let's do contains for better UX
-          let item = String(arr[i]);
+          // Handle string or object
+          let raw = arr[i];
+          let item = "";
+          if (typeof raw === 'string') item = raw;
+          else if (raw && raw.name) item = raw.name; // Backend object support
+
+          if (!item) continue;
           if (item.toUpperCase().indexOf(val.toUpperCase()) > -1) {
             if (count > 8) break; // Limit suggestions
             count++;

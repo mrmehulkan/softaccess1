@@ -903,6 +903,12 @@
     }
 
     /* ================= AUTOCOMPLETE CSS ================= */
+    .autocomplete-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
     .autocomplete-items {
       position: absolute;
       border: 1px solid #d4d4d4;
@@ -913,17 +919,19 @@
       left: 0;
       right: 0;
       background-color: #fff;
-      max-height: 200px;
+      max-height: 250px;
       overflow-y: auto;
       border-radius: 0 0 10px 10px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
 
     .autocomplete-item {
-      padding: 10px;
+      padding: 12px;
       cursor: pointer;
       background-color: #fff;
       border-bottom: 1px solid #d4d4d4;
+      font-size: 0.95rem;
+      color: #333;
     }
 
     .autocomplete-item:hover {
@@ -1008,6 +1016,20 @@
   <template id="tpl-home">
     <section class="card">
       <div class="page-title">Dashboard (Online)</div>
+
+      <!-- 🔥 DATA STATUS BANNER -->
+      <div id="dataStatusBanner" style="
+        background: #fef08a; 
+        color: #854d0e; 
+        padding: 12px; 
+        border-radius: 8px; 
+        text-align: center; 
+        font-weight: bold; 
+        margin-bottom: 16px;
+        border: 1px solid #fde047;">
+        ⏳ Data Loading... Please Wait
+      </div>
+
       <div class="page-sub">डेटा Google Sheet से आ रहा है। इंटरनेट चालू रखें।</div>
       <div class="row">
         <div class="col card">
@@ -1158,7 +1180,10 @@
               </select>
             </div>
             <div class="col">
-              <div class="label">Party</div><input id="purchasePartyTpl" type="text" list="partyMasterList">
+              <div class="label">Party</div>
+              <div class="autocomplete-wrapper">
+                <input id="purchasePartyTpl" type="text" placeholder="Select Party..." autocomplete="off">
+              </div>
             </div>
           </div>
           <div class="row" style="margin-top:8px;">
@@ -1291,7 +1316,10 @@
         <div class="row">
           <div class="col">
             <div class="label">Party</div>
-            <input id="salePartyTpl" oninput="filterP4PartyCards(this.value)">
+            <div class="autocomplete-wrapper">
+              <input id="salePartyTpl" oninput="filterP4PartyCards(this.value)" placeholder="Select Party..."
+                autocomplete="off">
+            </div>
           </div>
           <div class="col">
             <div class="label">Date</div>
@@ -1424,8 +1452,8 @@
       <div id="sec-form" class="seller-form-section">
 
         <div class="modern-form-grid">
-          <!-- Row 1: Date | Payment Mode | Bill No (30% - 50% - 20%) -->
-          <div class="full-width payment-row-grid">
+          <!-- Row 1: Date | Payment Mode (Adjusted Grid) -->
+          <div class="full-width payment-row-grid" style="grid-template-columns: 140px 1fr;">
             <div class="modern-input-group">
               <label>Date</label>
               <input class="dateTpl unified-input-style" type="date">
@@ -1434,26 +1462,20 @@
             <div class="modern-input-group">
               <label>Payment Mode</label>
               <select class="paymentTypeSelect unified-input-style">
-                <option value="" disabled selected>-- Select Mode --</option>
-                <option value="CASH">💵 CASH</option>
+                <option value="" disabled>-- Select Mode --</option>
+                <option value="CASH" selected>💵 CASH</option>
                 <option value="GPAY">📱 GPAY</option>
                 <option value="UDHAR">🔴 UDHAR</option>
                 <option value="PARTIAL">⚖ PARTIAL</option>
               </select>
-            </div>
-
-            <div class="modern-input-group">
-              <label>Bill No</label>
-              <input class="billNoBox unified-input-style" type="text" readonly value="(Auto)"
-                style="border:1px dashed #99f6e4 !important; text-align:center; cursor:default;">
             </div>
           </div>
 
           <!-- Row 2: Party Name (Full Width) -->
           <div class="modern-input-group full-width">
             <label>Party Name</label>
-            <div style="position:relative">
-              <input class="partyTpl" id="partyInputTpl" placeholder="Select Party..." autocomplete="off">
+            <div class="autocomplete-wrapper">
+              <input class="partyTpl" placeholder="Select Party..." autocomplete="off">
             </div>
           </div>
 
@@ -1491,19 +1513,28 @@
           <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
             <div class="modern-input-group highlight-field">
               <label>Total Weight (Kg)</label>
-              <input class="weightTpl" type="number" placeholder="0.00" style="font-weight:700">
+              <input class="weightTpl" type="number" placeholder="0.00" inputmode="decimal" style="font-weight:700">
             </div>
 
             <div class="modern-input-group">
               <label>Commission %</label>
-              <input class="commTpl" type="number" value="7">
+              <input class="commTpl" type="number" inputmode="decimal" value="7">
             </div>
           </div>
 
           <!-- Row 7: Final Amount (Full Width) -->
-          <div class="modern-input-group full-width">
-            <label>Final Amount</label>
-            <input class="totalTpl" type="text" readonly style="font-weight:800; color:#0f766e; font-size:1.1rem">
+          <!-- Row 7: Final Amount | Bill No (Side-by-Side) -->
+          <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="modern-input-group">
+              <label>Final Amount</label>
+              <input class="totalTpl" type="text" readonly style="font-weight:800; color:#0f766e; font-size:1.1rem">
+            </div>
+
+            <div class="modern-input-group">
+              <label>Bill No</label>
+              <input class="billNoBox unified-input-style" type="text" readonly value="(Auto)"
+                style="border:1px dashed #99f6e4 !important; text-align:center; cursor:default; height:100%">
+            </div>
           </div>
 
           <!-- Row 8: Payment Details (Cash | GPay | Udhar - 3 Cols) -->
@@ -1794,22 +1825,55 @@
           🧮 Weight Calculator
         </div>
 
-        <div style="display:flex;gap:6px">
-          <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:1">
-          <button class="btn-outline" onclick="addWeightItem()">➕</button>
+        <!-- 🔥 MODE TOGGLE -->
+        <div
+          style="display:flex; justify-content:center; gap:15px; margin-bottom:10px; font-weight:600; font-size:0.9rem; background:#f0fdf4; padding:5px; border-radius:6px; border:1px solid #bbf7d0">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:4px">
+            <input type="radio" name="wcMode" value="manual" checked onchange="toggleWeightMode('manual')">
+            <span>Manual Weighing</span>
+          </label>
+          <label style="cursor:pointer; display:flex; align-items:center; gap:4px">
+            <input type="radio" name="wcMode" value="std50" onchange="toggleWeightMode('std50')">
+            <span>Standard 50kg</span>
+          </label>
         </div>
 
-        <div id="wcList" style="margin-top:10px"></div>
+        <!-- SECTION 1: MANUAL (Existing) -->
+        <div id="wcSectionManual">
+          <div style="display:flex;gap:6px">
+            <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:2">
+            <input type="number" id="wcBagsInput" placeholder="Bags (Optional)"
+              style="flex:1; border:1px solid #f59e0b">
+            <button class="btn-outline" onclick="addWeightItem()">➕</button>
+          </div>
 
-        <div style="margin-top:8px;font-weight:800;color:#065f46">
-          Total: <span id="wcTotal">0</span> KG
+          <div id="wcList" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
+
+          <div style="margin-top:8px;font-weight:800;color:#065f46">
+            Total: <span id="wcTotal">0</span> KG
+          </div>
+
+          <button class="btn-outline" style="width:100%; margin-top:5px" onclick="clearWeightCalc()">CLEAR ALL</button>
         </div>
 
-        <div class="seller-popup-footer" style="display:flex;justify-content:space-between">
-          <button class="btn-outline" onclick="clearWeightCalc()">CLEAR ALL</button>
-          <button class="btn-outline" onclick="closeWeightCalcPopup()">DONE</button>
+        <!-- SECTION 2: STANDARD 50KG (New) -->
+        <div id="wcSectionStd" style="display:none; text-align:center; padding:10px">
+          <div style="font-size:0.9rem; color:#0f766e; margin-bottom:5px">Enter Number of Bags (50kg each)</div>
+          <input type="number" id="wcStdBagsInput" placeholder="Ex: 10"
+            style="width:100%; font-size:1.5rem; padding:8px; text-align:center; font-weight:bold; border:2px solid #0f766e; border-radius:8px"
+            oninput="updateStdCalc()">
+
+          <div style="margin-top:15px; font-size:1.2rem; font-weight:800; color:#065f46">
+            <span id="wcStdCalcDisplay">0</span> KG
+          </div>
+        </div>
+
+        <div class="seller-popup-footer" style="margin-top:15px">
+          <button class="btn-outline" style="width:100%; background:#0f766e; color:white"
+            onclick="closeWeightCalcPopup()">DONE / APPLY</button>
         </div>
       </div>
+    </div>
     </div>
 
 
@@ -1824,7 +1888,7 @@
     //          PART 1: CONFIGURATION & GLOBAL VARIABLES
     // ###############################################################
 
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxT1ldr2bQ9hxiz1UEBn1q3tkqdo1WBzFmKasEERuCKG7C_W9Ubxe8IhVvEpz0ltHbC/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwkdMzGd-tMwO25PAAjsNd8W7k3EAqZ8C0g2w4g8GSPDDUf6NLQyudmRveNBE8ivx3L/exec";
 
     // Local State
     let products = [];
@@ -1921,102 +1985,31 @@
 
     // पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए सही फंक्शन
     function fillPartyDatalist() {
-      // OLD DATALIST LOGIC REMOVED
-      // Using global 'parties' array if available
-      if (typeof parties !== 'undefined' && Array.isArray(parties)) {
-        const inp = document.getElementById('partyInputTpl');
-        if (inp) {
-          setupAutocomplete(inp, parties.map(p => p.party_name || p));
+      const dl = document.getElementById("partyMasterList");
+      if (!dl) return;
+
+      dl.innerHTML = "";
+
+      const set = new Set();
+
+      parties.forEach(p => {
+        if (typeof p === "string") {
+          set.add(p.trim());
         }
-      }
-    }
-
-    // ================= CUSTOM AUTOCOMPLETE LOGIC =================
-    function setupAutocomplete(inp, arr) {
-      let currentFocus;
-
-      inp.addEventListener("input", function (e) {
-        let a, b, i, val = this.value;
-        closeAllLists();
-        if (!val) { return false; }
-        currentFocus = -1;
-
-        a = document.createElement("DIV");
-        a.setAttribute("id", this.id + "autocomplete-list");
-        a.setAttribute("class", "autocomplete-items");
-        this.parentNode.appendChild(a);
-
-        let count = 0;
-        for (i = 0; i < arr.length; i++) {
-          // Check if matches start or contains
-          if (arr[i].toUpperCase().indexOf(val.toUpperCase()) > -1) {
-            if (count > 15) break; // Limit suggestions
-
-            b = document.createElement("DIV");
-            b.className = "autocomplete-item";
-            b.innerHTML = arr[i].replace(new RegExp(val, "gi"), (match) => `<strong>${match}</strong>`);
-            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-            b.addEventListener("click", function (e) {
-              inp.value = this.getElementsByTagName("input")[0].value;
-              closeAllLists();
-              // Optional: Trigger any change event if needed
-              inp.dispatchEvent(new Event('change'));
-            });
-            a.appendChild(b);
-            count++;
-          }
+        else if (p && p.name) {
+          set.add(String(p.name).trim());
         }
       });
 
-      inp.addEventListener("keydown", function (e) {
-        let x = document.getElementById(this.id + "autocomplete-list");
-        if (x) x = x.getElementsByTagName("div");
-        if (e.keyCode == 40) { // DOWN
-          currentFocus++;
-          addActive(x);
-        } else if (e.keyCode == 38) { // UP
-          currentFocus--;
-          addActive(x);
-        } else if (e.keyCode == 13) { // ENTER
-          e.preventDefault();
-          if (currentFocus > -1) {
-            if (x) x[currentFocus].click();
-          }
+      set.forEach(name => {
+        if (name) {
+          const opt = document.createElement("option");
+          opt.value = name;
+          dl.appendChild(opt);
         }
       });
 
-      inp.addEventListener("focus", function () {
-        // 🔥 SCROLL TO TOP ON MOBILE
-        if (window.innerWidth < 900) {
-          setTimeout(() => {
-            this.scrollIntoView({ behavior: "smooth", block: "start" });
-          }, 300);
-        }
-      });
-
-      function addActive(x) {
-        if (!x) return false;
-        removeActive(x);
-        if (currentFocus >= x.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = (x.length - 1);
-        x[currentFocus].classList.add("autocomplete-active");
-      }
-      function removeActive(x) {
-        for (let i = 0; i < x.length; i++) {
-          x[i].classList.remove("autocomplete-active");
-        }
-      }
-      function closeAllLists(elmnt) {
-        let x = document.getElementsByClassName("autocomplete-items");
-        for (let i = 0; i < x.length; i++) {
-          if (elmnt != x[i] && elmnt != inp) {
-            x[i].parentNode.removeChild(x[i]);
-          }
-        }
-      }
-      document.addEventListener("click", function (e) {
-        closeAllLists(e.target);
-      });
+      console.log("✅ Party datalist updated:", set.size);
     }
 
     // Google Sheet से पार्टी डेटा लोड करने के लिए
@@ -2172,6 +2165,16 @@
       let topbar = document.getElementById('productsTopBar');
       const refreshBtn = topbar ? topbar.querySelector('.prod-btn') : null;
 
+      // 🔥 UPDATE BANNER (LOADING)
+      const banner = document.getElementById('dataStatusBanner');
+      if (banner) {
+        banner.textContent = "⏳ Data Loading... Please Wait";
+        banner.style.background = "#fef08a"; // yellow
+        banner.style.color = "#854d0e";
+        banner.style.borderColor = "#fde047";
+      }
+      window.isDataReady = false; // 🚫 BLOCK ACTIONS
+
       try {
         if (refreshBtn) {
           refreshBtn.textContent = '⏳ Loading...';
@@ -2199,9 +2202,26 @@
         if (activePanel === 'ledger') showLedgerTpl();
         if (activePanel === 'products') onPageInit_products();
 
+        // 🔥 UPDATE BANNER (SUCCESS)
+        if (banner) {
+          banner.textContent = "✅ Data Loaded. Kaam Chalu Kar Sakte Hain";
+          banner.style.background = "#dcfce7"; // green
+          banner.style.color = "#166534";
+          banner.style.borderColor = "#86efac";
+        }
+        window.isDataReady = true; // ✅ ALLOW ACTIONS
+
       } catch (err) {
         console.error("Refresh Error:", err);
         alert("Data load failed: " + err.message);
+
+        // 🔥 UPDATE BANNER (ERROR)
+        if (banner) {
+          banner.textContent = "❌ Data Load Failed. Try Refresh.";
+          banner.style.background = "#fee2e2"; // red
+          banner.style.color = "#991b1b";
+          banner.style.borderColor = "#f87171";
+        }
       } finally {
         if (refreshBtn) {
           refreshBtn.innerHTML = '<b>🔄 Refresh</b>';
@@ -2257,10 +2277,57 @@
       // Save actions -> Add to Queue
       saveToQueue(action, payload);
 
-      // Generate Fake Bill No if needed
+      // Generate Formatted Bill No (Same as Server: [SellerCode]-[YYYYMMDD]-[SEQ])
       let fakeData = {};
+
       if (action === 'sale') {
-        fakeData.bill_no = "OFF-" + Math.floor(Math.random() * 1000);
+        const payloadData = payload;
+        const sellerName = payloadData.seller || "";
+
+        // 1. Get Date YYYYMMDD
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}${mm}${dd}`;
+
+        // 2. Get Seller Code
+        let sellerCode = "SX";
+        if (sellerName === "Seller 1") sellerCode = "S1";
+        else if (sellerName === "Seller 2") sellerCode = "S2";
+        else if (sellerName === "Seller 3") sellerCode = "S3";
+
+        // 3. Find Max Sequence for Today & Seller
+        const prefix = `${sellerCode}-${todayStr}`;
+        // Key format: SEQ_S1-20240212
+        const lastSeqKey = `SEQ_${prefix}`;
+        const lastStoredSeq = Number(localStorage.getItem(lastSeqKey) || 0);
+        let maxSeq = lastStoredSeq;
+
+        // Check in existing sales (loaded in memory) if higher
+        // (Optional: if user cleared cache but loaded sales exist)
+        if (typeof sales !== 'undefined' && Array.isArray(sales)) {
+          sales.forEach(s => {
+            if (s.bill_no && String(s.bill_no).startsWith(prefix)) {
+              const parts = s.bill_no.split('-'); // S1-20240212-005
+              if (parts.length >= 3) {
+                const seqNum = Number(parts[2]);
+                if (!isNaN(seqNum) && seqNum > maxSeq) {
+                  maxSeq = seqNum;
+                }
+              }
+            }
+          });
+        }
+
+        const nextSeq = maxSeq + 1; // Increment
+        const seqStr = String(nextSeq).padStart(3, '0');
+
+        fakeData.bill_no = `${prefix}-${seqStr}`; // e.g. S1-20240212-005
+
+        // Update local sequence
+        localStorage.setItem(lastSeqKey, nextSeq);
+        console.log("OFFLINE BILL GENERATED:", fakeData.bill_no);
       }
 
       return {
@@ -2337,8 +2404,24 @@
           gpay: Number(r.gpay) || 0,
           udhar: Number(r.udhar) || 0,
 
-          bill_no: r.bill_no || ""   // ✅ 🔥 THIS LINE WAS MISSING
+          bill_no: r.bill_no || ""
         }));
+
+        // 🔥 SYNC BILL COUNTER
+        // Find max bill no to continue sequence offline
+        try {
+          const maxBill = sales.reduce((max, s) => {
+            const num = Number(s.bill_no);
+            return !isNaN(num) && num > max ? num : max;
+          }, 0);
+
+          if (maxBill > 0) {
+            localStorage.setItem('BILL_COUNTER', maxBill);
+            console.log("🔄 Synced Bill Counter:", maxBill);
+          }
+        } catch (err) {
+          console.error("Error syncing bill counter:", err);
+        }
       }
     }
 
@@ -2956,7 +3039,7 @@ Rate: ₹${rate || '-'}`;
       });
 
       // ✅ PARTY MASTER AUTOCOMPLETE
-
+      setupAutocomplete(document.getElementById('purchasePartyTpl'), parties);
     }
 
     function togglePurchaseView(view) {
@@ -3007,6 +3090,7 @@ Rate: ₹${rate || '-'}`;
 
     function onPageInit_sale() {
       fillPartyDatalist();
+      setupAutocomplete(document.getElementById('salePartyTpl'), parties); // 🔥 Auto Complete
       buildP4ProductGrid();
 
       if (isMobile()) {
@@ -3412,10 +3496,58 @@ Rate: ₹${rate || '-'}`;
 
           currentProductId = String(prod.id);
           localStorage.setItem('selectedProductId', currentProductId);
+          setProductDependentState(true);
+          updateSaveState();
 
           // auto rate
           const rateEl = node.querySelector('.rateTpl');
-          if (rateEl) rateEl.value = prod.rate || '';
+
+          // 🔥 AUTO-FILL LAST SELL RATE
+          let lastRate = prod.rate || '';
+
+          try {
+            // Access global sales
+            const allSales = (typeof window.sales !== 'undefined' && Array.isArray(window.sales)) ? window.sales : (typeof sales !== 'undefined' && Array.isArray(sales) ? sales : []);
+
+            console.log("DEBUG: Auto-fill check. Product:", prod.name, "ID:", prod.id, "Total Sales:", allSales.length);
+
+            if (allSales.length > 0) {
+              const targetPid = String(prod.id);
+              let found = false;
+
+              // Search backwards for latest
+              for (let i = allSales.length - 1; i >= 0; i--) {
+                const s = allSales[i];
+                // Log first few checks
+                if (i > allSales.length - 5) console.log(`Checking Sale [${i}]: PID=${s.product_id} vs Target=${targetPid}`);
+
+                if (String(s.product_id) === targetPid) {
+                  console.log("DEBUG: Match found!", s);
+                  if (s.rate_20kg && Number(s.rate_20kg) > 0) {
+                    lastRate = s.rate_20kg;
+                    console.log("✅ Auto-filled rate from last sale:", lastRate);
+                    found = true;
+                    break; // Found latest, stop
+                  } else {
+                    console.log("DEBUG: Match found but rate is invalid:", s.rate_20kg);
+                  }
+                }
+              }
+              if (!found) console.log("DEBUG: No previous sale found for this product.");
+            } else {
+              console.warn("DEBUG: No sales data loaded.");
+            }
+          } catch (e) { console.error("Auto-rate error:", e); }
+
+          // 🔥 FIX: Use container, not node (node is empty fragment)
+          // Also check for rateEl using container
+          const rateElInput = container.querySelector('.rateTpl');
+          if (rateElInput) {
+            console.log("Setting rate to:", lastRate);
+            rateElInput.value = lastRate;
+            const event = new Event('input', { bubbles: true });
+            rateElInput.dispatchEvent(event);
+          }
 
           // reset
           node.querySelector('.nagTpl').value = '';
@@ -3425,6 +3557,14 @@ Rate: ₹${rate || '-'}`;
 
           setProductDependentState(true);
           updateSaveState();
+
+          // 🔥 AUTO-FOCUS WEIGHT (Numeric Keypad)
+          // Small delay to ensure UI reflow
+          setTimeout(() => {
+            const weightInput = container.querySelector('.weightTpl');
+            if (weightInput) weightInput.focus();
+          }, 100);
+
         });
       }
 
@@ -3609,18 +3749,18 @@ Rate: ₹${rate || '-'}`;
 
 
         const btn = e.target;
-        const msg = container.querySelector('.msgSmall');
-        const party = container.querySelector('.partyTpl').value.trim();
+        const msg = container.querySelector('.msgSmall') || { textContent: '', style: {} };
+        const party = (container.querySelector('.partyTpl')?.value || '').trim();
         if (!party) {
           alert("Party name required");
           return;
         }
         await ensurePartyExists(party);
 
-        const date = container.querySelector('.dateTpl').value;
-        const r = container.querySelector('.rateTpl').value;
-        const nag = container.querySelector('.nagTpl').value;
-        const totalKg = Number(container.querySelector('.weightTpl').value || 0);
+        const date = container.querySelector('.dateTpl')?.value || '';
+        const r = container.querySelector('.rateTpl')?.value || '';
+        const nag = container.querySelector('.nagTpl')?.value || '';
+        const totalKg = Number(container.querySelector('.weightTpl')?.value || 0);
         const prod = products.find(p => String(p.id) === String(currentProductId));
         if (prod) {
           if (totalKg > prod.stock) {
@@ -3649,6 +3789,7 @@ Rate: ₹${rate || '-'}`;
 
         btn.disabled = true; btn.textContent = "Saving..."; msg.textContent = "Sending...";
         try {
+
           // ===== PAYMENT DATA =====
           const payType = container.querySelector('.paymentTypeSelect')?.value || 'CASH';
 
@@ -3728,17 +3869,24 @@ Rate: ₹${rate || '-'}`;
           handlePaymentLogic(container);
 
           // Clear
-          container.querySelector('.partyTpl').value = '';
-          container.querySelector('.nagTpl').value = '';
-          container.querySelector('.weightTpl').value = '';
-          container.querySelector('.remTpl').value = '';
-          container.querySelector('.totalTpl').value = '';
+          // Helper for safe assignment
+          const safeSet = (sel, val) => {
+            const el = container.querySelector(sel);
+            if (el) el.value = val;
+          };
+
+          // Clear safely
+          safeSet('.partyTpl', '');
+          safeSet('.nagTpl', '');
+          safeSet('.weightTpl', '');
+          safeSet('.remTpl', '');
+          safeSet('.totalTpl', '');
 
           // 🔥 RESET PRODUCT (User Request)
           currentProductId = null;
           localStorage.removeItem('selectedProductId');
-          container.querySelector('.sellerProductTpl').value = '';
-          container.querySelector('.rateTpl').value = '';  // Clear rate as well
+          safeSet('.sellerProductTpl', '');
+          safeSet('.rateTpl', '');  // Clear rate as well
           setProductDependentState(false);
           updateSaveState();
 
@@ -3774,14 +3922,13 @@ Rate: ₹${rate || '-'}`;
         finally { btn.disabled = false; btn.textContent = "SAVE SALE"; }
       });
       fillPartyDatalist();
-
-      // 🔥 RE-INIT AUTOCOMPLETE FOR DYNAMICALLY INSERTED NODE
-      const newPartyInput = node.querySelector('.partyTpl');
-      if (newPartyInput && typeof parties !== 'undefined') {
-        setupAutocomplete(newPartyInput, parties.map(p => p.party_name || p.name || p));
-      }
-
       container.appendChild(node);
+
+      // ✅ PARTY MASTER AUTOCOMPLETE (SELLER)
+      const sellerPartyInput = container.querySelector('.partyTpl');
+      if (sellerPartyInput) {
+        setupAutocomplete(sellerPartyInput, parties);
+      }
       // ================= STEP-4 : DISABLE FIELDS UNTIL PRODUCT SELECT =================
       const depFields = [
         node.querySelector('.rateTpl'),
@@ -3884,12 +4031,14 @@ Rate: ₹${rate || '-'}`;
     function handlePaymentLogic(container) {
       const payType = container.querySelector('.paymentTypeSelect')?.value || 'CASH';
 
-      const total = Number(container.querySelector('.totalTpl').value || 0);
+      const total = Number(container.querySelector('.totalTpl')?.value || 0);
       const cashEl = container.querySelector('.cashTpl');
       const gpayEl = container.querySelector('.gpayTpl');
 
       // ✅ NEW: Udhar Element
       const udharEl = container.querySelector('.udharTpl');
+
+      if (!cashEl || !gpayEl) return; // guard
 
       let cash = Number(cashEl.value || 0);
       let gpay = Number(gpayEl.value || 0);
@@ -4373,6 +4522,107 @@ Advance: ₹${adv}`;
         box.style.color = '#16a34a';
       }
     }
+    /* ================= AUTOCOMPLETE LOGIC (MOBILE FRIENDLY) ================= */
+    function setupAutocomplete(inp, arr) {
+      if (!inp) return;
+      let currentFocus;
+
+      // Execute when user types
+      inp.addEventListener("input", function (e) {
+        let a, b, i, val = this.value;
+        closeAllLists();
+        if (!val) { return false; }
+        currentFocus = -1;
+
+        // Create items container
+        a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        // Append to the wrapper (parent)
+        this.parentNode.appendChild(a);
+
+        let count = 0;
+        for (i = 0; i < arr.length; i++) {
+          // Check if item starts with query (case insensitive)
+          // OR check if item contains query - let's do contains for better UX
+          let item = String(arr[i]);
+          if (item.toUpperCase().indexOf(val.toUpperCase()) > -1) {
+            if (count > 8) break; // Limit suggestions
+            count++;
+
+            b = document.createElement("DIV");
+            b.className = "autocomplete-item";
+            // Highlight match
+            const startIndex = item.toUpperCase().indexOf(val.toUpperCase());
+            const matchPart = item.substr(startIndex, val.length);
+            const pre = item.substr(0, startIndex);
+            const post = item.substr(startIndex + val.length);
+
+            b.innerHTML = pre + "<strong>" + matchPart + "</strong>" + post;
+            b.innerHTML += "<input type='hidden' value='" + item + "'>";
+
+            b.addEventListener("click", function (e) {
+              inp.value = this.getElementsByTagName("input")[0].value;
+
+              // Trigger input event manually so other listeners (like filterP4PartyCards) run
+              const event = new Event('input', { bubbles: true });
+              inp.dispatchEvent(event);
+
+              closeAllLists();
+            });
+            a.appendChild(b);
+          }
+        }
+      });
+
+      // Keyboard navigation
+      inp.addEventListener("keydown", function (e) {
+        let x = document.getElementById(this.id + "autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
+        if (e.keyCode == 40) { // Down
+          currentFocus++;
+          addActive(x);
+        } else if (e.keyCode == 38) { // Up
+          currentFocus--;
+          addActive(x);
+        } else if (e.keyCode == 13) { // Enter
+          e.preventDefault();
+          if (currentFocus > -1) {
+            if (x) x[currentFocus].click();
+          }
+        }
+      });
+
+      function addActive(x) {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+        x[currentFocus].scrollIntoView({ block: "nearest" });
+      }
+
+      function removeActive(x) {
+        for (let i = 0; i < x.length; i++) {
+          x[i].classList.remove("autocomplete-active");
+        }
+      }
+
+      function closeAllLists(elmnt) {
+        const x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+          if (elmnt != x[i] && elmnt != inp) {
+            x[i].parentNode.removeChild(x[i]);
+          }
+        }
+      }
+
+      // Close when clicking outside
+      document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+      });
+    }
+
     function printSaleSlip(sale) {
       const html = `
 <!DOCTYPE html>
@@ -4531,17 +4781,73 @@ Advance: ₹${adv}`;
       wcTargetInput = grid ? grid.querySelector('.weightTpl') : null;
       wcWeights = [];
       renderWeightCalc();
+
+      // Reset Manual Form
+      const bagInp = document.getElementById('wcBagsInput');
+      if (bagInp) bagInp.value = '';
+
+      // Reset Standard Form
+      const stdInp = document.getElementById('wcStdBagsInput');
+      if (stdInp) stdInp.value = '';
+      document.getElementById('wcStdCalcDisplay').textContent = "0";
+
+      // Default to Manual Mode
+      document.querySelector('input[name="wcMode"][value="manual"]').checked = true;
+      toggleWeightMode('manual');
+
       document.getElementById('weightCalcPopup').style.display = 'block';
     }
 
+    function toggleWeightMode(mode) {
+      const secManual = document.getElementById('wcSectionManual');
+      const secStd = document.getElementById('wcSectionStd');
+
+      if (mode === 'manual') {
+        secManual.style.display = 'block';
+        secStd.style.display = 'none';
+      } else {
+        secManual.style.display = 'none';
+        secStd.style.display = 'block';
+        // Auto-focus standard input
+        setTimeout(() => document.getElementById('wcStdBagsInput').focus(), 100);
+      }
+    }
+
+    function updateStdCalc() {
+      const bags = Number(document.getElementById('wcStdBagsInput').value || 0);
+      const weight = bags * 50;
+      document.getElementById('wcStdCalcDisplay').textContent = weight;
+    }
+
     function closeWeightCalcPopup() {
-      const sum = wcWeights.reduce((a, b) => a + b, 0);
+      // Check active mode
+      const isManual = document.querySelector('input[name="wcMode"][value="manual"]').checked;
+
+      let finalWeight = 0;
+      let finalBags = 0;
+
+      if (isManual) {
+        // --- MANUAL MODE ---
+        finalWeight = wcWeights.reduce((a, b) => a + b, 0);
+
+        const manualBags = document.getElementById('wcBagsInput')?.value;
+        if (manualBags && Number(manualBags) > 0) {
+          finalBags = Number(manualBags);
+        } else {
+          finalBags = wcWeights.length;
+        }
+
+      } else {
+        // --- STANDARD 50KG MODE ---
+        const bags = Number(document.getElementById('wcStdBagsInput').value || 0);
+        finalBags = bags;
+        finalWeight = bags * 50;
+      }
 
       if (wcTargetInput) {
-        wcTargetInput.value = sum ? sum.toFixed(2) : '';
+        wcTargetInput.value = finalWeight ? finalWeight.toFixed(2) : '';
 
-        // 🔥 DIRECT CALCULATION CALL (IMPORTANT FIX)
-        // ✅ Find container using .seller-form-section or .card
+        // 🔥 DIRECT CALCULATION CALL
         const container = wcTargetInput.closest('.seller-form-section') || wcTargetInput.closest('.card');
 
         if (container) {
@@ -4550,9 +4856,9 @@ Advance: ₹${adv}`;
           const comm = container.querySelector('.commTpl');
           const total = container.querySelector('.totalTpl');
 
-          // 🔥 AUTO-FILL BAGS (Katta)
+          // 🔥 AUTO-FILL BAGS
           if (nag) {
-            nag.value = wcWeights.length;
+            nag.value = finalBags > 0 ? finalBags : '';
           }
 
           if (rate && total) {

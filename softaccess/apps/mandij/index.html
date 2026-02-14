@@ -600,213 +600,6 @@
       transition: background .12s ease;
     }
 
-    /* ================= MODERN SELLER FORM CSS ================= */
-    .modern-form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* Responsive Payment Grid */
-    .payment-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
-
-    @media (max-width: 600px) {
-      .payment-grid {
-        grid-template-columns: 1fr;
-        /* Stack vertically on small screens */
-      }
-    }
-
-    .full-width {
-      grid-column: span 2;
-    }
-
-    .modern-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .modern-input-group label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-left: 4px;
-    }
-
-    /* 📱 Specific fix for Date | Payment | BillNo row */
-    .payment-row-grid {
-      display: grid;
-      grid-template-columns: 110px 1fr 60px;
-      /* Default Desktop */
-      gap: 12px;
-    }
-
-    @media(max-width: 600px) {
-      .payment-row-grid {
-        grid-template-columns: 130px 1fr 50px;
-        /* Mobile: Date increased, Payment fits PARTIAL */
-        gap: 6px;
-      }
-
-      /* Date & Bill No smaller font/padding on mobile */
-      .payment-row-grid input {
-        padding: 8px 4px !important;
-        font-size: 0.85rem !important;
-        text-align: center;
-      }
-    }
-
-    .modern-input-group input,
-    .modern-input-group select {
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-size: 1rem;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
-      transition: all 0.2s ease;
-      font-weight: 600;
-      color: #0f172a;
-    }
-
-    /* 💎 Unified Style for Date | Payment | BillNo */
-    .unified-input-style {
-      background: #f0fdfa !important;
-      border: 1px solid #e2e8f0 !important;
-      border-radius: 12px !important;
-      font-weight: 700 !important;
-      color: #0f766e !important;
-      padding: 12px 14px !important;
-      width: 100%;
-      font-family: inherit;
-      font-size: 1rem !important;
-      /* Ensure height matches standard inputs */
-      box-shadow: none !important;
-      /* Remove default shadows if any */
-    }
-
-    /* 💰 P1 Cash Counter Redesign */
-    .cash-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-
-    @media(min-width: 600px) {
-      .cash-grid {
-        grid-template-columns: 1fr 1fr;
-        /* 2 cols on desktop/tablet */
-      }
-    }
-
-    .cash-row {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      padding: 6px;
-      border-radius: 12px;
-      gap: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-    }
-
-    .note-label {
-      width: 60px;
-      font-weight: 800;
-      color: #0f766e;
-      background: #f0fdfa;
-      padding: 8px;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 0.95rem;
-    }
-
-    .note-total {
-      width: 80px;
-      text-align: right;
-      font-weight: 700;
-      color: #64748b;
-      font-size: 0.9rem;
-    }
-
-    .cash-total-card {
-      background: linear-gradient(135deg, #0f766e, #115e59);
-      color: white;
-      padding: 16px;
-      border-radius: 16px;
-      margin-top: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
-    }
-
-    .cash-total-label {
-      font-size: 1rem;
-      opacity: 0.9;
-      font-weight: 600;
-    }
-
-    .cash-total-amount {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .modern-input-group input:focus {
-      background: #fff;
-      border-color: #0f766e;
-      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
-      transform: translateY(-1px);
-    }
-
-    /* Primary Fields Highlight */
-    .highlight-field input {
-      background: #f0fdfa;
-      border-color: #99f6e4;
-      color: #0d9488;
-    }
-
-    /* Payment Segmented Control */
-    .payment-type-group {
-      display: flex;
-      background: #e2e8f0;
-      padding: 4px;
-      border-radius: 12px;
-      gap: 4px;
-    }
-
-    .payment-type-group input[type="radio"] {
-      display: none;
-    }
-
-    .payment-type-group label {
-      flex: 1;
-      text-align: center;
-      padding: 10px 4px;
-      border-radius: 9px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-    }
-
-    .payment-type-group input:checked+label {
-      background: #fff;
-      color: #0f766e;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-      font-weight: 800;
-    }
-
-
     /* Smooth page transition */
     #pageContainer {
       animation: fadeSlide .18s ease;
@@ -901,6 +694,39 @@
       align-items: center;
       gap: 6px;
     }
+
+    /* ================= AUTOCOMPLETE CSS ================= */
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      border-bottom: none;
+      border-top: none;
+      z-index: 9999;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .autocomplete-item {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #fff;
+      border-bottom: 1px solid #d4d4d4;
+    }
+
+    .autocomplete-item:hover {
+      background-color: #e9e9e9;
+    }
+
+    .autocomplete-active {
+      background-color: #0f766e !important;
+      color: #ffffff;
+    }
   </style>
 </head>
 
@@ -975,20 +801,6 @@
   <template id="tpl-home">
     <section class="card">
       <div class="page-title">Dashboard (Online)</div>
-
-      <!-- 🔥 DATA STATUS BANNER -->
-      <div id="dataStatusBanner" style="
-        background: #fef08a; 
-        color: #854d0e; 
-        padding: 12px; 
-        border-radius: 8px; 
-        text-align: center; 
-        font-weight: bold; 
-        margin-bottom: 16px;
-        border: 1px solid #fde047;">
-        ⏳ Data Loading... Please Wait
-      </div>
-
       <div class="page-sub">डेटा Google Sheet से आ रहा है। इंटरनेट चालू रखें।</div>
       <div class="row">
         <div class="col card">
@@ -1009,22 +821,14 @@
       <div class="page-title">P1 — Cash Counter</div>
       <div class="page-sub">Notes counting tool (Calculates locally, does not save to sheet).</div>
       <div class="card">
-        <!-- ➕ Add Custom Denom (Dynamic) -->
-        <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center">
-          <input id="newDenomInput" type="number" class="unified-input-style" placeholder="New Note (e.g. 2000)">
-          <button class="btn" style="white-space:nowrap; padding:10px 16px;" onclick="addCustomDenom()">+ Add</button>
-        </div>
-
         <div class="label">Denomination Qty</div>
         <div id="cashDenomsTpl"></div>
-
-        <div class="cash-total-card">
-          <div class="cash-total-label">Grand Total</div>
-          <div class="cash-total-amount" id="cashTotalTpl">₹0</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <div class="label">Cash Total</div>
+          <div id="cashTotalTpl" style="font-weight:800;color:#064e3b">₹0</div>
         </div>
-
-        <div style="margin-top:16px;display:flex;gap:8px;">
-          <button class="btn-outline" style="width:100%" onclick="cash_resetCurrent()">Reset All</button>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <button class="btn-outline" onclick="cash_resetCurrent()">Reset</button>
         </div>
       </div>
     </section>
@@ -1404,117 +1208,97 @@
 
       <div id="sec-form" class="seller-form-section">
 
-        <div class="modern-form-grid">
-          <!-- Row 1: Date | Payment Mode (Adjusted Grid) -->
-          <div class="full-width payment-row-grid" style="grid-template-columns: 140px 1fr;">
-            <div class="modern-input-group">
-              <label>Date</label>
-              <input class="dateTpl unified-input-style" type="date">
-            </div>
-
-            <div class="modern-input-group">
-              <label>Payment Mode</label>
-              <select class="paymentTypeSelect unified-input-style">
-                <option value="" disabled>-- Select Mode --</option>
-                <option value="CASH" selected>💵 CASH</option>
-                <option value="GPAY">📱 GPAY</option>
-                <option value="UDHAR">🔴 UDHAR</option>
-                <option value="PARTIAL">⚖ PARTIAL</option>
-              </select>
+        <div class="row">
+          <div class="col"><label>Party Name</label>
+            <div style="position:relative">
+              <input class="partyTpl" id="partyInputTpl" placeholder="Select Party" autocomplete="off">
             </div>
           </div>
-
-          <!-- Row 2: Party Name (Full Width) -->
-          <div class="modern-input-group full-width">
-            <label>Party Name</label>
-            <input class="partyTpl" list="partyMasterList" placeholder="Select Party...">
+          <div class="col"><label>Date</label><input class="dateTpl" type="date"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label class="label">Product</label>
+            <input class="sellerProductTpl" list="productMasterList" placeholder="Search Product">
           </div>
+        </div>
 
-          <!-- Row 4: Product -->
-          <div class="modern-input-group full-width highlight-field">
-            <label>Product</label>
-            <input class="sellerProductTpl" list="productMasterList" placeholder="Search Product...">
+        <!-- ✅ NEW PAYMENT TYPE (REPLACEMENT) -->
+        <div style="margin-top:8px;">
+          <label class="label" style="font-size:0.85rem">Payment Type</label>
+
+          <div class="radio-group payment-type-group">
+            <input type="radio" id="ptCash" name="paymentType" value="CASH" checked>
+            <label for="ptCash">CASH</label>
+
+            <input type="radio" id="ptGpay" name="paymentType" value="GPAY">
+            <label for="ptGpay">GPAY</label>
+
+            <input type="radio" id="ptUdhar" name="paymentType" value="UDHAR">
+            <label for="ptUdhar">UDHAR</label>
+
+            <input type="radio" id="ptPartial" name="paymentType" value="PARTIAL">
+            <label for="ptPartial">PARTIAL</label>
           </div>
+        </div>
 
-          <!-- Row 5: Rate | Button | Bags (3 Columns) -->
-          <div class="full-width" style="display:grid; grid-template-columns: 1fr 0.6fr 1fr; gap:8px; align-items:end;">
 
-            <!-- Rate -->
-            <div class="modern-input-group">
-              <label>Rate (20kg)</label>
-              <input class="rateTpl" type="number" placeholder="₹">
+        <div class="row" style="margin-top:8px;">
+          <div class="col"><label>Rate (20kg)</label><input class="rateTpl" type="number" placeholder="₹"></div>
+          <div class="col"><label>Nag (Bags)</label><input class="nagTpl" type="number" placeholder="Qty"></div>
+          <div class="col">
+            <label>Weight (Kg)</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input class="weightTpl" type="number" placeholder="Total Kg" style="flex:1">
+              <button type="button" class="btn-outline" style="padding:6px 10px" onclick="openWeightCalcPopup(this)">
+                🧮
+              </button>
             </div>
-
-            <!-- Calc Button -->
-            <button type="button" class="btn-outline"
-              style="height:48px; border-radius:12px; font-size:1.4rem; display:flex; align-items:center; justify-content:center;"
-              onclick="openWeightCalcPopup(this)">
-              🧮
-            </button>
-
-            <!-- Bags -->
-            <div class="modern-input-group">
-              <label>Bags</label>
-              <input class="nagTpl" type="number" placeholder="Qty">
-            </div>
-
-          </div>
-
-          <!-- Row 6: Total Weight | Commission (Side-by-Side) -->
-          <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <div class="modern-input-group highlight-field">
-              <label>Total Weight (Kg)</label>
-              <input class="weightTpl" type="number" placeholder="0.00" inputmode="decimal" style="font-weight:700">
-            </div>
-
-            <div class="modern-input-group">
-              <label>Commission %</label>
-              <input class="commTpl" type="number" inputmode="decimal" value="7">
-            </div>
-          </div>
-
-          <!-- Row 7: Final Amount (Full Width) -->
-          <!-- Row 7: Final Amount | Bill No (Side-by-Side) -->
-          <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <div class="modern-input-group">
-              <label>Final Amount</label>
-              <input class="totalTpl" type="text" readonly style="font-weight:800; color:#0f766e; font-size:1.1rem">
-            </div>
-
-            <div class="modern-input-group">
-              <label>Bill No</label>
-              <input class="billNoBox unified-input-style" type="text" readonly value="(Auto)"
-                style="border:1px dashed #99f6e4 !important; text-align:center; cursor:default; height:100%">
-            </div>
-          </div>
-
-          <!-- Row 8: Payment Details (Cash | GPay | Udhar - 3 Cols) -->
-          <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
-            <div class="modern-input-group">
-              <label>Cash</label>
-              <input class="cashTpl" type="number" placeholder="0">
-            </div>
-            <div class="modern-input-group">
-              <label>GPay</label>
-              <input class="gpayTpl" type="number" placeholder="0">
-            </div>
-            <div class="modern-input-group">
-              <label>Udhar</label>
-              <input class="udharTpl" type="number" placeholder="0" style="font-weight:800; border:1px solid #fda4af;">
-            </div>
-          </div>
-
-
-
-          <!-- Save Button -->
-          <div class="full-width" style="margin-top:12px">
-            <button class="btn saveSaleSmall"
-              style="width:100%; padding: 14px; font-size:1rem; border-radius:12px; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);">
-              SAVE SALE
-            </button>
           </div>
 
         </div>
+
+
+        <div class="col">
+          <label style="font-size:0.8rem">Comm (%)</label>
+          <input class="commTpl" type="number" value="6" placeholder="%">
+        </div>
+        <div class="col" style="display:flex; flex-direction:column; justify-content:center;">
+          <span class="small" style="font-size:0.75rem">Cess: <b>0.8%</b></span>
+          <span class="small" style="font-size:0.75rem">Majuri: <b>₹6/Bag</b></span>
+        </div>
+      </div>
+
+      <div class="seller-form-only">
+        <div class="row" style="margin-top:8px;">
+          <div class="col" style="flex:2">
+            <label>Remarks</label>
+            <input class="remTpl" type="text">
+          </div>
+
+          <div class="col">
+            <label>GPay ₹</label>
+            <input class="gpayTpl" type="number" placeholder="0">
+          </div>
+
+          <div class="col">
+            <label>Cash ₹</label>
+            <input class="cashTpl" type="number" placeholder="0">
+          </div>
+
+          <div class="col">
+            <label>Total ₹</label>
+            <input class="totalTpl" type="text" readonly>
+          </div>
+        </div>
+
+
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <div class="small billNoBox" style="text-align:center;font-weight:800;color:#065f46;"></div>
+
+          <button class="btn saveSaleSmall" style="flex:1">SAVE SALE</button>
+        </div>
+
       </div>
 
     </div>
@@ -1776,55 +1560,22 @@
           🧮 Weight Calculator
         </div>
 
-        <!-- 🔥 MODE TOGGLE -->
-        <div
-          style="display:flex; justify-content:center; gap:15px; margin-bottom:10px; font-weight:600; font-size:0.9rem; background:#f0fdf4; padding:5px; border-radius:6px; border:1px solid #bbf7d0">
-          <label style="cursor:pointer; display:flex; align-items:center; gap:4px">
-            <input type="radio" name="wcMode" value="manual" checked onchange="toggleWeightMode('manual')">
-            <span>Manual Weighing</span>
-          </label>
-          <label style="cursor:pointer; display:flex; align-items:center; gap:4px">
-            <input type="radio" name="wcMode" value="std50" onchange="toggleWeightMode('std50')">
-            <span>Standard 50kg</span>
-          </label>
+        <div style="display:flex;gap:6px">
+          <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:1">
+          <button class="btn-outline" onclick="addWeightItem()">➕</button>
         </div>
 
-        <!-- SECTION 1: MANUAL (Existing) -->
-        <div id="wcSectionManual">
-          <div style="display:flex;gap:6px">
-            <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:2">
-            <input type="number" id="wcBagsInput" placeholder="Bags (Optional)"
-              style="flex:1; border:1px solid #f59e0b">
-            <button class="btn-outline" onclick="addWeightItem()">➕</button>
-          </div>
+        <div id="wcList" style="margin-top:10px"></div>
 
-          <div id="wcList" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
-
-          <div style="margin-top:8px;font-weight:800;color:#065f46">
-            Total: <span id="wcTotal">0</span> KG
-          </div>
-
-          <button class="btn-outline" style="width:100%; margin-top:5px" onclick="clearWeightCalc()">CLEAR ALL</button>
+        <div style="margin-top:8px;font-weight:800;color:#065f46">
+          Total: <span id="wcTotal">0</span> KG
         </div>
 
-        <!-- SECTION 2: STANDARD 50KG (New) -->
-        <div id="wcSectionStd" style="display:none; text-align:center; padding:10px">
-          <div style="font-size:0.9rem; color:#0f766e; margin-bottom:5px">Enter Number of Bags (50kg each)</div>
-          <input type="number" id="wcStdBagsInput" placeholder="Ex: 10"
-            style="width:100%; font-size:1.5rem; padding:8px; text-align:center; font-weight:bold; border:2px solid #0f766e; border-radius:8px"
-            oninput="updateStdCalc()">
-
-          <div style="margin-top:15px; font-size:1.2rem; font-weight:800; color:#065f46">
-            <span id="wcStdCalcDisplay">0</span> KG
-          </div>
-        </div>
-
-        <div class="seller-popup-footer" style="margin-top:15px">
-          <button class="btn-outline" style="width:100%; background:#0f766e; color:white"
-            onclick="closeWeightCalcPopup()">DONE / APPLY</button>
+        <div class="seller-popup-footer" style="display:flex;justify-content:space-between">
+          <button class="btn-outline" onclick="clearWeightCalc()">CLEAR ALL</button>
+          <button class="btn-outline" onclick="closeWeightCalcPopup()">DONE</button>
         </div>
       </div>
-    </div>
     </div>
 
 
@@ -1839,7 +1590,7 @@
     //          PART 1: CONFIGURATION & GLOBAL VARIABLES
     // ###############################################################
 
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwkdMzGd-tMwO25PAAjsNd8W7k3EAqZ8C0g2w4g8GSPDDUf6NLQyudmRveNBE8ivx3L/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxT1ldr2bQ9hxiz1UEBn1q3tkqdo1WBzFmKasEERuCKG7C_W9Ubxe8IhVvEpz0ltHbC/exec";
 
     // Local State
     let products = [];
@@ -1934,34 +1685,99 @@
       });
     }
 
-    // पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए सही फंक्शन
-    function fillPartyDatalist() {
-      const dl = document.getElementById("partyMasterList");
-      if (!dl) return;
 
-      dl.innerHTML = "";
 
-      const set = new Set();
+    // ================= CUSTOM AUTOCOMPLETE LOGIC =================
+    function setupAutocomplete(inp, arr) {
+      let currentFocus;
 
-      parties.forEach(p => {
-        if (typeof p === "string") {
-          set.add(p.trim());
-        }
-        else if (p && p.name) {
-          set.add(String(p.name).trim());
+      inp.addEventListener("input", function (e) {
+        let a, b, i, val = this.value;
+        closeAllLists();
+        if (!val) { return false; }
+        currentFocus = -1;
+
+        a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        this.parentNode.appendChild(a);
+
+        let count = 0;
+        for (i = 0; i < arr.length; i++) {
+          // Check if matches start or contains
+          if (arr[i].toUpperCase().indexOf(val.toUpperCase()) > -1) {
+            if (count > 15) break; // Limit suggestions
+
+            b = document.createElement("DIV");
+            b.className = "autocomplete-item";
+            b.innerHTML = arr[i].replace(new RegExp(val, "gi"), (match) => `<strong>${match}</strong>`);
+            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+            b.addEventListener("click", function (e) {
+              inp.value = this.getElementsByTagName("input")[0].value;
+              closeAllLists();
+              // Optional: Trigger any change event if needed
+              inp.dispatchEvent(new Event('change'));
+            });
+            a.appendChild(b);
+            count++;
+          }
         }
       });
 
-      set.forEach(name => {
-        if (name) {
-          const opt = document.createElement("option");
-          opt.value = name;
-          dl.appendChild(opt);
+      inp.addEventListener("keydown", function (e) {
+        let x = document.getElementById(this.id + "autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
+        if (e.keyCode == 40) { // DOWN
+          currentFocus++;
+          addActive(x);
+        } else if (e.keyCode == 38) { // UP
+          currentFocus--;
+          addActive(x);
+        } else if (e.keyCode == 13) { // ENTER
+          e.preventDefault();
+          if (currentFocus > -1) {
+            if (x) x[currentFocus].click();
+          }
         }
       });
 
-      console.log("✅ Party datalist updated:", set.size);
+      inp.addEventListener("focus", function () {
+        // 🔥 SCROLL TO TOP ON MOBILE
+        if (window.innerWidth < 900) {
+          setTimeout(() => {
+            this.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 300);
+        }
+      });
+
+      function addActive(x) {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+      }
+      function removeActive(x) {
+        for (let i = 0; i < x.length; i++) {
+          x[i].classList.remove("autocomplete-active");
+        }
+      }
+      function closeAllLists(elmnt) {
+        let x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+          if (elmnt != x[i] && elmnt != inp) {
+            x[i].parentNode.removeChild(x[i]);
+          }
+        }
+      }
+      document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+      });
     }
+
+    // ================= DATA FETCHING =================
+
+    // (Existing loadPartyFromSheet... replace fillPartyDatalist)
 
     // Google Sheet से पार्टी डेटा लोड करने के लिए
     async function loadPartiesFromSheet() {
@@ -1981,6 +1797,17 @@
         const cached = localStorage.getItem('cachedParties');
         if (cached) {
           parties = JSON.parse(cached);
+        }
+      }
+    }
+
+    function fillPartyDatalist() {
+      // OLD DATALIST LOGIC REMOVED
+      // Using global 'parties' array if available
+      if (typeof parties !== 'undefined' && Array.isArray(parties)) {
+        const inp = document.getElementById('partyInputTpl');
+        if (inp) {
+          setupAutocomplete(inp, parties.map(p => p.party_name || p));
         }
       }
     }
@@ -2116,16 +1943,6 @@
       let topbar = document.getElementById('productsTopBar');
       const refreshBtn = topbar ? topbar.querySelector('.prod-btn') : null;
 
-      // 🔥 UPDATE BANNER (LOADING)
-      const banner = document.getElementById('dataStatusBanner');
-      if (banner) {
-        banner.textContent = "⏳ Data Loading... Please Wait";
-        banner.style.background = "#fef08a"; // yellow
-        banner.style.color = "#854d0e";
-        banner.style.borderColor = "#fde047";
-      }
-      window.isDataReady = false; // 🚫 BLOCK ACTIONS
-
       try {
         if (refreshBtn) {
           refreshBtn.textContent = '⏳ Loading...';
@@ -2153,26 +1970,9 @@
         if (activePanel === 'ledger') showLedgerTpl();
         if (activePanel === 'products') onPageInit_products();
 
-        // 🔥 UPDATE BANNER (SUCCESS)
-        if (banner) {
-          banner.textContent = "✅ Data Loaded. Kaam Chalu Kar Sakte Hain";
-          banner.style.background = "#dcfce7"; // green
-          banner.style.color = "#166534";
-          banner.style.borderColor = "#86efac";
-        }
-        window.isDataReady = true; // ✅ ALLOW ACTIONS
-
       } catch (err) {
         console.error("Refresh Error:", err);
         alert("Data load failed: " + err.message);
-
-        // 🔥 UPDATE BANNER (ERROR)
-        if (banner) {
-          banner.textContent = "❌ Data Load Failed. Try Refresh.";
-          banner.style.background = "#fee2e2"; // red
-          banner.style.color = "#991b1b";
-          banner.style.borderColor = "#f87171";
-        }
       } finally {
         if (refreshBtn) {
           refreshBtn.innerHTML = '<b>🔄 Refresh</b>';
@@ -2228,57 +2028,10 @@
       // Save actions -> Add to Queue
       saveToQueue(action, payload);
 
-      // Generate Formatted Bill No (Same as Server: [SellerCode]-[YYYYMMDD]-[SEQ])
+      // Generate Fake Bill No if needed
       let fakeData = {};
-
       if (action === 'sale') {
-        const payloadData = payload;
-        const sellerName = payloadData.seller || "";
-
-        // 1. Get Date YYYYMMDD
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const todayStr = `${yyyy}${mm}${dd}`;
-
-        // 2. Get Seller Code
-        let sellerCode = "SX";
-        if (sellerName === "Seller 1") sellerCode = "S1";
-        else if (sellerName === "Seller 2") sellerCode = "S2";
-        else if (sellerName === "Seller 3") sellerCode = "S3";
-
-        // 3. Find Max Sequence for Today & Seller
-        const prefix = `${sellerCode}-${todayStr}`;
-        // Key format: SEQ_S1-20240212
-        const lastSeqKey = `SEQ_${prefix}`;
-        const lastStoredSeq = Number(localStorage.getItem(lastSeqKey) || 0);
-        let maxSeq = lastStoredSeq;
-
-        // Check in existing sales (loaded in memory) if higher
-        // (Optional: if user cleared cache but loaded sales exist)
-        if (typeof sales !== 'undefined' && Array.isArray(sales)) {
-          sales.forEach(s => {
-            if (s.bill_no && String(s.bill_no).startsWith(prefix)) {
-              const parts = s.bill_no.split('-'); // S1-20240212-005
-              if (parts.length >= 3) {
-                const seqNum = Number(parts[2]);
-                if (!isNaN(seqNum) && seqNum > maxSeq) {
-                  maxSeq = seqNum;
-                }
-              }
-            }
-          });
-        }
-
-        const nextSeq = maxSeq + 1; // Increment
-        const seqStr = String(nextSeq).padStart(3, '0');
-
-        fakeData.bill_no = `${prefix}-${seqStr}`; // e.g. S1-20240212-005
-
-        // Update local sequence
-        localStorage.setItem(lastSeqKey, nextSeq);
-        console.log("OFFLINE BILL GENERATED:", fakeData.bill_no);
+        fakeData.bill_no = "OFF-" + Math.floor(Math.random() * 1000);
       }
 
       return {
@@ -2355,24 +2108,8 @@
           gpay: Number(r.gpay) || 0,
           udhar: Number(r.udhar) || 0,
 
-          bill_no: r.bill_no || ""
+          bill_no: r.bill_no || ""   // ✅ 🔥 THIS LINE WAS MISSING
         }));
-
-        // 🔥 SYNC BILL COUNTER
-        // Find max bill no to continue sequence offline
-        try {
-          const maxBill = sales.reduce((max, s) => {
-            const num = Number(s.bill_no);
-            return !isNaN(num) && num > max ? num : max;
-          }, 0);
-
-          if (maxBill > 0) {
-            localStorage.setItem('BILL_COUNTER', maxBill);
-            console.log("🔄 Synced Bill Counter:", maxBill);
-          }
-        } catch (err) {
-          console.error("Error syncing bill counter:", err);
-        }
       }
     }
 
@@ -3446,58 +3183,10 @@ Rate: ₹${rate || '-'}`;
 
           currentProductId = String(prod.id);
           localStorage.setItem('selectedProductId', currentProductId);
-          setProductDependentState(true);
-          updateSaveState();
 
           // auto rate
           const rateEl = node.querySelector('.rateTpl');
-
-          // 🔥 AUTO-FILL LAST SELL RATE
-          let lastRate = prod.rate || '';
-
-          try {
-            // Access global sales
-            const allSales = (typeof window.sales !== 'undefined' && Array.isArray(window.sales)) ? window.sales : (typeof sales !== 'undefined' && Array.isArray(sales) ? sales : []);
-
-            console.log("DEBUG: Auto-fill check. Product:", prod.name, "ID:", prod.id, "Total Sales:", allSales.length);
-
-            if (allSales.length > 0) {
-              const targetPid = String(prod.id);
-              let found = false;
-
-              // Search backwards for latest
-              for (let i = allSales.length - 1; i >= 0; i--) {
-                const s = allSales[i];
-                // Log first few checks
-                if (i > allSales.length - 5) console.log(`Checking Sale [${i}]: PID=${s.product_id} vs Target=${targetPid}`);
-
-                if (String(s.product_id) === targetPid) {
-                  console.log("DEBUG: Match found!", s);
-                  if (s.rate_20kg && Number(s.rate_20kg) > 0) {
-                    lastRate = s.rate_20kg;
-                    console.log("✅ Auto-filled rate from last sale:", lastRate);
-                    found = true;
-                    break; // Found latest, stop
-                  } else {
-                    console.log("DEBUG: Match found but rate is invalid:", s.rate_20kg);
-                  }
-                }
-              }
-              if (!found) console.log("DEBUG: No previous sale found for this product.");
-            } else {
-              console.warn("DEBUG: No sales data loaded.");
-            }
-          } catch (e) { console.error("Auto-rate error:", e); }
-
-          // 🔥 FIX: Use container, not node (node is empty fragment)
-          // Also check for rateEl using container
-          const rateElInput = container.querySelector('.rateTpl');
-          if (rateElInput) {
-            console.log("Setting rate to:", lastRate);
-            rateElInput.value = lastRate;
-            const event = new Event('input', { bubbles: true });
-            rateElInput.dispatchEvent(event);
-          }
+          if (rateEl) rateEl.value = prod.rate || '';
 
           // reset
           node.querySelector('.nagTpl').value = '';
@@ -3507,14 +3196,6 @@ Rate: ₹${rate || '-'}`;
 
           setProductDependentState(true);
           updateSaveState();
-
-          // 🔥 AUTO-FOCUS WEIGHT (Numeric Keypad)
-          // Small delay to ensure UI reflow
-          setTimeout(() => {
-            const weightInput = container.querySelector('.weightTpl');
-            if (weightInput) weightInput.focus();
-          }, 100);
-
         });
       }
 
@@ -3699,18 +3380,18 @@ Rate: ₹${rate || '-'}`;
 
 
         const btn = e.target;
-        const msg = container.querySelector('.msgSmall') || { textContent: '', style: {} };
-        const party = (container.querySelector('.partyTpl')?.value || '').trim();
+        const msg = container.querySelector('.msgSmall');
+        const party = container.querySelector('.partyTpl').value.trim();
         if (!party) {
           alert("Party name required");
           return;
         }
         await ensurePartyExists(party);
 
-        const date = container.querySelector('.dateTpl')?.value || '';
-        const r = container.querySelector('.rateTpl')?.value || '';
-        const nag = container.querySelector('.nagTpl')?.value || '';
-        const totalKg = Number(container.querySelector('.weightTpl')?.value || 0);
+        const date = container.querySelector('.dateTpl').value;
+        const r = container.querySelector('.rateTpl').value;
+        const nag = container.querySelector('.nagTpl').value;
+        const totalKg = Number(container.querySelector('.weightTpl').value || 0);
         const prod = products.find(p => String(p.id) === String(currentProductId));
         if (prod) {
           if (totalKg > prod.stock) {
@@ -3725,13 +3406,9 @@ Rate: ₹${rate || '-'}`;
 
 
 
+        const rem = container.querySelector('.remTpl').value.trim();
 
 
-        // 🔥 VALIDATION : Check if Bags (Nag) is missing or 0
-        if (!Number(nag) || Number(nag) <= 0) {
-          alert("❌ Bags (Katta) dalna jaruri hai!");
-          return;
-        }
 
 
         if (!party || !currentProductId || !totalKg || !r) { alert("Data Missing"); return; }
@@ -3739,9 +3416,10 @@ Rate: ₹${rate || '-'}`;
 
         btn.disabled = true; btn.textContent = "Saving..."; msg.textContent = "Sending...";
         try {
-
           // ===== PAYMENT DATA =====
-          const payType = container.querySelector('.paymentTypeSelect')?.value || 'CASH';
+          const payType = container.querySelector(
+            '.payment-type-group input[type="radio"]:checked'
+          )?.value || 'CASH';
 
           const cashAmt = Number(container.querySelector('.cashTpl')?.value || 0);
           const gpayAmt = Number(container.querySelector('.gpayTpl')?.value || 0);
@@ -3809,34 +3487,29 @@ Rate: ₹${rate || '-'}`;
           if (cashEl) cashEl.value = '';
           if (gpayEl) gpayEl.value = '';
 
-          // reset payment type to Select...
-          const paySelect = container.querySelector('.paymentTypeSelect');
-          if (paySelect) {
-            paySelect.selectedIndex = 0; // The first one is now empty/disabled
+          // reset payment type to CASH
+          const cashRadio = container.querySelector(
+            '.payment-type-group input[value="CASH"]'
+          );
+          if (cashRadio) {
+            cashRadio.checked = true;
           }
 
           // re-apply payment logic (enable/disable inputs)
           handlePaymentLogic(container);
 
           // Clear
-          // Helper for safe assignment
-          const safeSet = (sel, val) => {
-            const el = container.querySelector(sel);
-            if (el) el.value = val;
-          };
-
-          // Clear safely
-          safeSet('.partyTpl', '');
-          safeSet('.nagTpl', '');
-          safeSet('.weightTpl', '');
-          safeSet('.remTpl', '');
-          safeSet('.totalTpl', '');
+          container.querySelector('.partyTpl').value = '';
+          container.querySelector('.nagTpl').value = '';
+          container.querySelector('.weightTpl').value = '';
+          container.querySelector('.remTpl').value = '';
+          container.querySelector('.totalTpl').value = '';
 
           // 🔥 RESET PRODUCT (User Request)
           currentProductId = null;
           localStorage.removeItem('selectedProductId');
-          safeSet('.sellerProductTpl', '');
-          safeSet('.rateTpl', '');  // Clear rate as well
+          container.querySelector('.sellerProductTpl').value = '';
+          container.querySelector('.rateTpl').value = '';  // Clear rate as well
           setProductDependentState(false);
           updateSaveState();
 
@@ -3872,6 +3545,13 @@ Rate: ₹${rate || '-'}`;
         finally { btn.disabled = false; btn.textContent = "SAVE SALE"; }
       });
       fillPartyDatalist();
+      // 🔥 RE-INIT AUTOCOMPLETE FOR DYNAMICALLY INSERTED NODE
+      // Since fillPartyDatalist only targets ID, and we are using template, we need to init here for the specific element
+      const newPartyInput = node.querySelector('.partyTpl');
+      if (newPartyInput && typeof parties !== 'undefined') {
+        setupAutocomplete(newPartyInput, parties.map(p => p.party_name));
+      }
+
       container.appendChild(node);
       // ================= STEP-4 : DISABLE FIELDS UNTIL PRODUCT SELECT =================
       const depFields = [
@@ -3904,13 +3584,12 @@ Rate: ₹${rate || '-'}`;
       // ================= PAYMENT LOGIC BIND (STEP-3B) =================
 
       // Radio change
-      // Dropdown change
-      const paySelect = node.querySelector('.paymentTypeSelect');
-      if (paySelect) {
-        paySelect.addEventListener('change', () => {
-          handlePaymentLogic(container);
+      node.querySelectorAll('.payment-type-group input[type="radio"]')
+        .forEach(r => {
+          r.addEventListener('change', () => {
+            handlePaymentLogic(container);
+          });
         });
-      }
 
       // Cash / GPay input change
       node.querySelector('.cashTpl')?.addEventListener('input', () => {
@@ -3973,16 +3652,13 @@ Rate: ₹${rate || '-'}`;
     }
 
     function handlePaymentLogic(container) {
-      const payType = container.querySelector('.paymentTypeSelect')?.value || 'CASH';
+      const payType = container.querySelector(
+        '.payment-type-group input[type="radio"]:checked'
+      )?.value;
 
-      const total = Number(container.querySelector('.totalTpl')?.value || 0);
+      const total = Number(container.querySelector('.totalTpl').value || 0);
       const cashEl = container.querySelector('.cashTpl');
       const gpayEl = container.querySelector('.gpayTpl');
-
-      // ✅ NEW: Udhar Element
-      const udharEl = container.querySelector('.udharTpl');
-
-      if (!cashEl || !gpayEl) return; // guard
 
       let cash = Number(cashEl.value || 0);
       let gpay = Number(gpayEl.value || 0);
@@ -3995,14 +3671,12 @@ Rate: ₹${rate || '-'}`;
         gpayEl.value = 0;
         gpayEl.disabled = true;
         cashEl.value = total;
-        cash = total; gpay = 0; // update vars
       }
 
       if (payType === 'GPAY') {
         cashEl.value = 0;
         cashEl.disabled = true;
         gpayEl.value = total;
-        cash = 0; gpay = total; // update vars
       }
 
       if (payType === 'UDHAR') {
@@ -4010,7 +3684,6 @@ Rate: ₹${rate || '-'}`;
         gpayEl.value = 0;
         cashEl.disabled = true;
         gpayEl.disabled = true;
-        cash = 0; gpay = 0; // update vars
       }
 
       if (payType === 'PARTIAL') {
@@ -4019,23 +3692,6 @@ Rate: ₹${rate || '-'}`;
           alert("❌ Total se zyada payment allowed nahi");
           cashEl.value = 0;
           gpayEl.value = 0;
-          cash = 0; gpay = 0;
-        }
-      }
-
-      // 🔥 UPDATE UDHAR DISPLAY
-      if (udharEl) {
-        const pending = Math.max(0, total - (cash + gpay));
-        udharEl.value = pending;
-
-        // Visual Color Logic
-        if (pending > 0) {
-          udharEl.style.background = '#fff1f2'; // light red
-          udharEl.style.color = '#be123c';
-          udharEl.style.fontWeight = 'bold';
-        } else {
-          udharEl.style.background = '#f0fdfa'; // light green
-          udharEl.style.color = '#0f766e';
         }
       }
     }
@@ -4082,124 +3738,32 @@ Rate: ₹${rate || '-'}`;
 
 
     // ###############################################################
-    //          PART 9: CASH COUNTER LOGIC (Local + Dynamic)
+    //          PART 9: CASH COUNTER LOGIC (Local)
     // ###############################################################
 
-    let CASH_DENOMS = [500, 200, 100, 50, 20, 10, 5, 2, 1];
+    const CASH_DENOMS = [500, 200, 100, 50, 20, 10, 5, 2, 1];
     let cashCurrent = new Map();
-
     function onPageInit_cashCounter() {
-      // Load custom denoms if exist
-      const stored = localStorage.getItem('custom_cash_denoms');
-      if (stored) {
-        try {
-          CASH_DENOMS = JSON.parse(stored);
-        } catch (e) {
-          console.error("Error parsing denoms", e);
-        }
-      }
-
-      CASH_DENOMS.forEach(d => {
-        if (!cashCurrent.has(d)) cashCurrent.set(d, 0);
-      });
-
-      renderCashDenoms();
-      cash_updateTotals();
-    }
-
-    function addCustomDenom() {
-      const inp = document.getElementById('newDenomInput');
-      const val = parseFloat(inp.value);
-
-      if (!val || val <= 0) {
-        alert("❌ Please enter a valid amount");
-        return;
-      }
-
-      if (CASH_DENOMS.includes(val)) {
-        alert("⚠️ This denomination already exists!");
-        return;
-      }
-
-      CASH_DENOMS.push(val);
-      CASH_DENOMS.sort((a, b) => b - a); // Sort High to Low
-
-      // Save & Update
-      localStorage.setItem('custom_cash_denoms', JSON.stringify(CASH_DENOMS));
-      cashCurrent.set(val, 0);
-
-      inp.value = '';
-      renderCashDenoms();
-    }
-
-    function removeCustomDenom(d) {
-      if (!confirm(`Delete ₹${d} note?`)) return;
-
-      CASH_DENOMS = CASH_DENOMS.filter(v => v !== d);
-      localStorage.setItem('custom_cash_denoms', JSON.stringify(CASH_DENOMS));
-      cashCurrent.delete(d);
-
-      renderCashDenoms();
-      cash_updateTotals();
-    }
-
-    function renderCashDenoms() {
-      const c = document.getElementById('cashDenomsTpl');
-      if (!c) return;
-      c.innerHTML = ''; // Always clear to re-render sorted list
-
-      const grid = document.createElement('div');
-      grid.className = 'cash-grid';
-
-      CASH_DENOMS.forEach(d => {
-        const row = document.createElement('div');
-        row.className = 'cash-row';
-
-        const pcs = cashCurrent.get(d) || '';
-
-        row.innerHTML = `
-          <div class="note-label">₹${d}</div>
-          <input type="number" class="unified-input-style" placeholder="Qty" 
-             style="text-align:center; font-size:1.1rem; color:#0f172a;"
-             value="${pcs}"
-             min="0"
-             oninput="updateCash(${d}, this)">
-          <div class="note-total" id="cash-row-total-${d}">
-             ₹${(d * (Number(pcs) || 0)).toLocaleString('en-IN')}
-          </div>
-          <div style="cursor:pointer; padding:0 4px; opacity:0.6;" onclick="removeCustomDenom(${d})">❌</div>
-        `;
-        grid.appendChild(row);
-      });
-      c.appendChild(grid);
-    }
-
-    // specific update without re-render
-    window.updateCash = function (d, inputEl) {
-      const val = Number(inputEl.value) || 0;
-      cashCurrent.set(d, val);
-
-      // Update row total text
-      const totalEl = document.getElementById(`cash-row-total-${d}`);
-      if (totalEl) totalEl.textContent = '₹' + (d * val).toLocaleString('en-IN');
-
-      cash_updateTotals();
-    }
-
-    function cash_updateTotals() {
-      let t = 0;
-      cashCurrent.forEach((v, k) => {
-        if (CASH_DENOMS.includes(k)) t += v * k;
-      });
-      const el = document.getElementById('cashTotalTpl');
-      if (el) el.textContent = '₹' + t.toLocaleString('en-IN');
-    }
-
-    window.cash_resetCurrent = function () {
       CASH_DENOMS.forEach(d => cashCurrent.set(d, 0));
-      renderCashDenoms(); // Re-render to clear inputs visually
-      cash_updateTotals();
+      renderCashDenoms(); cash_updateTotals();
     }
+    function renderCashDenoms() {
+      const c = document.getElementById('cashDenomsTpl'); if (!c) return; c.innerHTML = '';
+      CASH_DENOMS.forEach(d => {
+        const pcs = cashCurrent.get(d) || 0;
+        const div = document.createElement('div');
+        div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.padding = '6px';
+        div.innerHTML = `<b>₹${d}</b> <input style="width:100px" type="number" value="${pcs}" oninput="updateCash(${d},this.value)"> <b>₹${d * pcs}</b>`;
+        c.appendChild(div);
+      });
+    }
+    window.updateCash = function (d, v) { cashCurrent.set(d, Number(v)); renderCashDenoms(); cash_updateTotals(); }
+    function cash_updateTotals() {
+      let t = 0; cashCurrent.forEach((v, k) => t += v * k);
+      const el = document.getElementById('cashTotalTpl');
+      if (el) el.textContent = '₹' + t;
+    }
+    window.cash_resetCurrent = function () { onPageInit_cashCounter(); }
 
 
     // ###############################################################
@@ -4619,90 +4183,25 @@ Advance: ₹${adv}`;
     let wcWeights = [];
 
     function openWeightCalcPopup(btn) {
-      // Find within the main form grid
-      const grid = btn.closest('.modern-form-grid') || btn.closest('.seller-form-section');
-      wcTargetInput = grid ? grid.querySelector('.weightTpl') : null;
+      wcTargetInput = btn.closest('.col').querySelector('.weightTpl');
       wcWeights = [];
       renderWeightCalc();
-
-      // Reset Manual Form
-      const bagInp = document.getElementById('wcBagsInput');
-      if (bagInp) bagInp.value = '';
-
-      // Reset Standard Form
-      const stdInp = document.getElementById('wcStdBagsInput');
-      if (stdInp) stdInp.value = '';
-      document.getElementById('wcStdCalcDisplay').textContent = "0";
-
-      // Default to Manual Mode
-      document.querySelector('input[name="wcMode"][value="manual"]').checked = true;
-      toggleWeightMode('manual');
-
       document.getElementById('weightCalcPopup').style.display = 'block';
     }
 
-    function toggleWeightMode(mode) {
-      const secManual = document.getElementById('wcSectionManual');
-      const secStd = document.getElementById('wcSectionStd');
-
-      if (mode === 'manual') {
-        secManual.style.display = 'block';
-        secStd.style.display = 'none';
-      } else {
-        secManual.style.display = 'none';
-        secStd.style.display = 'block';
-        // Auto-focus standard input
-        setTimeout(() => document.getElementById('wcStdBagsInput').focus(), 100);
-      }
-    }
-
-    function updateStdCalc() {
-      const bags = Number(document.getElementById('wcStdBagsInput').value || 0);
-      const weight = bags * 50;
-      document.getElementById('wcStdCalcDisplay').textContent = weight;
-    }
-
     function closeWeightCalcPopup() {
-      // Check active mode
-      const isManual = document.querySelector('input[name="wcMode"][value="manual"]').checked;
-
-      let finalWeight = 0;
-      let finalBags = 0;
-
-      if (isManual) {
-        // --- MANUAL MODE ---
-        finalWeight = wcWeights.reduce((a, b) => a + b, 0);
-
-        const manualBags = document.getElementById('wcBagsInput')?.value;
-        if (manualBags && Number(manualBags) > 0) {
-          finalBags = Number(manualBags);
-        } else {
-          finalBags = wcWeights.length;
-        }
-
-      } else {
-        // --- STANDARD 50KG MODE ---
-        const bags = Number(document.getElementById('wcStdBagsInput').value || 0);
-        finalBags = bags;
-        finalWeight = bags * 50;
-      }
+      const sum = wcWeights.reduce((a, b) => a + b, 0);
 
       if (wcTargetInput) {
-        wcTargetInput.value = finalWeight ? finalWeight.toFixed(2) : '';
+        wcTargetInput.value = sum ? sum.toFixed(2) : '';
 
-        // 🔥 DIRECT CALCULATION CALL
-        const container = wcTargetInput.closest('.seller-form-section') || wcTargetInput.closest('.card');
-
+        // 🔥 DIRECT CALCULATION CALL (IMPORTANT FIX)
+        const container = wcTargetInput.closest('.card');
         if (container) {
           const rate = container.querySelector('.rateTpl');
           const nag = container.querySelector('.nagTpl');
           const comm = container.querySelector('.commTpl');
           const total = container.querySelector('.totalTpl');
-
-          // 🔥 AUTO-FILL BAGS
-          if (nag) {
-            nag.value = finalBags > 0 ? finalBags : '';
-          }
 
           if (rate && total) {
             // same logic as doCalculate()
@@ -4721,12 +4220,6 @@ Advance: ₹${adv}`;
               const majuriAmt = n * MAJURI_RATE;
 
               total.value = Math.round(base + commAmt + cessAmt + majuriAmt);
-
-              // 🔥 Trigger payment logic update too
-              if (typeof handlePaymentLogic === 'function') {
-                handlePaymentLogic(container);
-              }
-
             } else {
               total.value = '';
             }

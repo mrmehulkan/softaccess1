@@ -901,6 +901,39 @@
       align-items: center;
       gap: 6px;
     }
+
+    /* ================= AUTOCOMPLETE CSS ================= */
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      border-bottom: none;
+      border-top: none;
+      z-index: 9999;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .autocomplete-item {
+      padding: 10px;
+      cursor: pointer;
+      background-color: #fff;
+      border-bottom: 1px solid #d4d4d4;
+    }
+
+    .autocomplete-item:hover {
+      background-color: #e9e9e9;
+    }
+
+    .autocomplete-active {
+      background-color: #0f766e !important;
+      color: #ffffff;
+    }
   </style>
 </head>
 
@@ -1419,7 +1452,9 @@
           <!-- Row 2: Party Name (Full Width) -->
           <div class="modern-input-group full-width">
             <label>Party Name</label>
-            <input class="partyTpl" list="partyMasterList" placeholder="Select Party...">
+            <div style="position:relative">
+              <input class="partyTpl" id="partyInputTpl" placeholder="Select Party..." autocomplete="off">
+            </div>
           </div>
 
           <!-- Row 4: Product -->
@@ -1886,31 +1921,102 @@
 
     // पार्टी लिस्ट को ड्रॉपडाउन (datalist) में भरने के लिए सही फंक्शन
     function fillPartyDatalist() {
-      const dl = document.getElementById("partyMasterList");
-      if (!dl) return;
-
-      dl.innerHTML = "";
-
-      const set = new Set();
-
-      parties.forEach(p => {
-        if (typeof p === "string") {
-          set.add(p.trim());
+      // OLD DATALIST LOGIC REMOVED
+      // Using global 'parties' array if available
+      if (typeof parties !== 'undefined' && Array.isArray(parties)) {
+        const inp = document.getElementById('partyInputTpl');
+        if (inp) {
+          setupAutocomplete(inp, parties.map(p => p.party_name || p));
         }
-        else if (p && p.name) {
-          set.add(String(p.name).trim());
+      }
+    }
+
+    // ================= CUSTOM AUTOCOMPLETE LOGIC =================
+    function setupAutocomplete(inp, arr) {
+      let currentFocus;
+
+      inp.addEventListener("input", function (e) {
+        let a, b, i, val = this.value;
+        closeAllLists();
+        if (!val) { return false; }
+        currentFocus = -1;
+
+        a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        this.parentNode.appendChild(a);
+
+        let count = 0;
+        for (i = 0; i < arr.length; i++) {
+          // Check if matches start or contains
+          if (arr[i].toUpperCase().indexOf(val.toUpperCase()) > -1) {
+            if (count > 15) break; // Limit suggestions
+
+            b = document.createElement("DIV");
+            b.className = "autocomplete-item";
+            b.innerHTML = arr[i].replace(new RegExp(val, "gi"), (match) => `<strong>${match}</strong>`);
+            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+            b.addEventListener("click", function (e) {
+              inp.value = this.getElementsByTagName("input")[0].value;
+              closeAllLists();
+              // Optional: Trigger any change event if needed
+              inp.dispatchEvent(new Event('change'));
+            });
+            a.appendChild(b);
+            count++;
+          }
         }
       });
 
-      set.forEach(name => {
-        if (name) {
-          const opt = document.createElement("option");
-          opt.value = name;
-          dl.appendChild(opt);
+      inp.addEventListener("keydown", function (e) {
+        let x = document.getElementById(this.id + "autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
+        if (e.keyCode == 40) { // DOWN
+          currentFocus++;
+          addActive(x);
+        } else if (e.keyCode == 38) { // UP
+          currentFocus--;
+          addActive(x);
+        } else if (e.keyCode == 13) { // ENTER
+          e.preventDefault();
+          if (currentFocus > -1) {
+            if (x) x[currentFocus].click();
+          }
         }
       });
 
-      console.log("✅ Party datalist updated:", set.size);
+      inp.addEventListener("focus", function () {
+        // 🔥 SCROLL TO TOP ON MOBILE
+        if (window.innerWidth < 900) {
+          setTimeout(() => {
+            this.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 300);
+        }
+      });
+
+      function addActive(x) {
+        if (!x) return false;
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        x[currentFocus].classList.add("autocomplete-active");
+      }
+      function removeActive(x) {
+        for (let i = 0; i < x.length; i++) {
+          x[i].classList.remove("autocomplete-active");
+        }
+      }
+      function closeAllLists(elmnt) {
+        let x = document.getElementsByClassName("autocomplete-items");
+        for (let i = 0; i < x.length; i++) {
+          if (elmnt != x[i] && elmnt != inp) {
+            x[i].parentNode.removeChild(x[i]);
+          }
+        }
+      }
+      document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+      });
     }
 
     // Google Sheet से पार्टी डेटा लोड करने के लिए
@@ -3668,6 +3774,13 @@ Rate: ₹${rate || '-'}`;
         finally { btn.disabled = false; btn.textContent = "SAVE SALE"; }
       });
       fillPartyDatalist();
+
+      // 🔥 RE-INIT AUTOCOMPLETE FOR DYNAMICALLY INSERTED NODE
+      const newPartyInput = node.querySelector('.partyTpl');
+      if (newPartyInput && typeof parties !== 'undefined') {
+        setupAutocomplete(newPartyInput, parties.map(p => p.party_name || p.name || p));
+      }
+
       container.appendChild(node);
       // ================= STEP-4 : DISABLE FIELDS UNTIL PRODUCT SELECT =================
       const depFields = [

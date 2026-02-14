@@ -913,16 +913,23 @@
       position: absolute;
       border: 1px solid #d4d4d4;
       border-bottom: none;
-      border-top: none;
+      /* border-top: none; REMOVED because now it's bottom-up */
       z-index: 9999;
-      top: 100%;
+      /* top: 100%; REMOVED */
+      bottom: 100%;
+      /* 🔥 Show ABOVE input */
       left: 0;
       right: 0;
       background-color: #fff;
       max-height: 250px;
       overflow-y: auto;
-      border-radius: 0 0 10px 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      /* border-radius: 0 0 10px 10px; REMOVED */
+      border-radius: 10px 10px 0 0;
+      /* Rounded TOP corners */
+      box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
+      /* Shadow upwards */
+      margin-bottom: 2px;
+      /* Slight gap from input */
     }
 
     .autocomplete-item {

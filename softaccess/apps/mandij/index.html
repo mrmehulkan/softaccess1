@@ -4940,20 +4940,85 @@ Advance: ₹${adv}`;
 
       totalEl.textContent = sum.toFixed(2);
     }
+    function generateThermalReceipt(sale) {
+      const LINE_WIDTH = 42; // 72mm width
+
+      const center = (text) => {
+        const spaces = Math.max(0, Math.floor((LINE_WIDTH - text.length) / 2));
+        return " ".repeat(spaces) + text + "\n";
+      };
+
+      const row = (label, value) => {
+        const labelLen = label.length;
+        const valLen = String(value).length;
+        const spaces = Math.max(0, LINE_WIDTH - labelLen - valLen);
+        return label + " ".repeat(spaces) + value + "\n";
+      };
+
+      const centerDivider = () => center("-".repeat(LINE_WIDTH));
+
+      let receipt = "";
+      receipt += center("MANDI COMMISSION AGENT");
+      receipt += centerDivider();
+      receipt += row("Bill No:", sale.bill_no);
+      receipt += row("Date:", sale.date);
+      receipt += row("Party:", sale.party);
+      if (sale.seller) receipt += row("Seller:", sale.seller);
+      receipt += centerDivider();
+
+      receipt += row("Item", "Qty x Rate = Total");
+      receipt += centerDivider();
+
+      const line1 = sale.product;
+      const line2 = `${sale.bags} Bag x ${sale.rate} = ${sale.total}`;
+
+      receipt += line1 + "\n";
+      receipt += " ".repeat(Math.max(0, LINE_WIDTH - line2.length)) + line2 + "\n";
+
+      receipt += centerDivider();
+      if (sale.kg) receipt += row("Total Weight:", (sale.kg) + " KG");
+      if (sale.comm) receipt += row("Commission:", sale.comm);
+      if (sale.cess) receipt += row("Cess:", sale.cess);
+      if (sale.majuri) receipt += row("Majuri:", sale.majuri);
+      receipt += centerDivider();
+
+      receipt += row("NET TOTAL:", "Rs " + sale.total);
+
+      if (sale.cash > 0) receipt += row("Cash:", sale.cash);
+      if (sale.gpay > 0) receipt += row("GPay:", sale.gpay);
+      if (sale.udhar > 0) receipt += row("Udhar:", sale.udhar);
+
+      receipt += center("Thank You");
+      receipt += "\n\n\n";
+      return receipt;
+    }
+
     function testAndroidPrint() {
       const slip = {
         bill_no: "TEST123",
+        date: todayStr(),
         party: "RAMLAL",
-        product: "POTATO",
+        seller: "Seller 1",
+        product: "POTATO (Sample)",
         rate: 120,
         bags: 10,
-        total: 1250
+        kg: 500,
+        comm: 50,
+        cess: 10,
+        majuri: 60,
+        total: 1250,
+        cash: 500,
+        gpay: 750,
+        udhar: 0
       };
 
-      if (window.Android && Android.print) {   // ✅ CORRECT
-        Android.print(JSON.stringify(slip));
+      if (window.Android && Android.print) {
+        // 🔥 Send Formatted Text instead of JSON
+        const data = generateThermalReceipt(slip);
+        Android.print(data);
       } else {
         alert("❌ Android bridge NOT found");
+        console.log("Would print:\n" + generateThermalReceipt(slip));
       }
     }
 

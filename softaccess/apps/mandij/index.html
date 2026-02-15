@@ -3917,12 +3917,19 @@ Rate: ₹${rate || '-'}`;
               };
 
               // 🔥 CHECK FOR THERMAL PRINTER
-              if (window.Android && window.Android.print) {
-                const receiptText = generateThermalReceipt(slipData);
-                window.Android.print(receiptText);
-              } else {
-                // Fallback to browser print
-                printSaleSlip(slipData);
+              try {
+                if (window.Android && window.Android.print) {
+                  // alert("DEBUG: Android Bridge Found. Generating receipt...");
+                  const receiptText = generateThermalReceipt(slipData);
+                  // alert("DEBUG: Sending to printer...");
+                  window.Android.print(receiptText);
+                } else {
+                  // alert("DEBUG: Android Bridge NOT found. Using Browser Print.");
+                  printSaleSlip(slipData);
+                }
+              } catch (err) {
+                alert("❌ Print Error: " + err.message);
+                console.error(err);
               }
             }
           }, 200);

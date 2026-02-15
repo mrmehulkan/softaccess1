@@ -1203,7 +1203,9 @@
           </div>
           <div style="margin-top:8px;">
             <div class="label">Product</div>
-            <select id="purchaseProductTpl"></select>
+            <div class="autocomplete-wrapper">
+              <input id="purchaseProductTpl" type="text" placeholder="Select Product..." autocomplete="off">
+            </div>
           </div>
           <div class="row" style="margin-top:8px;">
             <div class="col">
@@ -1489,7 +1491,9 @@
           <!-- Row 4: Product -->
           <div class="modern-input-group full-width highlight-field">
             <label>Product</label>
-            <input class="sellerProductTpl" list="productMasterList" placeholder="Search Product...">
+            <div class="autocomplete-wrapper">
+              <input class="sellerProductTpl" placeholder="Search Product..." autocomplete="off">
+            </div>
           </div>
 
           <!-- Row 5: Rate | Button | Bags (3 Columns) -->
@@ -2488,7 +2492,12 @@
       const party = document.getElementById('purchasePartyTpl').value.trim();
       await ensurePartyExists(party);
       const date = document.getElementById('purchaseDateTpl').value || todayStr();
-      const pid = document.getElementById('purchaseProductTpl').value || '';
+
+      // Look up PID from name
+      const pName = document.getElementById('purchaseProductTpl').value.trim();
+      const prodObj = products.find(p => p.name === pName);
+      const pid = prodObj ? prodObj.id : '';
+
       const rate20 = Number(document.getElementById('purchaseRateTpl').value || 0);
       const katta = Number(document.getElementById('purchaseKattaTpl').value || 0);
       const kg = Number(document.getElementById('purchaseQtyTpl').value || 0);
@@ -3029,16 +3038,8 @@ Rate: ₹${rate || '-'}`;
       document.getElementById('purchaseDateTpl').value = todayStr();
       fillPartyDatalist();
 
-      const sel = document.getElementById('purchaseProductTpl');
-      if (sel) {
-        sel.innerHTML = '<option value="">Select Product</option>';
-        products.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.textContent = p.name;
-          sel.appendChild(opt);
-        });
-      }
+      // ✅ PRODUCT AUTOCOMPLETE
+      setupAutocomplete(document.getElementById('purchaseProductTpl'), products);
 
       ['purchaseRateTpl', 'purchaseKattaTpl', 'purchaseQtyTpl'].forEach(id => {
         const el = document.getElementById(id);
@@ -3466,19 +3467,12 @@ Rate: ₹${rate || '-'}`;
       const node = document.importNode(tpl.content, true);
       // ================= PRODUCT SEARCH INIT (LIKE PARTY) =================
       const prodInput = node.querySelector('.sellerProductTpl');
-      const prodDL = document.getElementById('productMasterList');
 
-      if (prodInput && prodDL) {
-        prodDL.innerHTML = '';
+      // ✅ PRODUCT AUTOCOMPLETE
+      if (prodInput) {
+        setupAutocomplete(prodInput, products);
 
-        products.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.name;        // 🔥 typing by name
-          opt.dataset.pid = p.id;   // hidden id
-          prodDL.appendChild(opt);
-        });
-
-        prodInput.addEventListener('change', () => {
+        prodInput.addEventListener('input', () => {
           const name = prodInput.value.trim();
 
           const prod = products.find(

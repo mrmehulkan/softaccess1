@@ -3417,7 +3417,7 @@ Rate: ₹${rate || '-'}`;
     function reprintSale(s) {
       const prod = products.find(p => String(p.id) === String(s.product_id));
 
-      printSaleSlip({
+      const slipData = {
         bill_no: s.bill_no,
         date: s.date,
         party: s.party_name,
@@ -3433,7 +3433,20 @@ Rate: ₹${rate || '-'}`;
         cash: s.cash,
         gpay: s.gpay,
         udhar: s.udhar
-      });
+      };
+
+      // 🔥 CHECK FOR THERMAL PRINTER
+      try {
+        if (window.Android && window.Android.print) {
+          const receiptText = generateThermalReceipt(slipData);
+          window.Android.print(receiptText);
+        } else {
+          printSaleSlip(slipData);
+        }
+      } catch (err) {
+        alert("❌ Print Error: " + err.message);
+        console.error(err);
+      }
     }
 
 

@@ -4996,8 +4996,13 @@ Advance: ₹${adv}`;
       // 🔥 Date Format: YYYY-MM-DD HH:mm:ss
       let dateStr = sale.date;
       try {
+        // Fix for ISO String (Reprint)
+        if (dateStr && dateStr.includes('T') && typeof toISTDate === 'function') {
+          dateStr = toISTDate(dateStr);
+        }
+
         const d = new Date();
-        const [y, m, da] = sale.date.split('-');
+        const [y, m, da] = dateStr.split('-');
         if (y && m && da) {
           // Add current time if only date provided
           const time = d.toTimeString().split(' ')[0]; // HH:mm:ss

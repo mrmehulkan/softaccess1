@@ -3898,7 +3898,7 @@ Rate: ₹${rate || '-'}`;
             );
 
             if (ask) {
-              printSaleSlip({
+              const slipData = {
                 bill_no: billNo,
                 date: date,
                 party: party,
@@ -3914,7 +3914,16 @@ Rate: ₹${rate || '-'}`;
                 cash: cashAmt,
                 gpay: gpayAmt,
                 udhar: udharAmt
-              });
+              };
+
+              // 🔥 CHECK FOR THERMAL PRINTER
+              if (window.Android && window.Android.print) {
+                const receiptText = generateThermalReceipt(slipData);
+                window.Android.print(receiptText);
+              } else {
+                // Fallback to browser print
+                printSaleSlip(slipData);
+              }
             }
           }, 200);
 

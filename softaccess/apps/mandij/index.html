@@ -4984,7 +4984,7 @@ Advance: ₹${adv}`;
       totalEl.textContent = sum.toFixed(2);
     }
     function generateThermalReceipt(sale) {
-      const LINE_WIDTH = 42; // 72mm (Safe Width)
+      const LINE_WIDTH = 38; // Reduced to 38 to prevent wrapping on 512px width
 
       const center = (text) => {
         const spaces = Math.max(0, Math.floor((LINE_WIDTH - text.length) / 2));

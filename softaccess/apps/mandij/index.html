@@ -1983,9 +1983,17 @@
 
     // 🔥 IST SAFE DATE FORMATTER
     function toISTDate(dateStr) {
+      if (!dateStr) return '';
+      // If already YYYY-MM-DD (10 chars), return as is
+      if (dateStr.length === 10 && !dateStr.includes('T')) return dateStr;
+
       const d = new Date(dateStr);
-      d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
-      return d.toISOString().slice(0, 10);
+      // Verify valid date
+      if (isNaN(d.getTime())) return dateStr;
+
+      // Add 5 hours 30 minutes to convert UTC to IST
+      const istTime = d.getTime() + (5.5 * 60 * 60 * 1000);
+      return new Date(istTime).toISOString().slice(0, 10);
     }
 
     // Helpers (छोटे-मोटे फंक्शन)

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="gu">
 
 <head>
@@ -3452,14 +3452,48 @@ Rate: ₹${rate || '-'}`;
             if (!confirm('Discard changes and cancel editing?')) return;
             currentEditingBillNo = null;
             const card = btn.closest('.card') || document.getElementById('pageContainer');
+
+            // Reset Button
             const saveBtn = card.querySelector('.saveSaleSmall');
-            if (saveBtn) { saveBtn.textContent = 'SAVE SALE'; saveBtn.style.background = ''; }
+            if (saveBtn) {
+                saveBtn.textContent = 'SAVE SALE';
+                saveBtn.style.background = '';
+                saveBtn.disabled = true;
+            }
+
             const cancelBtn = card.querySelector('.cancelEditBtn');
             if (cancelBtn) cancelBtn.style.display = 'none';
-            const safeSet = (sel, val) => { const el = card.querySelector(sel); if (el) el.value = val; };
-            safeSet('.partyTpl', ''); safeSet('.nagTpl', ''); safeSet('.weightTpl', ''); safeSet('.totalTpl', '');
-            safeSet('.cashTpl', ''); safeSet('.gpayTpl', ''); safeSet('.udharTpl', '');
-            const msg = card.querySelector('.msgSmall'); if (msg) msg.textContent = '';
+
+            const safeSet = (sel, val) => {
+                const el = card.querySelector(sel);
+                if (el) {
+                    el.value = val;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+
+            safeSet('.partyTpl', '');
+            safeSet('.sellerProductTpl', '');
+            safeSet('.rateTpl', '');
+            safeSet('.nagTpl', '');
+            safeSet('.weightTpl', '');
+            safeSet('.totalTpl', '');
+            safeSet('.cashTpl', '');
+            safeSet('.gpayTpl', '');
+            safeSet('.udharTpl', '');
+
+            const paySel = card.querySelector('.paymentTypeSelect');
+            if (paySel) {
+                paySel.value = 'CASH';
+                paySel.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            const msg = card.querySelector('.msgSmall');
+            if (msg) msg.textContent = '';
+
+            currentProductId = null;
+            localStorage.removeItem('selectedProductId');
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         function toggleColumnPanel(btn) {
@@ -3959,12 +3993,35 @@ Rate: ₹${rate || '-'}`;
                     currentEditingBillNo = null;
                     setTimeout(refreshAfterSale, 50);
 
-                    const safeSet = (sel, val) => { const el = container.querySelector(sel); if (el) el.value = val; };
-                    safeSet('.partyTpl', ''); safeSet('.nagTpl', ''); safeSet('.weightTpl', ''); safeSet('.totalTpl', '');
-                    if (container.querySelector('.cashTpl')) container.querySelector('.cashTpl').value = '';
-                    if (container.querySelector('.gpayTpl')) container.querySelector('.gpayTpl').value = '';
-                    currentProductId = null; localStorage.removeItem('selectedProductId');
-                    setProductDependentState(false); updateSaveState();
+                    const safeSet = (sel, val) => {
+                        const el = container.querySelector(sel);
+                        if (el) {
+                            el.value = val;
+                            el.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    };
+
+                    safeSet('.partyTpl', '');
+                    safeSet('.sellerProductTpl', '');
+                    safeSet('.rateTpl', '');
+                    safeSet('.nagTpl', '');
+                    safeSet('.weightTpl', '');
+                    safeSet('.totalTpl', '');
+                    safeSet('.cashTpl', '');
+                    safeSet('.gpayTpl', '');
+                    safeSet('.udharTpl', '');
+
+                    const paySel = container.querySelector('.paymentTypeSelect');
+                    if (paySel) {
+                        paySel.value = 'CASH';
+                        paySel.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
+                    currentProductId = null;
+                    localStorage.removeItem('selectedProductId');
+
+                    if (typeof setProductDependentState === 'function') setProductDependentState(false);
+                    if (typeof updateSaveState === 'function') updateSaveState();
 
                     setTimeout(() => {
                         const ask = confirm('✅ Sale Successfully Saved/Updated\nBill No: ' + billNo + '\n\nPrint slip now?');
@@ -4962,11 +5019,23 @@ Advance: ₹${adv}`;
         function addWeightItem() {
             const inp = document.getElementById('wcInput');
             const val = parseFloat(inp.value);
-            if (!val || val <= 0) return;
+            if (!val || val <= 0) {
+                inp.focus();
+                return;
+            }
             wcWeights.push(val);
             inp.value = '';
             renderWeightCalc();
+            inp.focus(); // 🔥 Refocus after adding
         }
+
+        // 🔥 ENTER key support for Weight Calculator
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'wcInput') {
+                e.preventDefault();
+                addWeightItem();
+            }
+        });
 
         function removeWeightItem(idx) {
             wcWeights.splice(idx, 1);

@@ -1876,7 +1876,8 @@
                 <!-- SECTION 1: MANUAL (Existing) -->
                 <div id="wcSectionManual">
                     <div style="display:flex;gap:6px">
-                        <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:2">
+                        <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:2"
+                            enterkeyhint="enter">
                         <input type="number" id="wcBagsInput" placeholder="Bags (Optional)"
                             style="flex:1; border:1px solid #f59e0b">
                         <button class="btn-outline" onclick="addWeightItem()">➕</button>
@@ -1885,7 +1886,7 @@
                     <div id="wcList" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
 
                     <div style="margin-top:8px;font-weight:800;color:#065f46">
-                        Total: <span id="wcTotal">0</span> KG
+                        Total: <span id="wcTotal">0</span> KG | Katta: <span id="wcCount">0</span>
                     </div>
 
                     <button class="btn-outline" style="width:100%; margin-top:5px" onclick="clearWeightCalc()">CLEAR
@@ -1911,11 +1912,6 @@
                 </div>
             </div>
         </div>
-        </div>
-
-
-        </div>
-
     </template>
 
 
@@ -5082,6 +5078,8 @@ Advance: ₹${adv}`;
             });
 
             totalEl.textContent = sum.toFixed(2);
+            const countEl = document.getElementById('wcCount');
+            if (countEl) countEl.textContent = wcWeights.length;
         }
         function generateThermalReceipt(sale) {
             const LINE_WIDTH = 38; // Reduced to 38 to prevent wrapping on 512px width

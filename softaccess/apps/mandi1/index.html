@@ -3027,7 +3027,22 @@ Rate: ₹${rate || '-'}`;
 
         function switchPanel(e) {
             const btn = e.currentTarget;
-            renderAndShow(btn.dataset.panel);
+            const panelId = btn.dataset.panel;
+
+            // 🔒 PIN Protection for Sellers
+            if (panelId === 'p8' || panelId === 'p9' || panelId === 'p10') {
+                const pinMap = { 'p8': '8080', 'p9': '9090', 'p10': '1010' };
+                const sellerName = panelId === 'p8' ? 'Seller 1' : (panelId === 'p9' ? 'Seller 2' : 'Seller 3');
+                const userPin = prompt(`Enter PIN for ${sellerName}:`);
+
+                if (userPin === null) return; // User cancelled
+                if (userPin !== pinMap[panelId]) {
+                    alert("❌ Invalid PIN! Access Denied.");
+                    return;
+                }
+            }
+
+            renderAndShow(panelId);
             if (window.innerWidth <= 900) closeMobileDrawer();
         }
 

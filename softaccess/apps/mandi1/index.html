@@ -1875,13 +1875,16 @@
 
                 <!-- SECTION 1: MANUAL (Existing) -->
                 <div id="wcSectionManual">
-                    <div style="display:flex;gap:6px">
-                        <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:2"
-                            enterkeyhint="enter">
-                        <input type="number" id="wcBagsInput" placeholder="Bags (Optional)"
-                            style="flex:1; border:1px solid #f59e0b">
-                        <button class="btn-outline" onclick="addWeightItem()">➕</button>
-                    </div>
+                    <form onsubmit="event.preventDefault(); addWeightItem();">
+                        <div style="display:flex;gap:6px">
+                            <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:1.5"
+                                enterkeyhint="done">
+                            <button type="submit" class="btn-outline"
+                                style="flex:0.5; font-size:1.2rem; padding:0">➕</button>
+                            <input type="number" id="wcBagsInput" placeholder="Bags (Optional)"
+                                style="flex:1; border:1px solid #f59e0b">
+                        </div>
+                    </form>
 
                     <div id="wcList" style="margin-top:10px; max-height:150px; overflow-y:auto"></div>
 
@@ -5040,13 +5043,7 @@ Advance: ₹${adv}`;
             inp.focus(); // 🔥 Refocus after adding
         }
 
-        // 🔥 ENTER key support for Weight Calculator
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && document.activeElement && document.activeElement.id === 'wcInput') {
-                e.preventDefault();
-                addWeightItem();
-            }
-        });
+
 
         function removeWeightItem(idx) {
             wcWeights.splice(idx, 1);

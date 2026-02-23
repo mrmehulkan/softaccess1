@@ -1518,7 +1518,7 @@
                         <!-- Rate -->
                         <div class="modern-input-group">
                             <label>Rate (20kg)</label>
-                            <input class="rateTpl" type="number" placeholder="₹">
+                            <input class="rateTpl" type="number" step="any" placeholder="₹">
                         </div>
 
                         <!-- Calc Button -->
@@ -1531,7 +1531,7 @@
                         <!-- Bags -->
                         <div class="modern-input-group">
                             <label>Bags</label>
-                            <input class="nagTpl" type="number" placeholder="Qty">
+                            <input class="nagTpl" type="number" step="any" placeholder="Qty">
                         </div>
 
                     </div>
@@ -1540,13 +1540,13 @@
                     <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                         <div class="modern-input-group highlight-field">
                             <label>Total Weight (Kg)</label>
-                            <input class="weightTpl" type="number" placeholder="0.00" inputmode="decimal"
+                            <input class="weightTpl" type="number" step="any" placeholder="0.00" inputmode="decimal"
                                 style="font-weight:700">
                         </div>
 
                         <div class="modern-input-group">
                             <label>Commission %</label>
-                            <input class="commTpl" type="number" inputmode="decimal" value="7">
+                            <input class="commTpl" type="number" step="any" inputmode="decimal" value="7">
                         </div>
                     </div>
 
@@ -1570,15 +1570,15 @@
                     <div class="full-width" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
                         <div class="modern-input-group">
                             <label>Cash</label>
-                            <input class="cashTpl" type="number" placeholder="0">
+                            <input class="cashTpl" type="number" step="any" placeholder="0">
                         </div>
                         <div class="modern-input-group">
                             <label>GPay</label>
-                            <input class="gpayTpl" type="number" placeholder="0">
+                            <input class="gpayTpl" type="number" step="any" placeholder="0">
                         </div>
                         <div class="modern-input-group">
                             <label>Udhar</label>
-                            <input class="udharTpl" type="number" placeholder="0"
+                            <input class="udharTpl" type="number" step="any" placeholder="0"
                                 style="font-weight:800; border:1px solid #fda4af;">
                         </div>
                     </div>
@@ -1877,7 +1877,7 @@
                 <div id="wcSectionManual">
                     <form onsubmit="event.preventDefault(); addWeightItem();">
                         <div style="display:flex;gap:6px">
-                            <input type="number" id="wcInput" placeholder="Add weight (Kg)" style="flex:1.5"
+                            <input type="number" id="wcInput" step="any" placeholder="Add weight (Kg)" style="flex:1.5"
                                 enterkeyhint="done">
                             <button type="submit" class="btn-outline"
                                 style="flex:0.5; font-size:1.2rem; padding:0">➕</button>

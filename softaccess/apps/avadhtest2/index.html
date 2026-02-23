@@ -558,6 +558,10 @@
                 style="font-size:0.6rem; margin-top:5px; opacity:0.7;">v1.0.1</span>
         </div>
         <ul class="sidebar-menu">
+            <li onclick="refreshAllData()"
+                style="color:#ef4444; border-bottom:1px solid #374151; margin-bottom:10px; font-weight:bold;">
+                <i class="fas fa-sync-alt"></i> Global Refresh
+            </li>
             <li onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
             <li onclick="toggleSubmenu()" id="transMain">
                 <i class="fas fa-file-invoice"></i> Transaction
@@ -572,15 +576,6 @@
             <li onclick="showSection('accounts')"><i class="fas fa-users"></i> Ledger / Accounts</li>
             <li onclick="showSection('products')"><i class="fas fa-box"></i> Product Master</li>
             <li onclick="showSection('reports')"><i class="fas fa-list"></i> Logs / Registers</li>
-            <li onclick="showSection('fin_reports')"><i class="fas fa-chart-pie"></i> Financial Reports <span
-                    style="font-size:0.6rem; background:#fee2e2; color:red; padding:1px 4px; border-radius:4px;">NEW</span>
-            </li>
-            <li onclick="showSection('inv_reports')"><i class="fas fa-boxes"></i> Inventory Intelligence <span
-                    style="font-size:0.6rem; background:#dcfce7; color:green; padding:1px 4px; border-radius:4px;">NEW</span>
-            </li>
-            <li onclick="showSection('analytics')"><i class="fas fa-rocket"></i> Business Analytics <span
-                    style="font-size:0.6rem; background:#e0f2fe; color:#0284c7; padding:1px 4px; border-radius:4px;">NEW</span>
-            </li>
             <li onclick="showSection('history')"><i class="fas fa-history"></i> Bill History</li>
             <li onclick="showSection('offline')"><i class="fas fa-wifi"></i> Offline Bills <span id="offlineBadge"
                     style="background:var(--accent); color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem; display:none;">0</span>
@@ -590,6 +585,16 @@
                 (Receipt/Payment)</li>
             <li onclick="showSection('journal')"><i class="fas fa-book"></i> Journal Entry <span
                     style="font-size:0.7em; margin-left:5px; opacity:0.6;">F7</span></li>
+            <li onclick="showSection('fin_reports')"><i class="fas fa-chart-pie"></i> Financial Reports <span
+                    style="font-size:0.6rem; background:#fee2e2; color:red; padding:1px 4px; border-radius:4px;">NEW</span>
+            </li>
+            <li onclick="showSection('inv_reports')"><i class="fas fa-boxes"></i> Inventory Intelligence <span
+                    style="font-size:0.6rem; background:#dcfce7; color:green; padding:1px 4px; border-radius:4px;">NEW</span>
+            </li>
+            <li onclick="showSection('analytics')"><i class="fas fa-rocket"></i> Business Analytics <span
+                    style="font-size:0.6rem; background:#e0f2fe; color:#0284c7; padding:1px 4px; border-radius:4px;">NEW</span>
+            </li>
+
             <!-- SETTINGS SUBMENU -->
             <li onclick="toggleSubmenu('settingsSub')" style="margin-top:auto;">
                 <i class="fas fa-cog"></i> Settings <i class="fas fa-chevron-down"
@@ -604,6 +609,10 @@
                         <option value="miracle">Miracle (Pro)</option>
                         <option value="tally">Tally (Classic)</option>
                     </select>
+                </li>
+                <li onclick="downloadBackup()"
+                    style="padding: 10px 20px !important; color: #10b981; font-weight: bold; border-top: 1px solid #374151;">
+                    <i class="fas fa-file-excel"></i> Download Backup
                 </li>
             </ul>
         </ul>
@@ -798,7 +807,7 @@
                         <span>Grand Total:</span>
                         <span>₹ <span id="grandTotalDiv">0.00</span></span>
                     </div>
-                    <button class="btn btn-primary" onclick="saveAllEntries()"
+                    <button class="btn btn-primary" id="saveBillBtn" onclick="saveAllEntries()"
                         style="width:100%; margin-top:15px; padding:12px; font-size:1rem;">
                         <i class="fas fa-print"></i> Save & Print
                     </button>
@@ -1828,7 +1837,7 @@
             <p id="print_firmGST" style="font-size:10px; margin:2px 0;"><b>GSTIN:</b> [GSTIN]</p>
             <p id="print_firmMobile" style="font-size:10px; margin:2px 0;">Mo: [MOBILE]</p>
             <div class="dash-line" style="margin:5px 0;"></div>
-            <p style="font-size:11px; font-weight:bold; margin:2px 0;">TAX INVOICE</p>
+            <p id="p_billHeader" style="font-size:11px; font-weight:bold; margin:2px 0;">TAX INVOICE</p>
             <div class="dash-line" style="margin:5px 0;"></div>
         </center>
 
@@ -1894,8 +1903,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxEftF69b3Yks24kV7jWlYpY9V3IDz4HihrozQQGFzYaeGzev5UEzvwh7_a8HRZNMsF6w/exec";
-        const BACKUP_API_URL = "https://script.google.com/macros/s/AKfycbw5TVu13mVgN5inSHh2hHvfVe5UKWJ-hRvC_SoIpyVhD6rYp2txuiSdSjno9kmB3GSs/exec"; // 🔴 PASTE YOUR BACKUP URL HERE
+        const API_URL = "https://script.google.com/macros/s/AKfycby3GBVyuw5b_OIwmic7xNMT79z51WMq_UdVGv94TboYvvKu8qpe0dQpHorIuhGKwWKGug/exec";
         const PASSWORD_HASH = "YWRtaW4xMjM="; // Base64 for admin123
         let productMaster = [];
         let allEntryLogs = [];
@@ -1908,6 +1916,33 @@
         let billMeta = { total: 0, totalPages: 1 };
         let editingBillId = null; // ✅ Track Bill being edited
         let editingVoucherId = null; // ✅ Track Voucher being edited
+
+        async function refreshAllData() {
+            showToast("🔄 Global Refresh Started...");
+            try {
+                // 1. Core Data
+                await loadProductsFromSheet(true);
+                await loadAccountsFromSheet(true);
+                await reloadFromSheet(); // Entries & Bills
+
+                // 2. Financials
+                if (typeof fetchDayBook === 'function') await fetchDayBook();
+                if (typeof loadVouchers === 'function') await loadVouchers();
+                if (typeof loadTrialBalance === 'function') await loadTrialBalance();
+                if (typeof loadPnL === 'function') await loadPnL();
+                if (typeof loadBalanceSheet === 'function') await loadBalanceSheet();
+                if (typeof loadAnalytics === 'function') await loadAnalytics();
+
+                // 3. Stock Reports
+                if (typeof loadLowStock === 'function') await loadLowStock();
+                if (typeof loadStockValue === 'function') await loadStockValue();
+
+                showToast("✅ All Data Refreshed!");
+            } catch (e) {
+                console.error("Refresh Error:", e);
+                showToast("❌ Refresh Partial/Failed");
+            }
+        }
 
         // ACCOUNT MASTER LOGIC
         let accountMaster = [];
@@ -2082,21 +2117,8 @@
         });
 
 
-        // ✅ CENTRALIZED API HANDLER (Dual Cloud)
+        // ✅ CENTRALIZED API HANDLER
         async function callAPI(payload) {
-            // 1. Identify if this is a WRITE operation (needs backup)
-            // 1. Identify if this is a WRITE operation (needs backup)
-            const isWrite = ["saveEntries", "addProduct", "updateProduct", "saveCashEntry", "saveJournal"].includes(payload.action);
-
-            // 2. Prepare Backup Promise (Fire & Forget style, but logged)
-            if (isWrite && BACKUP_API_URL) {
-                fetch(BACKUP_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                }).catch(e => console.warn("Backup Cloud Error:", e));
-            }
-
-            // 3. Return Primary Promise (Source of Truth)
             return fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify(payload)
@@ -2489,6 +2511,26 @@
             }
         }
 
+        async function downloadBackup() {
+            showToast("⏳ Generating Backup...");
+            try {
+                const res = await callAPI({ action: "getBackupLink" });
+                if (res.success && res.base64) {
+                    showToast("✅ Backup Ready! Downloading...");
+                    const link = document.createElement("a");
+                    link.href = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + res.base64;
+                    link.download = res.fileName || `Backup_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert("Backup failed: " + res.message);
+                }
+            } catch (e) {
+                alert("Backup Error: " + e.message);
+            }
+        }
+
 
         async function fetchEntryPage(p) {
             document.getElementById("entryLogBody").innerHTML = "<tr><td colspan='13' style='text-align:center; padding:20px;'>⏳ Loading...</td></tr>";
@@ -2843,6 +2885,11 @@
         }
 
         async function saveAllEntries() {
+            const saveBtn = document.getElementById("saveBillBtn");
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
 
             const rows = document.querySelectorAll("#tableBody tr");
             const entries = [];
@@ -3004,6 +3051,11 @@
 
                     localStorage.removeItem("billingState");
                 }
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-print"></i> Save & Print';
+                }
             }
         }
 
@@ -3036,8 +3088,17 @@
                 bill.totalPCS;
             document.getElementById("p_discount").textContent =
                 Number(bill.discount || 0).toFixed(2);
+
             // ✅ CONDITIONAL GST PRINT & CALCULATION
             const printWithGST = localStorage.getItem("printWithGST") !== "false";
+
+            // Update Header Title (User Request: Remove 'TAX INVOICE' if no GST)
+            const billHeader = document.getElementById("p_billHeader");
+            if (billHeader) {
+                billHeader.textContent = printWithGST ? "TAX INVOICE" : "ESTIMATE / BILL";
+                // billHeader.style.display = printWithGST ? "block" : "none"; // Option to hide completely
+            }
+
             const gstColHead = document.querySelector("#billPreview thead th:nth-child(4)");
             if (gstColHead) gstColHead.style.display = printWithGST ? "table-cell" : "none";
 

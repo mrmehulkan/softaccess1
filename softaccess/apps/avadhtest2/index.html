@@ -649,6 +649,12 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
+                        <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                            <input type="checkbox" id="printGSTToggle" onchange="savePrintGSTPreference()"
+                                style="width:20px; height:20px; cursor:pointer;">
+                            <label for="printGSTToggle" style="font-weight:bold; cursor:pointer;">Print Bill with GST
+                                Details</label>
+                        </div>
                     </div>
 
                     <!-- FIRM DETAILS (NEW) -->
@@ -1889,7 +1895,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxEftF69b3Yks24kV7jWlYpY9V3IDz4HihrozQQGFzYaeGzev5UEzvwh7_a8HRZNMsF6w/exec";
-        const BACKUP_API_URL = ""; // 🔴 PASTE YOUR BACKUP URL HERE
+        const BACKUP_API_URL = "https://script.google.com/macros/s/AKfycbw5TVu13mVgN5inSHh2hHvfVe5UKWJ-hRvC_SoIpyVhD6rYp2txuiSdSjno9kmB3GSs/exec"; // 🔴 PASTE YOUR BACKUP URL HERE
         const PASSWORD_HASH = "YWRtaW4xMjM="; // Base64 for admin123
         let productMaster = [];
         let allEntryLogs = [];
@@ -3015,7 +3021,14 @@
             const firm = JSON.parse(localStorage.getItem("firmDetails") || "{}");
             document.getElementById("print_firmName").textContent = firm.name || "SOFTACCESS SYSTEMS";
             document.getElementById("print_firmAddress").textContent = firm.address || "123, Tech Plaza, Main Road";
-            document.getElementById("print_firmGST").textContent = "GSTIN: " + (firm.gstin || "24ABCDE1234F1Z5");
+
+            const firmGSTElement = document.getElementById("print_firmGST");
+            if (firm.gstin) {
+                firmGSTElement.textContent = "GSTIN: " + firm.gstin;
+                firmGSTElement.style.display = "block";
+            } else {
+                firmGSTElement.style.display = "none";
+            }
             document.getElementById("print_firmMobile").textContent = "Mo: " + (firm.mobile || "9876543210");
 
             // ✅ TOTAL QTY PRINT LINK
@@ -3023,24 +3036,42 @@
                 bill.totalPCS;
             document.getElementById("p_discount").textContent =
                 Number(bill.discount || 0).toFixed(2);
-            document.getElementById("p_taxable").textContent = bill.taxable;
-            document.getElementById("p_gstAmount").textContent = bill.gstAmount;
-            document.getElementById("p_roundOff").textContent = bill.roundOff || "0.00";
-            document.getElementById("p_grand").textContent = bill.grandTotal;
+            // ✅ CONDITIONAL GST PRINT & CALCULATION
+            const printWithGST = localStorage.getItem("printWithGST") !== "false";
+            const gstColHead = document.querySelector("#billPreview thead th:nth-child(4)");
+            if (gstColHead) gstColHead.style.display = printWithGST ? "table-cell" : "none";
 
+            document.getElementById("p_taxable").parentElement.style.display = printWithGST ? "block" : "none";
+            document.getElementById("p_gstAmount").parentElement.style.display = printWithGST ? "block" : "none";
+
+            let printSubtotal = 0;
             document.getElementById("p_items").innerHTML =
                 bill.items.map(i => {
-                    const gstVal = (Number(i.qty) * Number(i.price) * (Number(i.gst) || 0)) / 100;
+                    const taxable = (Number(i.qty) * Number(i.price));
+                    const gstVal = taxable * (Number(i.gst) || 0) / 100;
+                    const rowAmount = printWithGST ? (taxable + gstVal) : taxable;
+                    printSubtotal += rowAmount;
+
                     return `
                         <tr>
                             <td>${i.item}</td>
                             <td style="text-align:center;">${i.qty}</td>
                             <td style="text-align:center;">${i.price}</td>
-                            <td style="text-align:center;">${gstVal.toFixed(2)}</td>
-                            <td style="text-align:right;">${i.totalWithGST}</td>
+                            <td style="text-align:center; ${printWithGST ? '' : 'display:none;'}">${gstVal.toFixed(2)}</td>
+                            <td style="text-align:right;">${rowAmount.toFixed(2)}</td>
                         </tr>
                     `;
                 }).join('');
+
+            const disc = Number(bill.discount || 0);
+            const totalBeforeRound = printSubtotal - disc;
+            const finalGrand = Math.round(totalBeforeRound);
+            const finalRoundOff = finalGrand - totalBeforeRound;
+
+            document.getElementById("p_taxable").textContent = bill.taxable;
+            document.getElementById("p_gstAmount").textContent = bill.gstAmount;
+            document.getElementById("p_roundOff").textContent = finalRoundOff.toFixed(2);
+            document.getElementById("p_grand").textContent = finalGrand.toFixed(2);
 
             document.getElementById("billPreview").style.display = "block";
             // ✅ CHANGED: Reset form effectively without reload
@@ -3894,6 +3925,17 @@
         }
 
         // FIRM DETAILS LOGIC
+        function loadPrintGSTPreference() {
+            const pref = localStorage.getItem("printWithGST") !== "false";
+            document.getElementById("printGSTToggle").checked = pref;
+        }
+
+        function savePrintGSTPreference() {
+            const pref = document.getElementById("printGSTToggle").checked;
+            localStorage.setItem("printWithGST", pref);
+            showToast(pref ? "✅ GST will be included in Print" : "⚠️ GST hidden in Print");
+        }
+
         async function loadFirmDetails() {
             // First load from local
             const local = localStorage.getItem("firmDetails");
@@ -3946,11 +3988,17 @@
                 showToast("❌ Server Save Failed");
             }
         }
-        // Initialize
+        function loadTheme() {
+            const t = localStorage.getItem("appTheme") || "modern";
+            setTheme(t);
+        }
+
+        // Initialize Settings & Preferences
         loadAppTimezone();
         loadFirmState();
-        loadFirmDetails(); // ✅ Load Firm Details
-        loadTheme(); // Load saved theme
+        loadPrintGSTPreference(); // ✅ NEW
+        loadFirmDetails();
+        loadTheme();
 
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);

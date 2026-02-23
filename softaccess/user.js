@@ -80,7 +80,7 @@ function loadMySoftwares() {
                     action = "window.location.href='https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccess/apps/mandijapk/app-release.apk'";
                 }
                 else if (folder === "mandi1apk") {
-                    action = "window.location.href='https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccess/apps/mandi1apk/mandi1apk.apk'";
+                    action = "window.location.href='https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccess/apps/mandi1apk/app-release.apk'";
                 }
                 // 🌐 WEB APPS
                 else {
@@ -102,5 +102,6 @@ function loadMySoftwares() {
             document.getElementById("list").innerText = "Software load nahi ho paye.";
         });
 }
+
 
 

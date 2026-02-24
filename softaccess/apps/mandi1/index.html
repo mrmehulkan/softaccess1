@@ -1929,6 +1929,17 @@
         const APP_LICENSE_STATUS = "ACTIVE";
         const APP_CONTACT_NUMBER = "+91 9725533088";
         const APP_SUBSCRIPTION_DETAILS = "Monthly Plan: ₹999 | Yearly Plan: ₹9590";
+
+        // 🛡️ SECURITY CONFIG
+        const ADMIN_PIN = "0000"; // PIN for Parchi, Purchase, Ledger etc.
+        let currentSeller = "";   // Tracks logged-in seller name
+
+        // 👤 SELLER ACCESS (PINs and Display Names)
+        const SELLER_CONFIG = {
+            "p8": { "name": "Seller 1", "pin": "8080" },
+            "p9": { "name": "Seller 2", "pin": "9090" },
+            "p10": { "name": "Seller 3", "pin": "1010" }
+        };
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyA7UzeHPssTof6k5Vk0aRvCyIWmhj4w5MG0Ju1dfID3wN5JygXzCL35QZqpk29LZ1M/exec";
@@ -3040,17 +3051,29 @@ Rate: ₹${rate || '-'}`;
             const btn = e.currentTarget;
             const panelId = btn.dataset.panel;
 
-            // 🔒 PIN Protection for Sellers
-            if (panelId === 'p8' || panelId === 'p9' || panelId === 'p10') {
-                const pinMap = { 'p8': '8080', 'p9': '9090', 'p10': '1010' };
-                const sellerName = panelId === 'p8' ? 'Seller 1' : (panelId === 'p9' ? 'Seller 2' : 'Seller 3');
-                const userPin = prompt(`Enter PIN for ${sellerName}:`);
+            // 🔒 1. PIN Protection for Sellers
+            if (SELLER_CONFIG[panelId]) {
+                const config = SELLER_CONFIG[panelId];
+                const userPin = prompt(`Enter PIN for ${config.name}:`);
 
-                if (userPin === null) return; // User cancelled
-                if (userPin !== pinMap[panelId]) {
+                if (userPin === null) return;
+                if (userPin !== config.pin) {
                     alert("❌ Invalid PIN! Access Denied.");
                     return;
                 }
+                currentSeller = config.name; // ✅ Track logged-in seller
+            }
+            // 🔒 2. ADMIN PIN for Sensitive Registers (Parchi P4, Purchase P3, Ledger P6 etc.)
+            else if (['sale', 'purchase', 'ledger', 'cashCounter', 'products'].includes(panelId)) {
+                const adminInp = prompt("Enter ADMIN PIN to access this section:");
+                if (adminInp === null) return;
+                if (adminInp !== ADMIN_PIN) {
+                    alert("❌ Incorrect Admin PIN!");
+                    return;
+                }
+                currentSeller = ""; // ✅ Reset seller context (Admin mode)
+            } else {
+                currentSeller = "";
             }
 
             renderAndShow(panelId);
@@ -3273,10 +3296,23 @@ Rate: ₹${rate || '-'}`;
 
             const totals = { kg: 0, bags: 0, subtotal: 0, comm: 0, cess: 0, majuri: 0, total: 0, cash: 0, gpay: 0, udhar: 0 };
 
-            // ✅ सुधार 3: फिल्टरिंग लॉजिक को सही करें (s.party की जगह s.party_name)
+            // ✅ Seller Privacy: If a seller is logged-in, FORCE filter to their name
+            const effectiveSellerFilter = currentSeller || fSeller;
+
+            // UI Sync: Hide seller dropdown if a seller is logged in
+            const sellerSel = container.querySelector('.flt-seller');
+            if (sellerSel) {
+                if (currentSeller) {
+                    sellerSel.value = currentSeller;
+                    sellerSel.closest('.col').style.display = 'none'; // Hide it
+                } else {
+                    sellerSel.closest('.col').style.display = ''; // Show it for admin
+                }
+            }
+
             const filteredRows = sales.filter(s => {
-                // Seller Filter
-                if (fSeller && s.seller !== fSeller) return false;
+                // Seller Filter (Enforced)
+                if (effectiveSellerFilter && s.seller !== effectiveSellerFilter) return false;
 
                 // Party Filter (s.party_name इस्तेमाल करें)
                 if (fParty && !String(s.party_name).toLowerCase().includes(fParty)) return false;
@@ -4288,6 +4324,13 @@ Rate: ₹${rate || '-'}`;
                 showExpiredOverlay();
                 return;
             }
+
+            // 👤 Update Seller Names in Sidebar
+            Object.keys(SELLER_CONFIG).forEach(id => {
+                const btn = document.querySelector(`.menu-btn[data-panel="${id}"] div:last-child`);
+                if (btn) btn.textContent = `${id.toUpperCase()} ${SELLER_CONFIG[id].name}`;
+            });
+
             renderAndShow('home');
 
             // 🔥 PARTY ONLY ONCE (APP START)

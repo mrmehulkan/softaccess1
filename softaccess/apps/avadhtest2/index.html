@@ -862,6 +862,24 @@
                     </thead>
                     <tbody id="productListBody"></tbody>
                 </table>
+
+                <!-- 📄 NEW: Product Pagination -->
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-top:15px; background:#f9fafb; padding:10px; border-radius:8px; border:1px solid var(--border);">
+                    <div style="font-size:0.85rem; color:#6b7280;">
+                        Showing <span id="productShowingStart">0</span>-<span id="productShowingEnd">0</span> of <span
+                            id="productTotalItems">0</span> products
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="btn btn-primary" id="btnPrevProduct" onclick="changeProductPage(-1)"
+                            style="padding:5px 15px;"><i class="fas fa-chevron-left"></i> Prev</button>
+                        <span id="txtProductPage"
+                            style="font-weight:bold; font-size:0.9rem; color:var(--text); min-width:100px; text-align:center;">Page
+                            1 of 1</span>
+                        <button class="btn btn-primary" id="btnNextProduct" onclick="changeProductPage(1)"
+                            style="padding:5px 15px;">Next <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1903,17 +1921,19 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycby3GBVyuw5b_OIwmic7xNMT79z51WMq_UdVGv94TboYvvKu8qpe0dQpHorIuhGKwWKGug/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzS8sp1lz8Smt6d150aFTEvrxYBSAtq3Id6LjIHm4viqSqjYOCRwG3Lj8MNAEkBpDRx5g/exec";
         const PASSWORD_HASH = "YWRtaW4xMjM="; // Base64 for admin123
         let productMaster = [];
         let allEntryLogs = [];
         let allBillLogs = []; // Store bills locally
         let entryPage = 1;
         let billPage = 1;
+        let productPage = 1;
 
         // PAGINATION META
         let entryMeta = { total: 0, totalPages: 1 };
         let billMeta = { total: 0, totalPages: 1 };
+        let productMeta = { total: 0, totalPages: 1 };
         let editingBillId = null; // ✅ Track Bill being edited
         let editingVoucherId = null; // ✅ Track Voucher being edited
 
@@ -2423,56 +2443,65 @@
             renderOfflineBills();
         }
 
-        // 🔍 NEW: Filter Products Logic
+        // 🔍 UPDATED: Server-side Product Filter
+        let productFilterTimeout;
         function filterProducts() {
-            const input = document.getElementById("productSearchInput");
-            const filter = input.value.toLowerCase();
-            const table = document.getElementById("productListBody"); // Assuming this is the ID, let me check the render function
-            // Wait, looking at lines 811: <tbody id="productListBody"></tbody>. Correct.
-            const tr = table.getElementsByTagName("tr");
+            clearTimeout(productFilterTimeout);
+            productFilterTimeout = setTimeout(() => {
+                loadProductsFromSheet(1); // Fetch page 1 with filter
+            }, 300);
+        }
 
-            for (let i = 0; i < tr.length; i++) {
-                // Name is usually 1st cell (index 0), Barcode is 2nd (index 1) in renderProducts?
-                // Let's check renderProducts function. 
-                // It's not visible in previous `view_file` calls fully.
-                // But typically Name is col 0, Barcode col 1.
+        const PRODUCT_LIMIT = 20;
 
-                // Let's assume standard table structure based on headers at line 800:
-                // <th>Name</th> <th>Barcode</th> ...
+        async function loadProductsFromSheet(p = 1) {
+            if (p === true) { p = 1; } // Handle refresh button click
 
-                const tdName = tr[i].getElementsByTagName("td")[0];
-                const tdBarcode = tr[i].getElementsByTagName("td")[1];
+            showToast("🔄 Fetching Products...");
+            const search = document.getElementById("productSearchInput").value;
+            let url = `${API_URL}?action=getProducts&page=${p}&limit=${PRODUCT_LIMIT}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
 
-                if (tdName && tdBarcode) {
-                    const txtValueName = tdName.textContent || tdName.innerText;
-                    const txtValueBarcode = tdBarcode.textContent || tdBarcode.innerText;
+            try {
+                const res = await fetch(url).then(r => r.json());
+                if (res.success) {
+                    productMaster = res.data.data;
+                    productMeta = res.data.meta;
+                    productPage = p;
 
-                    if (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueBarcode.toLowerCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
+                    localStorage.setItem("productMaster", JSON.stringify(productMaster));
+                    renderProducts();
+                    updateProductPaginationUI();
+                    showToast("✅ Products Updated");
                 }
+            } catch (e) {
+                console.error("Product Load Error:", e);
+                showToast("❌ Product Load Failed");
             }
         }
 
-        async function loadProductsFromSheet(force = false) {
-            if (!force) {
-                const cached = localStorage.getItem("productMaster");
-                if (cached) {
-                    productMaster = JSON.parse(cached);
-                    renderProducts();
-                    return;
-                }
-            }
-            showToast("🔄 Fetching Products...");
-            const res = await fetch(`${API_URL}?action=getProducts`).then(r => r.json());
-            if (res.success) {
-                productMaster = res.data;
-                localStorage.setItem("productMaster", JSON.stringify(productMaster));
-                renderProducts();
-                showToast("✅ Products Synced");
-            }
+        function changeProductPage(step) {
+            const newPage = productPage + step;
+            if (newPage < 1 || newPage > productMeta.totalPages) return;
+            loadProductsFromSheet(newPage);
+        }
+
+        function updateProductPaginationUI() {
+            const txt = document.getElementById("txtProductPage");
+            const prev = document.getElementById("btnPrevProduct");
+            const next = document.getElementById("btnNextProduct");
+
+            if (txt) txt.innerText = `Page ${productPage} of ${productMeta.totalPages || 1}`;
+            if (prev) prev.disabled = (productPage <= 1);
+            if (next) next.disabled = (productPage >= productMeta.totalPages);
+
+            // Update stats
+            const start = ((productPage - 1) * PRODUCT_LIMIT) + 1;
+            const end = Math.min(productPage * PRODUCT_LIMIT, productMeta.total);
+
+            document.getElementById("productShowingStart").innerText = productMeta.total === 0 ? 0 : start;
+            document.getElementById("productShowingEnd").innerText = end;
+            document.getElementById("productTotalItems").innerText = productMeta.total;
         }
 
         async function reloadFromSheet() {
@@ -2736,19 +2765,37 @@
 
 
 
-        function handleBarcode(row, source) {
+        async function handleBarcode(row, source) {
             if (row.dataset.done === "1") return;
 
             // Input is now at Index 1 (Scan Box)
             const input = row.cells[1].querySelector("input");
             const val = input.value.trim();
+            if (!val) return;
 
-            const p = productMaster.find(
-                // x => x.barcode == val || x.productName.toLowerCase() === val.toLowerCase()
-                // Strict check for barcode first, or name match
+            showToast("🔍 Searching...");
+            let p = productMaster.find(
                 x => x.barcode == val || x.productName.toLowerCase() === val.toLowerCase()
             );
-            if (!p) return;
+
+            // 🆕 If not in current page, check server
+            if (!p) {
+                try {
+                    const res = await fetch(`${API_URL}?action=getProducts&search=${encodeURIComponent(val)}`).then(r => r.json());
+                    if (res.success && res.data.length > 0) {
+                        // Res.data might be paginated or full depending on backend, but our new backend returns full if no page/limit
+                        const searchData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+                        p = searchData.find(x => x.barcode == val || x.productName.toLowerCase() === val.toLowerCase());
+                    }
+                } catch (e) {
+                    console.error("Barcode Search Error:", e);
+                }
+            }
+
+            if (!p) {
+                showToast("❌ Product Not Found");
+                return;
+            }
 
             // 🔍 check if item already exists
             const existingRow = findExistingRow(p.productName);
@@ -2807,16 +2854,12 @@
             row.cells[7].querySelector("input").value = p.gst;
 
             calculateRow(row);
-
-            // ➕ add new row only for NEW item
             addRow();
 
-            // Clear the scan box for the current row
             input.value = "";
-
             const rows = document.querySelectorAll("#tableBody tr");
-            // Focus on next row's scan box (Index 1)
             rows[rows.length - 1].cells[1].querySelector("input").focus();
+            showToast("✅ " + p.productName + " Added");
         }
         function calculateRow(row) {
             // Qty at Index 4
@@ -3144,21 +3187,29 @@
         }
 
 
+        let suggestionTimeout;
         function filterSuggestions(input) {
-            const val = input.value.toLowerCase();
+            const val = input.value.trim().toLowerCase();
             const dl = document.getElementById("productSuggestions");
-            dl.innerHTML = "";
 
-            if (val.length < 2) return;
+            if (val.length < 2) {
+                dl.innerHTML = "";
+                return;
+            }
 
-            productMaster
-                .filter(p => p.productName.toLowerCase().startsWith(val))
-                .slice(0, 10)
-                .forEach(p => {
-                    const opt = document.createElement("option");
-                    opt.value = p.productName;
-                    dl.appendChild(opt);
-                });
+            clearTimeout(suggestionTimeout);
+            suggestionTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_URL}?action=getProducts&search=${encodeURIComponent(val)}`).then(r => r.json());
+                    if (res.success) {
+                        const searchData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+                        dl.innerHTML = searchData
+                            .slice(0, 15)
+                            .map(p => `<option value="${p.productName}">${p.barcode} - Stock: ${p.stock}</option>`)
+                            .join("");
+                    }
+                } catch (e) { }
+            }, 300);
         }
         function sendWhatsAppBill(bill) {
             const mobile = document.getElementById("customerMobile").value;

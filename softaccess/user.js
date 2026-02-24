@@ -82,6 +82,9 @@ function loadMySoftwares() {
                 else if (folder === "mandi1apk") {
                     action = "window.location.href='https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccess/apps/mandi1apk/app-release.apk'";
                 }
+                else if (folder === "mandi2apk") {
+                    action = "window.location.href='https://raw.githubusercontent.com/mrmehulkan/softaccess1/main/softaccess/apps/mandi2apk/app-release.apk'";
+                }
                 // 🌐 WEB APPS
                 else {
                     action = `window.location.href='apps/${folder}/index.html'`;
@@ -102,6 +105,7 @@ function loadMySoftwares() {
             document.getElementById("list").innerText = "Software load nahi ho paye.";
         });
 }
+
 
 
 

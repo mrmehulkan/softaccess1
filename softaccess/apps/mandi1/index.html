@@ -1925,8 +1925,10 @@
         // ###############################################################
 
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        // 🔒 LICENSE CONTROL (Change to "EXPIRED" to block the app)
-        const APP_LICENSE_STATUS = "EXPIRED";
+        // 🔒 LICENSE CONTROL: "ACTIVE" | "EXPIRED" | "BROCHURE"
+        const APP_LICENSE_STATUS = "ACTIVE";
+        const APP_CONTACT_NUMBER = "+91 9725533088";
+        const APP_SUBSCRIPTION_DETAILS = "Monthly Plan: ₹999 | Yearly Plan: ₹9590";
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyA7UzeHPssTof6k5Vk0aRvCyIWmhj4w5MG0Ju1dfID3wN5JygXzCL35QZqpk29LZ1M/exec";
@@ -5219,33 +5221,86 @@ Advance: ₹${adv}`;
 
 
         function showExpiredOverlay() {
-            // Remove any existing overlay
             const existing = document.getElementById('expiredOverlay');
             if (existing) existing.remove();
 
+            const isBrochure = (APP_LICENSE_STATUS === "BROCHURE");
             const overlay = document.createElement('div');
             overlay.id = 'expiredOverlay';
+
             overlay.style.cssText = `
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.95); color: white; z-index: 99999;
-                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                background: ${isBrochure ? '#f8fafc' : 'rgba(0,0,0,0.95)'}; 
+                color: ${isBrochure ? '#1e293b' : 'white'}; 
+                z-index: 99999; display: flex; flex-direction: column; 
+                align-items: center; justify-content: flex-start;
                 text-align: center; padding: 20px; font-family: sans-serif;
+                overflow-y: auto; -webkit-overflow-scrolling: touch;
             `;
-            overlay.innerHTML = `
-                <div style="font-size: 5rem; margin-bottom: 20px;">⚠️</div>
-                <h1 style="color: #ef4444; margin-bottom: 10px;">SUBSCRIPTION EXPIRED</h1>
-                <p style="font-size: 1.2rem; line-height: 1.6; max-width: 500px;">
-                    Aapka monthly subscription khatam ho gaya hai. 
-                    Aage istemal karne ke liye admin se sampark karein.
-                    <br><br>
-                    <b>Contact: +91 8799076303</b>
-                </p>
-                <div style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
-                    App ID: Mandi_JK_v1
-                </div>
-            `;
+
+            if (isBrochure) {
+                // --- BROCHURE MODE ---
+                overlay.innerHTML = `
+                    <div style="width: 100%; max-width: 600px; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin: 20px 0; text-align: left;">
+                        <h1 style="color: #0f766e; text-align: center; margin-bottom: 5px;">🌾 MANDI SYSTEM</h1>
+                        <p style="color: #64748b; text-align: center; margin-bottom: 25px; font-weight: 600;">Digital Transformation for Marketing Yards</p>
+                        
+                        <div style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 20px;">
+                            <b style="color: #166534;">🔥 KEY FEATURES:</b>
+                            <ul style="margin: 10px 0 0 20px; color: #1e293b; padding: 0;">
+                                <li style="margin-bottom: 8px;"><b>Smart Parchi System</b>: Kacchi entries ka fast record.</li>
+                                <li style="margin-bottom: 8px;"><b>Double Printing</b>: Customer + Office copy ek saath.</li>
+                                <li style="margin-bottom: 8px;"><b>Offline Mode</b>: Bina internet ke bhi kaam karega.</li>
+                                <li style="margin-bottom: 8px;"><b>Auto Mandi Math</b>: Comm, Cess, Majuri auto-calculate.</li>
+                                <li style="margin-bottom: 8px;"><b>Secure</b>: Alag-alag sellers ke liye PIN protection.</li>
+                            </ul>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <b style="color: #0f766e;">✅ FAYDE (PROS):</b>
+                            <p style="margin: 5px 0; color: #475569; font-size: 0.95rem;">Paper-work mein 90% samay ki bachat. Zero calculation error. Professional printed bills.</p>
+                        </div>
+
+                        <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center;">
+                            <b style="color: #334155;">Interested in Demo or Renewal?</b><br>
+                            <a href="tel:${APP_CONTACT_NUMBER}" style="display: inline-block; background: #0f766e; color: white; padding: 12px 25px; border-radius: 50px; text-decoration: none; margin-top: 15px; font-weight: 800; font-size: 1.1rem;">
+                                📞 CALL: ${APP_CONTACT_NUMBER}
+                            </a>
+                            <div style="margin-top: 15px; font-size: 0.9rem; color: #64748b;">
+                                <b>Plans:</b> ${APP_SUBSCRIPTION_DETAILS}
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 25px; color: #94a3b8; font-size: 0.8rem;">
+                            App Version: 1.0.0 | Mandi_JK_v1
+                        </div>
+                    </div>
+                `;
+            } else {
+                // --- EXPIRED MODE ---
+                overlay.innerHTML = `
+                    <div style="margin: auto;">
+                        <div style="font-size: 5rem; margin-bottom: 20px;">⚠️</div>
+                        <h1 style="color: #ef4444; margin-bottom: 10px;">SUBSCRIPTION EXPIRED</h1>
+                        <p style="font-size: 1.2rem; line-height: 1.6; max-width: 500px;">
+                            Aapka monthly subscription khatam ho gaya hai. 
+                            Aage istemal karne ke liye admin se sampark karein.
+                            <br><br>
+                            <a href="tel:${APP_CONTACT_NUMBER}" style="color: #38bdf8; text-decoration: none; font-weight: bold; font-size: 1.5rem;">
+                                📞 ${APP_CONTACT_NUMBER}
+                            </a>
+                        </p>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 1rem;">
+                            <b>Subscription Details:</b><br>
+                            ${APP_SUBSCRIPTION_DETAILS}
+                        </div>
+                        <div style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
+                            App ID: Mandi_JK_v1
+                        </div>
+                    </div>
+                `;
+            }
             document.body.appendChild(overlay);
-            // Block all interaction
             document.body.style.overflow = 'hidden';
             window.fetch = () => Promise.reject("Blocked");
         }
@@ -5253,4 +5308,3 @@ Advance: ₹${adv}`;
 </body>
 
 </html>
-

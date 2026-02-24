@@ -1924,6 +1924,11 @@
         //          PART 1: CONFIGURATION & GLOBAL VARIABLES
         // ###############################################################
 
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        // 🔒 LICENSE CONTROL (Change to "EXPIRED" to block the app)
+        const APP_LICENSE_STATUS = "ACTIVE";
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyA7UzeHPssTof6k5Vk0aRvCyIWmhj4w5MG0Ju1dfID3wN5JygXzCL35QZqpk29LZ1M/exec";
 
         // Local State
@@ -2283,6 +2288,11 @@
            If offline & write action -> Save to Queue & return FAKE OK
         */
         async function fetchFromSheetAction(action, payload = {}) {
+            // 🔒 LICENSE CHECK
+            if (APP_LICENSE_STATUS !== "ACTIVE") {
+                showExpiredOverlay();
+                throw new Error("Subscription Expired");
+            }
             const isOnline = checkInternet();
 
             // READ Actions: Must have internet
@@ -3629,13 +3639,19 @@ Rate: ₹${rate || '-'}`;
                 udhar: s.udhar
             };
 
-            // 🔥 CHECK FOR THERMAL PRINTER
+            // 🔥 DOUBLE PRINT LOGIC
             try {
                 if (window.Android && window.Android.print) {
-                    const receiptText = generateThermalReceipt(slipData);
-                    window.Android.print(receiptText);
+                    const custReceipt = generateThermalReceipt(slipData, "CUSTOMER COPY");
+                    const officeReceipt = generateThermalReceipt(slipData, "OFFICE COPY");
+                    // Combine with extra breaks
+                    window.Android.print(custReceipt + "<br><br>--------------------------<br><br>" + officeReceipt);
                 } else {
-                    printSaleSlip(slipData);
+                    // Browser Print (Opens separate windows/tabs sequentially)
+                    printSaleSlip(slipData, "CUSTOMER COPY");
+                    setTimeout(() => {
+                        printSaleSlip(slipData, "OFFICE COPY");
+                    }, 1000);
                 }
             } catch (err) {
                 alert("❌ Print Error: " + err.message);
@@ -4038,10 +4054,19 @@ Rate: ₹${rate || '-'}`;
                     if (typeof updateSaveState === 'function') updateSaveState();
 
                     setTimeout(() => {
-                        const ask = confirm('✅ Sale Successfully Saved/Updated\nBill No: ' + billNo + '\n\nPrint slip now?');
+                        const ask = confirm('✅ Sale Successfully Saved/Updated\nBill No: ' + billNo + '\n\nPrint Double Slips now?\n(Customer + Office Copy)');
                         if (ask) {
                             const slipData = { bill_no: billNo, date, party, seller: sellerName, product: prod?.name, rate: r, bags: Number(nag), kg: totalKg, total: totalAmt, cash: cashAmt, gpay: gpayAmt, udhar: udharAmt };
-                            try { if (window.Android && window.Android.print) window.Android.print(generateThermalReceipt(slipData)); else printSaleSlip(slipData); }
+                            try {
+                                if (window.Android && window.Android.print) {
+                                    const c1 = generateThermalReceipt(slipData, "CUSTOMER COPY");
+                                    const c2 = generateThermalReceipt(slipData, "OFFICE COPY");
+                                    window.Android.print(c1 + "<br><br>--------------------------<br><br>" + c2);
+                                } else {
+                                    printSaleSlip(slipData, "CUSTOMER COPY");
+                                    setTimeout(() => printSaleSlip(slipData, "OFFICE COPY"), 800);
+                                }
+                            }
                             catch (err) { alert('❌ Print Error: ' + err.message); }
                         }
                         btn.disabled = false; btn.textContent = 'SAVE SALE'; btn.style.background = '';
@@ -4256,6 +4281,11 @@ Rate: ₹${rate || '-'}`;
         });
 
         async function initApp() {
+            // 🔒 LICENSE CHECK
+            if (APP_LICENSE_STATUS !== "ACTIVE") {
+                showExpiredOverlay();
+                return;
+            }
             renderAndShow('home');
 
             // 🔥 PARTY ONLY ONCE (APP START)
@@ -4758,13 +4788,14 @@ Advance: ₹${adv}`;
             });
         }
 
-        function printSaleSlip(sale) {
+        function printSaleSlip(sale, copyType) {
+            const copyLabel = copyType || "ORIGINAL COPY";
             const html = `
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Sale Slip</title>
+<title>${copyLabel}</title>
 <style>
   body{
     width:80mm;
@@ -4784,6 +4815,7 @@ Advance: ₹${adv}`;
 </head>
 <body>
 
+<div class="center bold big">${copyLabel.toUpperCase()}</div>
 <div class="center bold big">MANDI SALE SLIP</div>
 <div class="center">--------------------</div>
 
@@ -5078,7 +5110,8 @@ Advance: ₹${adv}`;
             const countEl = document.getElementById('wcCount');
             if (countEl) countEl.textContent = wcWeights.length;
         }
-        function generateThermalReceipt(sale) {
+        function generateThermalReceipt(sale, copyType) {
+            const copyLabel = copyType || "CUSTOMER COPY";
             const LINE_WIDTH = 38; // Reduced to 38 to prevent wrapping on 512px width
 
             const center = (text) => {
@@ -5115,6 +5148,7 @@ Advance: ₹${adv}`;
 
             let receipt = "";
             receipt += `<br>`; // Top Margin
+            receipt += center(`<b>--- ${copyLabel.toUpperCase()} ---</b>`);
             receipt += center("<b>JAY VELNATH TRADING CO.</b>");
             receipt += center("F-18/11 Marketing Yard");
             receipt += center("Mo. 8799076303");
@@ -5184,6 +5218,37 @@ Advance: ₹${adv}`;
         }
 
 
+        function showExpiredOverlay() {
+            // Remove any existing overlay
+            const existing = document.getElementById('expiredOverlay');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'expiredOverlay';
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.95); color: white; z-index: 99999;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                text-align: center; padding: 20px; font-family: sans-serif;
+            `;
+            overlay.innerHTML = `
+                <div style="font-size: 5rem; margin-bottom: 20px;">⚠️</div>
+                <h1 style="color: #ef4444; margin-bottom: 10px;">SUBSCRIPTION EXPIRED</h1>
+                <p style="font-size: 1.2rem; line-height: 1.6; max-width: 500px;">
+                    Aapka monthly subscription khatam ho gaya hai. 
+                    Aage istemal karne ke liye admin se sampark karein.
+                    <br><br>
+                    <b>Contact: +91 8799076303</b>
+                </p>
+                <div style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
+                    App ID: Mandi_JK_v1
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            // Block all interaction
+            document.body.style.overflow = 'hidden';
+            window.fetch = () => Promise.reject("Blocked");
+        }
     </script>
 </body>
 

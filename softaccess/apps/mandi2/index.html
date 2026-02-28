@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="gu">
 
 <head>
@@ -47,13 +47,6 @@
             --accent: #0f766e;
             --muted: #6b7280;
             --overlay: rgba(0, 0, 0, 0.36);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans Gujarati', 'Shruti', 'Nirmala UI', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
         html,
@@ -1598,8 +1591,35 @@
                         </button>
                     </div>
 
+                    <!-- ➕ QUICK ADD PRODUCT SECTION (inside form) -->
+                    <div style="margin-top:20px; padding-top:16px; border-top:2px dashed #e6efec;">
+                        <div class="label" style="color:#0f766e; font-weight:800;">➕ Quick Add Product</div>
+                        <div style="font-size:0.85rem; color:#6b7280; margin-bottom:12px;">Add new product on-the-fly</div>
+                        
+                        <div class="row" style="margin-top:8px;">
+                            <div class="col">
+                                <input id="addProdNameSeller" type="text" placeholder="Product name (e.g., Potato)" 
+                                       style="padding:10px; border-radius:8px; border:1px solid #d6dbda; width:100%; font-size:0.92rem;">
+                            </div>
+                            <div class="col" style="max-width:140px;">
+                                <input id="addProdRateSeller" type="number" placeholder="Rate (20kg)" 
+                                       style="padding:10px; border-radius:8px; border:1px solid #d6dbda; width:100%; font-size:0.92rem;">
+                            </div>
+                        </div>
+                        <div style="margin-top:8px;display:flex;gap:8px;">
+                            <button class="btn" onclick="addProductFromSeller()" style="white-space:nowrap;">
+                                ✅ Add Product
+                            </button>
+                            <button class="btn-outline" onclick="clearAddProductForm()" style="white-space:nowrap;">
+                                Clear
+                            </button>
+                        </div>
+                        <div id="addProdMsgSeller" class="small" style="margin-top:8px; text-align:center; color:#065f46; font-weight:600;"></div>
+                    </div>
+
                 </div>
             </div>
+
 
         </div>
         <div class="small msgSmall" style="margin-top:8px; text-align:center;"></div>
@@ -1942,7 +1962,7 @@
         };
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby5E6XxIGN0rIBqxacdtbrXF87iT6oKBH3ggOPbOabN--R9198hdWZK8JiUSLhkY53cXg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzaHKavqIetvVpdlUj5ud3yzvS_rpyjYFipW8TOBbf0FfqAm3-vxhDlGtiIrdkAksb0jQ/exec";
 
         // Local State
         let products = [];
@@ -2709,6 +2729,98 @@
             }
         }
 
+        // 🔥 ADD PRODUCT FROM SELLER FORM (P8/P9/P10)
+        async function addProductFromSeller() {
+            if (!checkInternet()) {
+                const msgBox = document.getElementById('addProdMsgSeller');
+                if (msgBox) msgBox.textContent = '❌ Internet required';
+                return;
+            }
+
+            const nameEl = document.getElementById('addProdNameSeller');
+            const rateEl = document.getElementById('addProdRateSeller');
+            const msgBox = document.getElementById('addProdMsgSeller');
+
+            const name = (nameEl?.value || '').trim();
+            const rate = Number(rateEl?.value || 0);
+
+            // Validation
+            if (!name) {
+                if (msgBox) msgBox.textContent = '❌ Product name required';
+                nameEl?.focus();
+                return;
+            }
+
+            if (rate <= 0) {
+                if (msgBox) msgBox.textContent = '❌ Rate must be > 0';
+                rateEl?.focus();
+                return;
+            }
+
+            // Check duplicate
+            if (products.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                if (msgBox) msgBox.textContent = '⚠️ Product already exists!';
+                return;
+            }
+
+            if (msgBox) msgBox.textContent = '⏳ Adding to Sheets...';
+
+            try {
+                // Call Sheets API
+                const result = await fetchFromSheetAction("addProduct", { 
+                    name: name, 
+                    rate: rate 
+                });
+
+                if (result?.status !== "ok") {
+                    throw new Error(result?.msg || 'Unknown error');
+                }
+
+                // Reload products
+                await loadProductsFromSheet();
+
+                // Show success
+                if (msgBox) {
+                    msgBox.textContent = '✅ Product added successfully!';
+                    msgBox.style.color = '#065f46';
+                }
+
+                // Clear inputs
+                nameEl.value = '';
+                rateEl.value = '';
+
+                // Auto-fill product in form if exists
+                const prodInputs = document.querySelectorAll('.sellerProductTpl');
+                if (prodInputs.length > 0) {
+                    prodInputs[0].value = name;
+                }
+
+                // Clear message after 2 seconds
+                setTimeout(() => {
+                    if (msgBox) msgBox.textContent = '';
+                }, 2000);
+
+            } catch (err) {
+                if (msgBox) {
+                    msgBox.textContent = '❌ ' + (err.message || 'Failed to add product');
+                    msgBox.style.color = '#dc2626';
+                }
+                console.error('Product add error:', err);
+            }
+        }
+
+        // Clear Add Product Form
+        function clearAddProductForm() {
+            const nameEl = document.getElementById('addProdNameSeller');
+            const rateEl = document.getElementById('addProdRateSeller');
+            const msgBox = document.getElementById('addProdMsgSeller');
+
+            nameEl.value = '';
+            rateEl.value = '';
+            if (msgBox) msgBox.textContent = '';
+            nameEl?.focus();
+        }
+
         function buildP4ProductGrid() {
             const grid = document.getElementById('p4ProductGrid');
             if (!grid) return;
@@ -2716,8 +2828,7 @@
             grid.innerHTML = '';
 
             products.forEach(p => {
-                // ❌ Zero stock hide
-                if (p.stock <= 0 && p.stock_katta <= 0) return;
+                // ✅ ALLOW NEGATIVE SELLING - No stock check
 
                 const lowKg = p.stock < 100;
                 const lowBags = p.stock_katta < 5;
@@ -2960,7 +3071,7 @@ Rate: ₹${rate || '-'}`;
             }
 
             products.forEach(p => {
-                if (p.stock <= 0) return; // Hide 0 stock
+                // ✅ ALLOW NEGATIVE SELLING - No stock check
                 const btn = document.createElement('div');
                 btn.className = 'prod-btn';
                 btn.dataset.productId = String(p.id);
@@ -3558,6 +3669,58 @@ Rate: ₹${rate || '-'}`;
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Force cancel edit without confirmation (used after printing to avoid stale edit state)
+        window.forceCancelSaleEdit = function () {
+            currentEditingBillNo = null;
+            const card = document.getElementById('pageContainer') || document;
+
+            // Reset Save button
+            const saveBtn = card.querySelector('.saveSaleSmall');
+            if (saveBtn) {
+                saveBtn.textContent = 'SAVE SALE';
+                saveBtn.style.background = '';
+                saveBtn.disabled = true;
+            }
+
+            const cancelBtn = card.querySelector('.cancelEditBtn');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+
+            const safeSet = (sel, val) => {
+                const el = card.querySelector(sel);
+                if (el) {
+                    el.value = val;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+
+            safeSet('.partyTpl', '');
+            safeSet('.sellerProductTpl', '');
+            safeSet('.rateTpl', '');
+            safeSet('.nagTpl', '');
+            safeSet('.weightTpl', '');
+            safeSet('.totalTpl', '');
+            safeSet('.cashTpl', '');
+            safeSet('.gpayTpl', '');
+            safeSet('.udharTpl', '');
+
+            const paySel = card.querySelector('.paymentTypeSelect');
+            if (paySel) {
+                paySel.value = 'CASH';
+                paySel.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            currentProductId = null;
+            localStorage.removeItem('selectedProductId');
+
+            if (typeof setProductDependentState === 'function') setProductDependentState(false);
+            if (typeof updateSaveState === 'function') updateSaveState();
+
+            const msg = card.querySelector('.msgSmall');
+            if (msg) msg.textContent = '';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         function toggleColumnPanel(btn) {
             const panel = btn.closest('.card').querySelector('#columnTogglePanel');
             if (!panel) return;
@@ -4051,8 +4214,9 @@ Rate: ₹${rate || '-'}`;
                 const totalKg = Number(container.querySelector('.weightTpl')?.value || 0);
                 const prod = products.find(p => String(p.id) === String(currentProductId));
                 if (prod) {
-                    if (totalKg > prod.stock) { alert('❌ KG stock insufficient\Available: ' + prod.stock + ' KG'); return; }
-                    if (Number(nag || 0) > prod.stock_katta) { alert('❌ Katta stock insufficient\Available: ' + prod.stock_katta + ' Bags'); return; }
+                    // stock checks removed to allow negative selling
+                    // if (totalKg > prod.stock) { alert('❌ KG stock insufficient\Available: ' + prod.stock + ' KG'); return; }
+                    // if (Number(nag || 0) > prod.stock_katta) { alert('❌ Katta stock insufficient\Available: ' + prod.stock_katta + ' Bags'); return; }
                 }
 
                 if (!Number(nag) || Number(nag) <= 0) { alert('❌ Bags (Katta) dalna jaruri hai!'); return; }
@@ -4960,6 +5124,8 @@ Advance: ₹${adv}`;
         window.renderAndShow = renderAndShow;
         window.savePurchaseTpl = savePurchaseTpl;
         window.addProductFromPurchase = addProductFromPurchase;
+        window.addProductFromSeller = addProductFromSeller;
+        window.clearAddProductForm = clearAddProductForm;
         window.showLedgerTpl = showLedgerTpl;
         window.refreshAllData = refreshAllData;
         window.selectProductTopbar = selectProductTopbar;

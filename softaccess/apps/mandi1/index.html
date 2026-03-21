@@ -3668,13 +3668,13 @@ Rate: ₹${rate || '-'}`;
                 rate: s.rate_20kg,
                 bags: s.qty_katta,
                 kg: s.qty_kg,
-                comm: s.commission_amt,
-                cess: s.cess_amt,
-                majuri: s.majuri_amt,
-                total: s.total,
-                cash: s.cash,
-                gpay: s.gpay,
-                udhar: s.udhar
+                comm: s.commission ?? s.commission_amt ?? Math.round(((s.rate_20kg/20)*s.qty_kg) * (s.commission_pct/100||0)),
+                cess: s.cess ?? s.cess_amt ?? Math.round(((s.rate_20kg/20)*s.qty_kg) * 0.008),
+                majuri: s.majuri ?? s.majuri_amt ?? Math.round(s.qty_katta * 6),
+                total: s.total ?? (s.subtotal || 0),
+                cash: s.cash ?? s.cash_amount ?? 0,
+                gpay: s.gpay ?? s.gpay_amount ?? 0,
+                udhar: s.udhar ?? s.udhar_amount ?? 0
             };
 
             // 🔥 DOUBLE PRINT LOGIC
@@ -4094,7 +4094,16 @@ Rate: ₹${rate || '-'}`;
                     setTimeout(() => {
                         const ask = confirm('✅ Sale Successfully Saved/Updated\nBill No: ' + billNo + '\n\nPrint Double Slips now?\n(Customer + Office Copy)');
                         if (ask) {
-                            const slipData = { bill_no: billNo, date, party, seller: sellerName, product: prod?.name, rate: r, bags: Number(nag), kg: totalKg, total: totalAmt, cash: cashAmt, gpay: gpayAmt, udhar: udharAmt };
+                            const baseAmtSlip = (Number(r) / 20) * totalKg;
+                            const commAmtSlip = Math.round(baseAmtSlip * (Number(elComm.value || 0) / 100));
+                            const cessAmtSlip = Math.round(baseAmtSlip * (0.8 / 100));
+                            const majuriAmtSlip = Math.round(Number(nag) * 6);
+                            const slipData = { 
+                                bill_no: billNo, date, party, seller: sellerName, product: prod?.name, 
+                                rate: r, bags: Number(nag), kg: totalKg, total: totalAmt, 
+                                cash: cashAmt, gpay: gpayAmt, udhar: udharAmt,
+                                comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip 
+                            };
                             try {
                                 if (window.Android && window.Android.print) {
                                     const c1 = generateThermalReceipt(slipData, "CUSTOMER COPY");

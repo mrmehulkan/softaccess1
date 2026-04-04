@@ -25,7 +25,7 @@
         /* OLD SPLIT TABLE CSS REMOVED */
 
 
-        .p4-party-btn {
+        .chip-btn {
             padding: 10px 12px;
             border-radius: 10px;
             border: 1px solid #cbd5e1;
@@ -34,7 +34,7 @@
             cursor: pointer;
         }
 
-        .p4-party-btn:active {
+        .chip-btn:active {
             transform: scale(0.96);
         }
 
@@ -985,10 +985,6 @@
                     <div class="ico">🛒</div>
                     <div>P3 Purchase</div>
                 </div>
-                <div class="menu-btn" data-panel="sale" data-tooltip="P4 Sale" onclick="switchPanel(event)">
-                    <div class="ico">₹</div>
-                    <div>P4 Sale</div>
-                </div>
                 <div class="menu-btn" data-panel="ledger" data-tooltip="P6 Ledger" onclick="switchPanel(event)">
                     <div class="ico">📒</div>
                     <div>P6 Ledger</div>
@@ -1052,6 +1048,37 @@
                     <div class="small">Purchases: <span id="dashPurchasesCount">0</span></div>
                     <div style="margin-top:10px">
                         <button class="btn" onclick="refreshAllData()">Force Refresh</button>
+                    </div>
+                </div>
+
+                <div class="col card" style="margin-top:12px; border-top: 4px solid #0f766e;">
+                    <div class="label" style="font-size:1.1rem; color:#0f766e">🏢 Company Settings (Print Details)</div>
+                    <div class="small" style="margin-bottom:10px">ये जानकारी बिल प्रिंट में ऊपर दिखेगी।</div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px">
+                        <div class="modern-input-group">
+                            <label>Company Name</label>
+                            <input id="comp_name" class="unified-input-style" type="text"
+                                placeholder="e.g. JAY VELNATH TRADING CO.">
+                        </div>
+
+                        <div class="modern-input-group">
+                            <label>Address / Subtitle</label>
+                            <input id="comp_addr" class="unified-input-style" type="text"
+                                placeholder="e.g. F-18/11 Marketing Yard">
+                        </div>
+
+                        <div class="modern-input-group">
+                            <label>Mobile Number</label>
+                            <input id="comp_mobile" class="unified-input-style" type="text"
+                                placeholder="e.g. 8799076303">
+                        </div>
+
+                        <button class="btn" onclick="saveCompanySettings()" style="width:100%; margin-top:4px">💾 Save
+                            Company Details</button>
+                        <div id="comp_save_msg" class="small"
+                            style="margin-top:8px; text-align:center; display:none; color:#166534; font-weight:bold">✅
+                            Settings Saved Successfully!</div>
                     </div>
                 </div>
             </div>
@@ -1284,97 +1311,6 @@
         </section>
     </template>
 
-    <template id="tpl-sale">
-        <section>
-            <div class="page-title">P4 — Owner Slip (FAST)</div>
-            <div class="page-sub">Select product → fill slip → WhatsApp</div>
-
-            <!-- PRODUCT SELECT VIEW -->
-            <div id="p4SelectView" class="card">
-                <div class="label">Select Product</div>
-                <div id="p4ProductGrid" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
-            </div>
-            <!-- MOBILE PARTY CARDS -->
-            <div id="p4PartyPanel" style="display:none;margin-top:8px;">
-                <div class="small" style="margin-bottom:6px;color:#0f766e;font-weight:700">
-                    Select Party
-                </div>
-                <div id="p4PartyGrid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
-            </div>
-            <!-- 🔥 P4 PARCHI REGISTER -->
-            <div id="p4RegisterView" class="card" style="margin-top:12px; display:none;">
-                <div class="label">📋 Parchi Register</div>
-
-                <div style="max-height:260px;overflow:auto;border:1px solid #e5e7eb;border-radius:8px">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Party</th>
-                                <th>Date</th>
-                                <th>Bags</th>
-                                <th>Total</th>
-                                <th>P</th>
-                                <th>B</th>
-                                <th>D</th>
-                                <th>X</th>
-                            </tr>
-                        </thead>
-                        <tbody id="p4RegisterBody"></tbody>
-                    </table>
-                </div>
-
-                <div class="total-bar" style="margin-top:8px">
-                    <div>Total (Active)</div>
-                    <div id="p4RegisterTotal">₹0</div>
-                </div>
-            </div>
-
-            <!-- FORM VIEW -->
-            <div id="p4FormView" class="card" style="display:none;">
-                <div class="label">
-                    Product: <span id="p4SelectedProduct" style="color:#0f766e;font-weight:800"></span>
-                </div>
-
-                <div class="row">
-                    <div class="col">
-                        <div class="label">Party</div>
-                        <div class="autocomplete-wrapper">
-                            <input id="salePartyTpl" oninput="filterP4PartyCards(this.value)"
-                                placeholder="Select Party..." autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="label">Date</div>
-                        <input id="saleDateTpl" type="date">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col">
-                        <div class="label">Rate (20kg)</div>
-                        <input id="saleRateTpl" type="number">
-                    </div>
-                    <div class="col">
-                        <div class="label">Katta</div>
-                        <input id="saleKattaTpl" type="number">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col">
-                        <div class="label">Token Advance</div>
-                        <input id="saleTokenTpl" type="number">
-                    </div>
-                </div>
-
-                <div style="margin-top:10px;display:flex;gap:8px;">
-                    <button class="btn" onclick="saveParchiOnly()">💾 Save Entry</button>
-                    <button class="btn-outline" onclick="viewSlipPreview()">🧾 View Slip</button>
-                    <button class="btn-outline" onclick="resetP4()">🔄 Change Product</button>
-                </div>
-            </div>
-        </section>
-    </template>
 
 
 
@@ -2318,8 +2254,8 @@
                 }
             }
 
-            // If Online, try normal fetch (SKIP 'sale' for offline-first)
-            if (isOnline && action !== 'sale') {
+            // If Online, try normal fetch for ALL actions (including sale/updateSale)
+            if (isOnline) {
                 try {
                     const fd = new FormData();
                     const data = Object.assign({ action }, payload);
@@ -2330,7 +2266,7 @@
                     return json;
                 } catch (e) {
                     console.warn("Network call failed, switching to offline queue logic...", e);
-                    // Fallthrough to offline logic below
+                    // Fallthrough to offline queue logic below
                 }
             }
 
@@ -2341,9 +2277,6 @@
             if (readActions.includes(action)) {
                 throw new Error("No Internet Connection");
             }
-
-            // Save actions -> Add to Queue
-            saveToQueue(action, payload);
 
             // Generate Formatted Bill No (Same as Server: [SellerCode]-[YYYYMMDD]-[SEQ])
             let fakeData = {};
@@ -2373,7 +2306,6 @@
                 let maxSeq = lastStoredSeq;
 
                 // Check in existing sales (loaded in memory) if higher
-                // (Optional: if user cleared cache but loaded sales exist)
                 if (typeof sales !== 'undefined' && Array.isArray(sales)) {
                     sales.forEach(s => {
                         if (s.bill_no && String(s.bill_no).startsWith(prefix)) {
@@ -2392,11 +2324,15 @@
                 const seqStr = String(nextSeq).padStart(3, '0');
 
                 fakeData.bill_no = `${prefix}-${seqStr}`; // e.g. S1-20240212-005
+                payload.bill_no = fakeData.bill_no; // 🔥 Attach to payload so backend receives it!
 
                 // Update local sequence
                 localStorage.setItem(lastSeqKey, nextSeq);
                 console.log("OFFLINE BILL GENERATED:", fakeData.bill_no);
             }
+
+            // Save actions -> Add to Queue
+            saveToQueue(action, payload);
 
             return {
                 status: 'ok',
@@ -2595,6 +2531,7 @@
 
                 await refreshAllData();
 
+
                 // Clear Form
                 document.getElementById('purchasePartyTpl').value = '';
                 document.getElementById('purchaseProductTpl').value = ''; // 🔥 Force re-select
@@ -2612,68 +2549,8 @@
             }
         }
 
-        async function loadP4Register() {
-
-            if (!currentProductId) return;
-
-            const body = document.getElementById('p4RegisterBody');
-            const totalBox = document.getElementById('p4RegisterTotal');
-            const wrap = document.getElementById('p4RegisterView');
-
-            if (!body || !totalBox || !wrap) {
-                setTimeout(loadP4Register, 150);
-                return;
-            }
-
-            // 🔥 THIS IS THE MISSING LINE
-            wrap.style.display = 'block';
-
-            const out = await fetchFromSheetAction("getParchiByProduct", {
-                product_id: String(currentProductId)
-            });
-
-            if (out.status !== "ok") return;
-
-            body.innerHTML = "";
-            let total = 0;
-
-            out.data.slice().reverse().forEach(r => {
-                const tr = document.createElement('tr');
-                if (r.cancelled) {
-                    tr.style.opacity = "0.45";
-                } else {
-                    total += Number(r.total_amount || 0);
-                }
-                tr.innerHTML = `
-      <td>${r.party_name}</td>
-      <td>${r.date}</td>
-      <td>${r.bags}</td>
-      <td>₹${r.total_amount || '-'}</td>
-      <td>✔</td>
-      <td>${r.bill_done ? "✔" : `<button onclick="updateParchi('${r.id}','bill')">✔</button>`}</td>
-      <td>${r.delivery_done ? "✔" : `<button onclick="updateParchi('${r.id}','delivery')">✔</button>`}</td>
-      <td>${r.cancelled ? "✖" : `<button onclick="updateParchi('${r.id}','cancel')">✖</button>`}</td>
-    `;
-                body.appendChild(tr);
-            });
-
-            totalBox.textContent = "₹" + total;
-        }
 
 
-
-        async function updateParchi(id, type) {
-            if (type === "cancel" && !confirm("Cancel this parchi?")) return;
-
-            await fetchFromSheetAction("updateParchiStatus", {
-                id,
-                type,
-                user: "P4"
-            });
-
-            // 🔥 slight delay so sheet write finishes
-            setTimeout(loadP4Register, 150);
-        }
 
 
 
@@ -2709,76 +2586,6 @@
             }
         }
 
-        function buildP4ProductGrid() {
-            const grid = document.getElementById('p4ProductGrid');
-            if (!grid) return;
-
-            grid.innerHTML = '';
-
-            products.forEach(p => {
-                // ❌ Zero stock hide
-                if (p.stock <= 0 && p.stock_katta <= 0) return;
-
-                const lowKg = p.stock < 100;
-                const lowBags = p.stock_katta < 5;
-
-                const btn = document.createElement('div');
-                btn.className = 'prod-btn';
-
-                btn.innerHTML = `
-      <div style="font-weight:800">
-        ${productEmoji(p.name)} ${p.name}
-      </div>
-
-      <div class="small" style="color:${lowKg ? '#dc2626' : '#065f46'}">
-        KG: ${p.stock}
-      </div>
-
-      <div class="small" style="color:${lowBags ? '#dc2626' : '#065f46'}">
-        Bags: ${p.stock_katta}
-      </div>
-
-      ${lowBags ? `<div class="small" style="color:#dc2626;font-weight:700">
-        ⚠ Low Bags
-      </div>` : ``}
-    `;
-
-                btn.onclick = () => p4SelectProduct(p.id);
-                grid.appendChild(btn);
-            });
-        }
-
-
-
-        function p4SelectProduct(id) {
-            currentProductId = String(id);
-
-            const prod = products.find(p => String(p.id) === currentProductId);
-            if (!prod) {
-                alert("Product not found");
-                return;
-            }
-
-            // Show selected product name
-            document.getElementById('p4SelectedProduct').textContent = prod.name;
-
-            // Auto-fill date & rate
-            document.getElementById('saleDateTpl').value = todayStr();
-            document.getElementById('saleRateTpl').value = prod.rate || '';
-
-            // Toggle views
-            document.getElementById('p4SelectView').style.display = 'none';
-            document.getElementById('p4FormView').style.display = 'block';
-
-            // Focus for speed
-            setTimeout(() => {
-                document.getElementById('salePartyTpl')?.focus();
-            }, 100);
-            document.getElementById('p4PartyPanel').style.display = 'none';
-            // 🔥 SHOW + LOAD REGISTER
-            document.getElementById('p4RegisterView').style.display = 'block';
-            loadP4Register();
-        }
 
 
 
@@ -2786,22 +2593,6 @@
 
 
 
-        function resetP4() {
-            currentProductId = null;
-
-            document.getElementById('salePartyTpl').value = '';
-            document.getElementById('saleRateTpl').value = '';
-            document.getElementById('saleKattaTpl').value = '';
-            document.getElementById('saleTokenTpl').value = '';
-
-            document.getElementById('p4FormView').style.display = 'none';
-            document.getElementById('p4SelectView').style.display = 'block';
-            document.getElementById('p4RegisterView').style.display = 'none';
-            const pp = document.getElementById('p4PartyPanel');
-            if (pp) pp.style.display = 'none';
-
-            buildP4ProductGrid(); // ✅ add this
-        }
         function isMobile() {
             return window.innerWidth <= 900;
         }
@@ -2810,50 +2601,6 @@
 
 
 
-        function buildP4PartyCards() {
-            const panel = document.getElementById('p4PartyPanel');
-            const grid = document.getElementById('p4PartyGrid');
-            if (!panel || !grid) return;
-
-            grid.innerHTML = '';
-
-            // recent first (last 10)
-            const recent = (sales || [])
-                .map(s => s.party_name)
-                .filter(Boolean)
-                .slice(-10)
-                .reverse();
-
-            const set = new Set();
-            recent.forEach(n => set.add(n));
-            (parties || []).forEach(p => {
-                const n = typeof p === 'string' ? p : p.name;
-                if (n) set.add(n);
-            });
-
-            Array.from(set).slice(0, 12).forEach(name => {
-                const b = document.createElement('div');
-                b.className = 'p4-party-btn';
-                b.textContent = name;
-                b.onclick = () => {
-                    document.getElementById('salePartyTpl').value = name;
-                    panel.style.display = 'none';
-                };
-                grid.appendChild(b);
-            });
-        }
-
-        function filterP4PartyCards(keyword) {
-            const grid = document.getElementById('p4PartyGrid');
-            if (!grid) return;
-
-            const k = keyword.toLowerCase();
-
-            grid.querySelectorAll('.p4-party-btn').forEach(btn => {
-                const name = btn.textContent.toLowerCase();
-                btn.style.display = name.includes(k) ? 'block' : 'none';
-            });
-        }
 
 
 
@@ -2861,79 +2608,6 @@
         // ###############################################################
         //          PART 4: UI & NAVIGATION CONTROLLERS
         // ###############################################################
-        async function saveParchiOnly() {
-
-            if (!currentProductId) {
-                alert("Product select karo");
-                return;
-            }
-
-            const party = document.getElementById('salePartyTpl').value.trim();
-            const date = document.getElementById('saleDateTpl').value || todayStr();
-            const rate = document.getElementById('saleRateTpl').value;
-            const katta = document.getElementById('saleKattaTpl').value;
-
-            if (!party || !rate || !katta) {
-                alert("Party / Rate / Katta required");
-                return;
-            }
-
-            const prod = products.find(p => String(p.id) === String(currentProductId));
-            if (!prod) {
-                alert("Product error");
-                return;
-            }
-
-            // 🔥 ONLY SAVE
-            await fetchFromSheetAction("addParchi", {
-                date,
-                product_id: String(currentProductId),
-                product_name: prod.name,
-                party_name: party,
-                bags: Number(katta),
-                weight_kg: 0,
-                total_amount: 0
-            });
-
-            await loadP4Register();
-
-            // Clear only entry fields
-            document.getElementById('salePartyTpl').value = '';
-            document.getElementById('saleKattaTpl').value = '';
-
-            if (isMobile()) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-        function viewSlipPreview() {
-
-            if (!currentProductId) {
-                alert("Product select karo");
-                return;
-            }
-
-            const party = document.getElementById('salePartyTpl').value.trim();
-            const date = document.getElementById('saleDateTpl').value || todayStr();
-            const rate = document.getElementById('saleRateTpl').value;
-            const katta = document.getElementById('saleKattaTpl').value;
-
-            const prod = products.find(p => String(p.id) === String(currentProductId));
-            if (!prod) {
-                alert("Product error");
-                return;
-            }
-
-            const msg =
-                `PARCHI SLIP
-Product: ${prod.name}
-Party: ${party || '-'}
-Date: ${date}
-Bags: ${katta || '-'}
-Rate: ₹${rate || '-'}`;
-
-            // 🔥 TEMP preview (printer later)
-            alert(msg);
-        }
 
 
 
@@ -2979,33 +2653,6 @@ Rate: ₹${rate || '-'}`;
 
             const prod = products.find(p => String(p.id) === String(currentProductId));
 
-            // 🔥 If P4 page is open, behave like p4SelectProduct
-            const p4Form = document.getElementById('p4FormView');
-            const p4Register = document.getElementById('p4RegisterView');
-            const p4Select = document.getElementById('p4SelectView');
-            const nameBox = document.getElementById('p4SelectedProduct');
-
-            if (prod && nameBox) {
-                nameBox.textContent = prod.name;
-            }
-
-            if (p4Form && p4Register) {
-                // Hide product select grid if visible
-                if (p4Select) p4Select.style.display = 'none';
-
-                // Show form + register
-                p4Form.style.display = 'block';
-                p4Register.style.display = 'block';
-
-                // Auto fill date & rate (safe)
-                const d = document.getElementById('saleDateTpl');
-                const r = document.getElementById('saleRateTpl');
-                if (d) d.value = todayStr();
-                if (r) r.value = prod?.rate || '';
-
-                // Load parchi register
-                loadP4Register();
-            }
 
             setTimeout(updateSellerProductInstant, 0);
         }
@@ -3022,7 +2669,6 @@ Rate: ₹${rate || '-'}`;
 
             // Initialize specific page logic
             if (templateId === 'purchase') onPageInit_purchase();
-            if (templateId === 'sale') onPageInit_sale();
             if (templateId === 'ledger') onPageInit_ledger();
             if (templateId === 'cashCounter') onPageInit_cashCounter();
 
@@ -3063,8 +2709,8 @@ Rate: ₹${rate || '-'}`;
                 }
                 currentSeller = config.name; // ✅ Track logged-in seller
             }
-            // 🔒 2. ADMIN PIN for Sensitive Registers (Parchi P4, Purchase P3, Ledger P6 etc.)
-            else if (['sale', 'purchase', 'ledger', 'cashCounter', 'products'].includes(panelId)) {
+            // 🔒 2. ADMIN PIN for Sensitive Registers (Purchase P3, Ledger P6 etc.)
+            else if (['purchase', 'ledger', 'cashCounter', 'products'].includes(panelId)) {
                 const adminInp = prompt("Enter ADMIN PIN to access this section:");
                 if (adminInp === null) return;
                 if (adminInp !== ADMIN_PIN) {
@@ -3088,6 +2734,38 @@ Rate: ₹${rate || '-'}`;
             if (p) p.textContent = products.length;
             if (s) s.textContent = sales.length;
             if (u) u.textContent = purchases.length;
+
+            loadCompanySettings();
+        }
+
+        // ================= COMPANY SETTINGS LOGIC =================
+        function saveCompanySettings() {
+            const details = {
+                name: document.getElementById('comp_name').value.trim(),
+                addr: document.getElementById('comp_addr').value.trim(),
+                mobile: document.getElementById('comp_mobile').value.trim()
+            };
+            localStorage.setItem('mandi_company_details', JSON.stringify(details));
+
+            const msg = document.getElementById('comp_save_msg');
+            if (msg) {
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 3000);
+            }
+        }
+
+        function loadCompanySettings() {
+            const stored = localStorage.getItem('mandi_company_details');
+            if (!stored) return;
+            const details = JSON.parse(stored);
+
+            const nameEl = document.getElementById('comp_name');
+            const addrEl = document.getElementById('comp_addr');
+            const mobileEl = document.getElementById('comp_mobile');
+
+            if (nameEl && details.name) nameEl.value = details.name;
+            if (addrEl && details.addr) addrEl.value = details.addr;
+            if (mobileEl && details.mobile) mobileEl.value = details.mobile;
         }
 
         function updateTopBarVisibility(pid) {
@@ -3180,64 +2858,6 @@ Rate: ₹${rate || '-'}`;
             });
         }
 
-        function onPageInit_sale() {
-            fillPartyDatalist();
-            setupAutocomplete(document.getElementById('salePartyTpl'), parties); // 🔥 Auto Complete
-            buildP4ProductGrid();
-
-            if (isMobile()) {
-                document.getElementById('salePartyTpl')?.removeAttribute('readonly');
-                document.getElementById('saleKattaTpl')?.removeAttribute('readonly');
-                document.getElementById('saleTokenTpl')?.removeAttribute('readonly');
-                document.getElementById('saleRateTpl')?.removeAttribute('readonly');
-
-                const partyInp = document.getElementById('salePartyTpl');
-                const panel = document.getElementById('p4PartyPanel');
-
-                if (partyInp && panel) {
-                    partyInp.onclick = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        panel.style.display = 'block';
-                        buildP4PartyCards();
-                    };
-                }
-
-                // 🔥 MOBILE ORDER FIX (REGISTER ENTRY KE NICHE)
-                const form = document.getElementById('p4FormView');
-                const reg = document.getElementById('p4RegisterView');
-                if (form && reg) {
-                    form.parentNode.insertBefore(reg, form.nextSibling);
-                }
-
-            } else {
-                document.getElementById('salePartyTpl')?.removeAttribute('readonly');
-                document.getElementById('saleKattaTpl')?.removeAttribute('readonly');
-                document.getElementById('saleTokenTpl')?.removeAttribute('readonly');
-            }
-            // 🔥 IF PRODUCT ALREADY SELECTED → SHOW FORM + REGISTER
-            if (currentProductId) {
-                const prod = products.find(p => String(p.id) === String(currentProductId));
-
-                if (prod) {
-                    // Hide product grid
-                    document.getElementById('p4SelectView').style.display = 'none';
-
-                    // Show form + register
-                    document.getElementById('p4FormView').style.display = 'block';
-                    document.getElementById('p4RegisterView').style.display = 'block';
-
-                    // Set product name & defaults
-                    document.getElementById('p4SelectedProduct').textContent = prod.name;
-                    document.getElementById('saleDateTpl').value = todayStr();
-                    document.getElementById('saleRateTpl').value = prod.rate || '';
-
-                    // 🔥 LOAD REGISTER (THIS WAS MISSING)
-                    loadP4Register();
-                }
-            }
-
-        }
 
 
 
@@ -3668,8 +3288,8 @@ Rate: ₹${rate || '-'}`;
                 rate: s.rate_20kg,
                 bags: s.qty_katta,
                 kg: s.qty_kg,
-                comm: s.commission ?? s.commission_amt ?? Math.round(((s.rate_20kg/20)*s.qty_kg) * (s.commission_pct/100||0)),
-                cess: s.cess ?? s.cess_amt ?? Math.round(((s.rate_20kg/20)*s.qty_kg) * 0.008),
+                comm: s.commission ?? s.commission_amt ?? Math.round(((s.rate_20kg / 20) * s.qty_kg) * (s.commission_pct / 100 || 0)),
+                cess: s.cess ?? s.cess_amt ?? Math.round(((s.rate_20kg / 20) * s.qty_kg) * 0.008),
                 majuri: s.majuri ?? s.majuri_amt ?? Math.round(s.qty_katta * 6),
                 total: s.total ?? (s.subtotal || 0),
                 cash: s.cash ?? s.cash_amount ?? 0,
@@ -4043,11 +3663,19 @@ Rate: ₹${rate || '-'}`;
 
                     const action = currentEditingBillNo ? 'updateSale' : 'sale';
                     const payload = {
-                        date, party_id: '', party_name: party, product_id: String(currentProductId),
-                        qty_kg: totalKg, qty_katta: Number(nag || 0), rate_20kg: Number(r),
-                        subtotal: subTotal, commission_pct: Number(elComm.value || 0),
-                        seller: sellerName, payment_type: payType, cash_amount: cashAmt,
-                        gpay_amount: gpayAmt, udhar_amount: udharAmt
+                        date,
+                        party_id: '',
+                        party_name: party,
+                        product_id: String(currentProductId),
+                        qty_kg: totalKg,
+                        qty_katta: Number(nag || 0),
+                        rate_20kg: Number(r),
+                        commission_pct: Number(elComm.value || 0),
+                        seller: sellerName,
+                        payment_type: payType,
+                        cash_amount: cashAmt,
+                        gpay_amount: gpayAmt,
+                        udhar_amount: udharAmt
                     };
                     if (currentEditingBillNo) { payload.bill_no = currentEditingBillNo; }
 
@@ -4098,11 +3726,11 @@ Rate: ₹${rate || '-'}`;
                             const commAmtSlip = Math.round(baseAmtSlip * (Number(elComm.value || 0) / 100));
                             const cessAmtSlip = Math.round(baseAmtSlip * (0.8 / 100));
                             const majuriAmtSlip = Math.round(Number(nag) * 6);
-                            const slipData = { 
-                                bill_no: billNo, date, party, seller: sellerName, product: prod?.name, 
-                                rate: r, bags: Number(nag), kg: totalKg, total: totalAmt, 
+                            const slipData = {
+                                bill_no: billNo, date, party, seller: sellerName, product: prod?.name,
+                                rate: r, bags: Number(nag), kg: totalKg, total: totalAmt,
                                 cash: cashAmt, gpay: gpayAmt, udhar: udharAmt,
-                                comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip 
+                                comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip
                             };
                             try {
                                 if (window.Android && window.Android.print) {
@@ -4549,7 +4177,7 @@ Rate: ₹${rate || '-'}`;
                 totalKg += w;
 
                 const chip = document.createElement('div');
-                chip.className = 'p4-party-btn';
+                chip.className = 'chip-btn';
                 chip.innerHTML = `${w} KG ✖`;
                 chip.onclick = () => p2_remove(i);
                 box.appendChild(chip);
@@ -4783,7 +4411,7 @@ Advance: ₹${adv}`;
                         b.addEventListener("click", function (e) {
                             inp.value = this.getElementsByTagName("input")[0].value;
 
-                            // Trigger input event manually so other listeners (like filterP4PartyCards) run
+                            // Trigger input event manually so other listeners run
                             const event = new Event('input', { bubbles: true });
                             inp.dispatchEvent(event);
 
@@ -4844,6 +4472,12 @@ Advance: ₹${adv}`;
 
         function printSaleSlip(sale, copyType) {
             const copyLabel = copyType || "ORIGINAL COPY";
+            // 🔥 DYNAMIC COMPANY DETAILS
+            const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');
+            const compName = comp.name || "JAY VELNATH TRADING CO.";
+            const compAddr = comp.addr || "F-18/11 Marketing Yard";
+            const compMobile = comp.mobile || "8799076303";
+
             const html = `
 <!DOCTYPE html>
 <html>
@@ -4869,8 +4503,10 @@ Advance: ₹${adv}`;
 </head>
 <body>
 
-<div class="center bold big">${copyLabel.toUpperCase()}</div>
-<div class="center bold big">MANDI SALE SLIP</div>
+<div class="center bold">${copyLabel.toUpperCase()}</div>
+<div class="center bold big">${compName.toUpperCase()}</div>
+<div class="center">${compAddr}</div>
+<div class="center">Mo. ${compMobile}</div>
 <div class="center">--------------------</div>
 
 <table>
@@ -5166,76 +4802,80 @@ Advance: ₹${adv}`;
         }
         function generateThermalReceipt(sale, copyType) {
             const copyLabel = copyType || "CUSTOMER COPY";
-            const LINE_WIDTH = 38; // Reduced to 38 to prevent wrapping on 512px width
+            const LINE_WIDTH = 32; // Standard 2-inch thermal width (approx 32 chars)
 
             const center = (text) => {
-                const spaces = Math.max(0, Math.floor((LINE_WIDTH - text.length) / 2));
+                const cleanText = text.replace(/<b>|<\/b>/g, "");
+                const spaces = Math.max(0, Math.floor((LINE_WIDTH - cleanText.length) / 2));
                 return " ".repeat(spaces) + text + "<br>";
             };
 
             const row = (label, value, bold = false) => {
-                const labelLen = label.length;
-                const valLen = String(value).length;
-                const spaces = Math.max(0, LINE_WIDTH - labelLen - valLen);
+                const cleanLabel = label.replace(/<b>|<\/b>/g, "");
+                const cleanValue = String(value).replace(/<b>|<\/b>/g, "");
+                const spaces = Math.max(0, LINE_WIDTH - cleanLabel.length - cleanValue.length);
                 const line = label + " ".repeat(spaces) + value;
                 return (bold ? `<b>${line}</b>` : line) + "<br>";
             };
 
-            const centerDivider = () => center("-".repeat(LINE_WIDTH));
+            const dashedDivider = () => center("-".repeat(LINE_WIDTH));
+            const dottedDivider = () => center(".".repeat(LINE_WIDTH));
 
             // 🔥 Date Format: YYYY-MM-DD HH:mm:ss
-            let dateStr = sale.date;
+            let dateStr = sale.date || "";
             try {
-                // Fix for ISO String (Reprint)
                 if (dateStr && dateStr.includes('T') && typeof toISTDate === 'function') {
                     dateStr = toISTDate(dateStr);
                 }
-
                 const d = new Date();
-                const [y, m, da] = dateStr.split('-');
-                if (y && m && da) {
-                    // Add current time if only date provided
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
                     const time = d.toTimeString().split(' ')[0]; // HH:mm:ss
-                    dateStr = `${y}-${m}-${da} ${time}`;
+                    dateStr = `${dateStr} ${time}`;
                 }
             } catch (e) { }
 
+            // 🔥 DYNAMIC COMPANY DETAILS
+            const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');
+            const compName = comp.name || "JAY VELNATH TRADING CO.";
+            const compAddr = comp.addr || "F-18/11 Marketing Yard";
+            const compMobile = comp.mobile || "8799076303";
+
             let receipt = "";
             receipt += `<br>`; // Top Margin
-            receipt += center(`<b>--- ${copyLabel.toUpperCase()} ---</b>`);
-            receipt += center("<b>JAY VELNATH TRADING CO.</b>");
-            receipt += center("F-18/11 Marketing Yard");
-            receipt += center("Mo. 8799076303");
-            receipt += centerDivider();
+            receipt += center(copyLabel.toUpperCase());
+            receipt += center(`<b>${compName.toUpperCase()}</b>`);
+            receipt += center(compAddr);
+            receipt += center("Mo. " + compMobile);
+            receipt += dashedDivider();
 
-            receipt += row("Bill No", sale.bill_no, true);
-            receipt += row("Date", dateStr); // Custom format
-            receipt += row("Party", sale.party);
+            receipt += row("Bill No", sale.bill_no);
+            receipt += row("Date", dateStr);
+            receipt += row("Party", (sale.party || "").toUpperCase());
             if (sale.seller) receipt += row("Seller", sale.seller);
-            receipt += centerDivider();
+            receipt += dottedDivider();
 
-            receipt += row("Product", sale.product);
+            receipt += row("Product", (sale.product || "").toUpperCase());
             receipt += row("Rate (20kg)", "₹" + sale.rate);
             receipt += row("Bags", sale.bags);
             if (sale.kg) receipt += row("Weight", sale.kg + " KG");
-            receipt += centerDivider();
+            receipt += dottedDivider();
 
             if (sale.comm) receipt += row("Commission", "₹" + sale.comm);
             if (sale.cess) receipt += row("Cess", "₹" + sale.cess);
             if (sale.majuri) receipt += row("Majuri", "₹" + sale.majuri);
-            receipt += centerDivider();
+            receipt += dashedDivider();
 
             // 🔥 TOTAL ROW (BOLD)
-            receipt += row("TOTAL", "₹" + sale.total, true);
-
-            receipt += centerDivider();
+            receipt += row("<b>TOTAL</b>", "<b>₹" + sale.total + "</b>");
+            receipt += dashedDivider();
 
             receipt += `<b>Payment</b><br>`;
-            if (sale.cash > 0) receipt += row("Cash", "₹" + sale.cash);
-            if (sale.gpay > 0) receipt += row("GPay", "₹" + sale.gpay);
-            if (sale.udhar > 0) receipt += row("Udhar", "₹" + sale.udhar);
+            receipt += row("Cash", "₹" + (sale.cash || 0));
+            receipt += row("GPay", "₹" + (sale.gpay || 0));
+            receipt += row("Udhar", "₹" + (sale.udhar || 0));
 
-            receipt += centerDivider();
+            receipt += dashedDivider();
             receipt += center("🙏 Thank You 🙏");
             receipt += `<br><br><br>`; // Bottom Margin
 

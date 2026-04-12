@@ -49,6 +49,59 @@
             --overlay: rgba(0, 0, 0, 0.36);
         }
 
+        /* 🔥 MULTI-COMPANY MODAL */
+        #companyPickerOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+
+        .picker-card {
+            background: white;
+            color: #1e293b;
+            padding: 24px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .company-item {
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .company-item:hover {
+            border-color: #0f766e;
+            background: #f0fdfa;
+            transform: translateY(-2px);
+        }
+
+        .company-item.active {
+            border-color: #0f766e;
+            background: #f0fdfa;
+            color: #0f766e;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -959,12 +1012,31 @@
 </head>
 
 <body>
+    <!-- 🔥 MULTI-COMPANY SELECTION MODAL -->
+    <div id="companyPickerOverlay">
+        <div class="picker-card">
+            <h2 style="margin-bottom:16px; font-weight:800; color:#0f766e; text-align:center">Select your Firm</h2>
+            <div id="companyListContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+                <!-- Companies injected here -->
+                <div style="text-align:center; padding:20px; color:#64748b">Loading firms...</div>
+            </div>
+            
+            <div style="border-top: 1px solid #e2e8f0; padding-top:15px">
+                <button class="btn" style="width:100%; height:48px;" onclick="addCompanyUI()">➕ Add New Firm</button>
+            </div>
+        </div>
+    </div>
+
     <datalist id="partyMasterList"></datalist>
     <datalist id="productMasterList"></datalist>
     <div class="layout" id="appLayout" aria-hidden="false">
 
         <aside class="sidebar" id="leftSidebar" role="navigation" aria-label="Main menu">
-            <div class="brand">मेनु / Menu</div>
+            <div class="brand">
+                <div style="font-size:0.7rem; opacity:0.8; letter-spacing:1px">ACTIVE FIRM</div>
+                <div style="margin-top:2px">Loading...</div>
+                <button class="btn-outline" style="font-size:0.65rem; padding:2px 8px; margin-top:8px; border-color:#ffffff44; color:white" onclick="showCompanyPicker()">Switch Firm</button>
+            </div>
             <div class="sidebar-note small">Online Mode</div>
 
             <nav class="menu" id="leftMenu">
@@ -1008,6 +1080,11 @@
                 <div class="menu-btn" onclick="refreshAllData()" data-tooltip="Sync Data">
                     <div class="ico">🔄</div>
                     <div>Sync Data</div>
+                </div>
+                <!-- 🔥 DANGEROUS: FACTORY RESET -->
+                <div class="menu-btn" onclick="factoryResetUI()" data-tooltip="Factory Reset" style="color:#ef4444; margin-top:20px; border-top:1px solid #ffffff22; padding-top:10px">
+                    <div class="ico">⚠️</div>
+                    <div>Factory Reset</div>
                 </div>
             </nav>
             <div class="sidebar-footer">v2.5 — Seller Fix</div>
@@ -1880,6 +1957,10 @@
 
         const WEB_APP_URL = "https://softaccesss.in/mandi2/api.php";
 
+        // 🔥 MULTI-COMPANY STATE
+        let companies = [];
+        let currentCompanyId = Number(localStorage.getItem('mandi_company_id') || 0);
+
         // Local State
         let products = [];
         let purchases = [];
@@ -1887,7 +1968,7 @@
         let ledgerEntries = [];
         let currentProductId = null;
         let parties = [];
-        let currentEditingBillNo = null; // 🔥 TRACKING EDITING STATE
+        let currentEditingId = null; // Changed from bill_no to id
 
         // 🔥 OFFLINE QUEUE INIT
         let offlineQueue = [];
@@ -2258,7 +2339,7 @@
             if (isOnline) {
                 try {
                     const fd = new FormData();
-                    const data = Object.assign({ action }, payload);
+                    const data = Object.assign({ action, company_id: currentCompanyId }, payload);
                     fd.append("data", JSON.stringify(data));
 
                     const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
@@ -2278,68 +2359,117 @@
                 throw new Error("No Internet Connection");
             }
 
-            // Generate Formatted Bill No (Same as Server: [SellerCode]-[YYYYMMDD]-[SEQ])
-            let fakeData = {};
-
-            if (action === 'sale') {
-                const payloadData = payload;
-                const sellerName = payloadData.seller || "";
-
-                // 1. Get Date YYYYMMDD
-                const now = new Date();
-                const yyyy = now.getFullYear();
-                const mm = String(now.getMonth() + 1).padStart(2, '0');
-                const dd = String(now.getDate()).padStart(2, '0');
-                const todayStr = `${yyyy}${mm}${dd}`;
-
-                // 2. Get Seller Code
-                let sellerCode = "SX";
-                if (sellerName === "Seller 1") sellerCode = "S1";
-                else if (sellerName === "Seller 2") sellerCode = "S2";
-                else if (sellerName === "Seller 3") sellerCode = "S3";
-
-                // 3. Find Max Sequence for Today & Seller
-                const prefix = `${sellerCode}-${todayStr}`;
-                // Key format: SEQ_S1-20240212
-                const lastSeqKey = `SEQ_${prefix}`;
-                const lastStoredSeq = Number(localStorage.getItem(lastSeqKey) || 0);
-                let maxSeq = lastStoredSeq;
-
-                // Check in existing sales (loaded in memory) if higher
-                if (typeof sales !== 'undefined' && Array.isArray(sales)) {
-                    sales.forEach(s => {
-                        if (s.bill_no && String(s.bill_no).startsWith(prefix)) {
-                            const parts = s.bill_no.split('-'); // S1-20240212-005
-                            if (parts.length >= 3) {
-                                const seqNum = Number(parts[2]);
-                                if (!isNaN(seqNum) && seqNum > maxSeq) {
-                                    maxSeq = seqNum;
-                                }
-                            }
-                        }
-                    });
-                }
-
-                const nextSeq = maxSeq + 1; // Increment
-                const seqStr = String(nextSeq).padStart(3, '0');
-
-                fakeData.bill_no = `${prefix}-${seqStr}`; // e.g. S1-20240212-005
-                payload.bill_no = fakeData.bill_no; // 🔥 Attach to payload so backend receives it!
-
-                // Update local sequence
-                localStorage.setItem(lastSeqKey, nextSeq);
-                console.log("OFFLINE BILL GENERATED:", fakeData.bill_no);
-            }
-
             // Save actions -> Add to Queue
             saveToQueue(action, payload);
 
             return {
                 status: 'ok',
                 msg: 'Saved Locally (Offline)',
-                data: fakeData,
+                data: { id: 'OFFLINE_' + Date.now() },
                 offline: true
             };
+        }
+
+        // ===============================================================
+        // 🔥 MULTI-COMPANY CORE LOGIC
+        // ===============================================================
+
+        async function loadCompanies() {
+            try {
+                // We bypass the normal fetchFromSheetAction here to avoid company_id injection loop
+                const fd = new FormData();
+                fd.append("data", JSON.stringify({ action: 'getCompanies' }));
+                const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+                const json = await res.json();
+                
+                if (json.status === 'ok') {
+                    companies = json.data || [];
+                    renderCompanyPicker();
+                }
+            } catch (e) {
+                console.error("Failed to load companies", e);
+            }
+        }
+
+        function renderCompanyPicker() {
+            const container = document.getElementById('companyListContainer');
+            if (!container) return;
+            
+            if (companies.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b">No firms found. Please add one.</div>';
+                return;
+            }
+
+            container.innerHTML = companies.map(c => `
+                <div class="company-item ${c.id == currentCompanyId ? 'active' : ''}" onclick="selectCompany(${c.id})">
+                    <div>
+                        <div style="font-size:1.05rem">${c.name}</div>
+                        <div style="font-size:0.8rem; opacity:0.7">${c.address || ''}</div>
+                    </div>
+                    <div style="font-size:1.2rem">➔</div>
+                </div>
+            `).join('');
+        }
+
+        function showCompanyPicker() {
+            document.getElementById('companyPickerOverlay').style.display = 'flex';
+            loadCompanies();
+        }
+
+        function selectCompany(id) {
+            currentCompanyId = id;
+            localStorage.setItem('mandi_company_id', id);
+            document.getElementById('companyPickerOverlay').style.display = 'none';
+            
+            // 🔥 Reset app data for new company
+            refreshAllData();
+            
+            // Update UI
+            updateCompanyUI();
+        }
+
+        async function addCompanyUI() {
+            const name = prompt("Enter Firm Name:");
+            if (!name) return;
+            
+            const addr = prompt("Enter Address:");
+            const mo = prompt("Enter Mobile:");
+
+            try {
+                const fd = new FormData();
+                fd.append("data", JSON.stringify({ 
+                    action: 'addCompany', 
+                    name: name,
+                    address: addr,
+                    mobile: mo
+                }));
+                const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+                const json = await res.json();
+                
+                if (json.status === 'ok') {
+                    alert("✅ Firm Added Successfully!");
+                    loadCompanies(); // Refresh list
+                } else {
+                    alert("❌ Error: " + json.msg);
+                }
+            } catch (e) {
+                alert("❌ Sync Error");
+            }
+        }
+
+        function updateCompanyUI() {
+            const comp = companies.find(c => c.id == currentCompanyId);
+            if (!comp) return;
+
+            // Update sidebar firm name
+            const brandEl = document.querySelector('.sidebar .brand');
+            if (brandEl) {
+                brandEl.innerHTML = `
+                    <div style="font-size:0.7rem; opacity:0.8; letter-spacing:1px">ACTIVE FIRM</div>
+                    <div style="margin-top:2px">${comp.name}</div>
+                    <button class="btn-outline" style="font-size:0.65rem; padding:2px 8px; margin-top:8px; border-color:#ffffff44; color:white" onclick="showCompanyPicker()">Switch Firm</button>
+                `;
+            }
         }
 
         /* --- Load Functions --- */
@@ -2990,7 +3120,7 @@
             <td data-col="gpay">₹${s.gpay || 0}</td>
             <td data-col="udhar">₹${s.udhar || 0}</td>
             <td data-col="partial">${(s.cash > 0 && s.gpay > 0) ? '✔' : '-'}</td>
-            <td data-col="bill">${s.bill_no || '-'}</td>
+            <td data-col="bill" style="display:none">${s.bill_no || '-'}</td>
             <td data-col="action">
                 <button class="btn-outline" onclick='reprintSale(${JSON.stringify(s)})'>🖨️</button>
                 <button class="btn-outline" style="margin-left:4px" onclick='editSale(${JSON.stringify(s)})'>✏️</button>
@@ -3028,13 +3158,15 @@
             });
         }
 
+        // --- EDIT SALE LOGIC ---
+
         // 🔥 EDIT SALE FUNCTION
         window.editSale = function (sale) {
             if (!sale) return;
 
-            if (!confirm("Edit this bill? \n\nNote: This will load data into the form. Saving will update the EXISTING entry.")) return;
+            if (!confirm("Edit this entry?")) return;
 
-            currentEditingBillNo = sale.bill_no; // 🔥 SET THE BILL NO
+            currentEditingId = sale.id; // 🔥 SET THE INTERNAL ID
 
             // 1. Select Product (Switches View)
             if (sale.product_id) {
@@ -3122,7 +3254,7 @@
 
                 const msg = container.querySelector('.msgSmall');
                 if (msg) {
-                    msg.textContent = "✏️ Editing Bill: " + (sale.bill_no || "Unknown");
+                    msg.textContent = "✏️ Editing Entry: " + (sale.id || "Unknown");
                     msg.style.color = "blue";
                 }
             }, 300);
@@ -3132,7 +3264,7 @@
         // 🔥 CANCEL EDIT FUNCTION
         window.cancelSaleEdit = function (btn) {
             if (!confirm('Discard changes and cancel editing?')) return;
-            currentEditingBillNo = null;
+            currentEditingId = null;
             const card = btn.closest('.card') || document.getElementById('pageContainer');
 
             // Reset Button
@@ -3280,7 +3412,6 @@
             const prod = products.find(p => String(p.id) === String(s.product_id));
 
             const slipData = {
-                bill_no: s.bill_no,
                 date: s.date,
                 party: s.party_name,
                 seller: s.seller,
@@ -3661,7 +3792,7 @@
                     const udharAmt = Math.max(0, totalAmt - (cashAmt + gpayAmt));
                     const subTotal = Math.round((Number(r) / 20) * Number(totalKg));
 
-                    const action = currentEditingBillNo ? 'updateSale' : 'sale';
+                    const action = currentEditingId ? 'updateSale' : 'sale';
                     const payload = {
                         date,
                         party_id: '',
@@ -3677,16 +3808,15 @@
                         gpay_amount: gpayAmt,
                         udhar_amount: udharAmt
                     };
-                    if (currentEditingBillNo) { payload.bill_no = currentEditingBillNo; }
+                    if (currentEditingId) { payload.id = currentEditingId; }
 
                     const out = await fetchFromSheetAction(action, payload);
-                    const billNo = out?.data?.bill_no || (currentEditingBillNo || '');
 
                     if (out.status !== 'ok') throw new Error(out.msg || 'Server Error');
 
-                    msg.textContent = currentEditingBillNo ? '✅ Updated!' : '✅ Saved!';
+                    msg.textContent = currentEditingId ? '✅ Updated!' : '✅ Saved!';
                     msg.style.color = 'green';
-                    currentEditingBillNo = null;
+                    currentEditingId = null;
                     setTimeout(refreshAfterSale, 50);
 
                     const safeSet = (sel, val) => {
@@ -3720,26 +3850,27 @@
                     if (typeof updateSaveState === 'function') updateSaveState();
 
                     setTimeout(() => {
-                        const ask = confirm('✅ Sale Successfully Saved/Updated\nBill No: ' + billNo + '\n\nPrint Double Slips now?\n(Customer + Office Copy)');
+                        const ask = confirm('✅ Sale Successfully Saved/Updated\n\nPrint Double Slips now?\n(Customer + Office Estimate)');
                         if (ask) {
                             const baseAmtSlip = (Number(r) / 20) * totalKg;
                             const commAmtSlip = Math.round(baseAmtSlip * (Number(elComm.value || 0) / 100));
                             const cessAmtSlip = Math.round(baseAmtSlip * (0.8 / 100));
                             const majuriAmtSlip = Math.round(Number(nag) * 6);
                             const slipData = {
-                                bill_no: billNo, date, party, seller: sellerName, product: prod?.name,
+                                date, party, seller: sellerName, product: prod?.name,
                                 rate: r, bags: Number(nag), kg: totalKg, total: totalAmt,
                                 cash: cashAmt, gpay: gpayAmt, udhar: udharAmt,
-                                comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip
+                                comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip,
+                                bill_no: "" // Empty as per client request
                             };
                             try {
                                 if (window.Android && window.Android.print) {
-                                    const c1 = generateThermalReceipt(slipData, "CUSTOMER COPY");
-                                    const c2 = generateThermalReceipt(slipData, "OFFICE COPY");
+                                    const c1 = generateThermalReceipt(slipData, "CUSTOMER ESTIMATE");
+                                    const c2 = generateThermalReceipt(slipData, "OFFICE ESTIMATE");
                                     window.Android.print(c1 + "<br><br>--------------------------<br><br>" + c2);
                                 } else {
-                                    printSaleSlip(slipData, "CUSTOMER COPY");
-                                    setTimeout(() => printSaleSlip(slipData, "OFFICE COPY"), 800);
+                                    printSaleSlip(slipData, "CUSTOMER ESTIMATE");
+                                    setTimeout(() => printSaleSlip(slipData, "OFFICE ESTIMATE"), 800);
                                 }
                             }
                             catch (err) { alert('❌ Print Error: ' + err.message); }
@@ -3749,7 +3880,7 @@
 
                 } catch (err) {
                     msg.textContent = '❌ ' + err.message; msg.style.color = 'red';
-                    btn.disabled = false; btn.textContent = currentEditingBillNo ? 'UPDATE SALE' : 'SAVE SALE';
+                    btn.disabled = false; btn.textContent = currentEditingId ? 'UPDATE' : 'SAVE';
                 }
             });
             fillPartyDatalist();
@@ -4078,14 +4209,14 @@
             const val = Number(inputEl.value) || 0;
             cashCurrent.set(d, val);
 
-            // Update row total text
-            const totalEl = document.getElementById(`cash-row-total-${d}`);
-            if (totalEl) totalEl.textContent = '₹' + (d * val).toLocaleString('en-IN');
-
-            cash_updateTotals();
-        }
-
-        function cash_updateTotals() {
+                // Update row total text
+                const totalEl = document.getElementById(`cash-row-total-${d}`);
+                if (totalEl) totalEl.textContent = '₹' + (d * val).toLocaleString('en-IN');
+    
+                cash_updateTotals();
+            }
+    
+            function cash_updateTotals() {
             let t = 0;
             cashCurrent.forEach((v, k) => {
                 if (CASH_DENOMS.includes(k)) t += v * k;
@@ -4510,7 +4641,6 @@ Advance: ₹${adv}`;
 <div class="center">--------------------</div>
 
 <table>
-<tr><td>Bill No</td><td class="right bold">${sale.bill_no || '-'}</td></tr>
 <tr><td>Date</td><td class="right">${sale.date}</td></tr>
 <tr><td>Party</td><td class="right">${sale.party}</td></tr>
 <tr><td>Seller</td><td class="right">${sale.seller}</td></tr>
@@ -4801,8 +4931,8 @@ Advance: ₹${adv}`;
             if (countEl) countEl.textContent = wcWeights.length;
         }
         function generateThermalReceipt(sale, copyType) {
-            const copyLabel = copyType || "CUSTOMER COPY";
-            const LINE_WIDTH = 32; // Standard 2-inch thermal width (approx 32 chars)
+            const copyLabel = copyType || "CUSTOMER ESTIMATE"; // Changed from COPY to ESTIMATE
+            const LINE_WIDTH = 32; 
 
             const center = (text) => {
                 const cleanText = text.replace(/<b>|<\/b>/g, "");
@@ -4835,10 +4965,10 @@ Advance: ₹${adv}`;
                 }
             } catch (e) { }
 
-            // 🔥 DYNAMIC COMPANY DETAILS
-            const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');
+            // 🔥 DYNAMIC COMPANY DETAILS (Firm Aware)
+            const comp = companies.find(c => c.id == currentCompanyId) || {};
             const compName = comp.name || "JAY VELNATH TRADING CO.";
-            const compAddr = comp.addr || "F-18/11 Marketing Yard";
+            const compAddr = comp.address || "F-18/11 Marketing Yard";
             const compMobile = comp.mobile || "8799076303";
 
             let receipt = "";
@@ -4849,7 +4979,7 @@ Advance: ₹${adv}`;
             receipt += center("Mo. " + compMobile);
             receipt += dashedDivider();
 
-            receipt += row("Bill No", sale.bill_no);
+            // receipt += row("Bill No", sale.bill_no); -- REMOVED AS PER CLIENT REQUEST
             receipt += row("Date", dateStr);
             receipt += row("Party", (sale.party || "").toUpperCase());
             if (sale.seller) receipt += row("Seller", sale.seller);
@@ -4884,7 +5014,6 @@ Advance: ₹${adv}`;
 
         function testAndroidPrint() {
             const slip = {
-                bill_no: "TEST123",
                 date: todayStr(),
                 party: "RAMLAL",
                 seller: "Seller 1",
@@ -4996,6 +5125,46 @@ Advance: ₹${adv}`;
             document.body.style.overflow = 'hidden';
             window.fetch = () => Promise.reject("Blocked");
         }
+
+        // --- 🔥 FACTORY RESET ---
+        async function factoryResetUI() {
+            const pin = prompt("⚠️ WARNING: This will DELETE EVERYTHING.\n\nType ADMIN PIN to confirm Factory Reset:");
+            if (pin !== ADMIN_PIN) {
+                if (pin !== null && pin !== "") alert("❌ Incorrect PIN. Reset Aborted.");
+                return;
+            }
+
+            const finalConfirm = confirm("FINAL WARNING: All Companies, Products, Parties, and Sales will be GONE FOREVER.\n\nAre you absolutely sure?");
+            if (!finalConfirm) return;
+
+            try {
+                const fd = new FormData();
+                fd.append("data", JSON.stringify({ action: 'factoryReset' }));
+                const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
+                const json = await res.json();
+
+                if (json.status === 'ok') {
+                    alert("✅ Factory Reset Successful. The app will now reload.");
+                    localStorage.clear();
+                    location.reload();
+                } else {
+                    alert("❌ Error: " + json.msg);
+                }
+            } catch (e) {
+                alert("❌ Connection Error");
+            }
+        }
+
+        // 🔥 INITIALIZE APP
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCompanies();
+            if (currentCompanyId === 0) {
+                showCompanyPicker();
+            } else {
+                updateCompanyUI();
+                refreshAllData();
+            }
+        });
     </script>
 </body>
 

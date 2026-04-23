@@ -5211,19 +5211,52 @@ Advance: ₹${adv}`;
                 csvContent += footData.join(",") + "\n";
             }
 
-            // Create and trigger download
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM for proper Excel encoding
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-
             const firmName = (companies.find(c => c.id == currentCompanyId) || {}).name || "Firm";
             const dateStr = new Date().toISOString().split('T')[0];
-            link.setAttribute("download", `Sale_Register_${firmName.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}.csv`);
+            const fileName = `Sale_Register_${firmName.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}.csv`;
+            const fileData = "\uFEFF" + csvContent;
 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Try Web Share API for Mobile Devices first
+            try {
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([fileData], fileName, { type: 'text/csv' });
+                    if (navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'Sale Register CSV'
+                        }).catch(err => {
+                            if (err.name !== 'AbortError') {
+                                fallbackDownload(fileData, fileName);
+                            }
+                        });
+                        return; // Exit here if share triggered
+                    }
+                }
+            } catch (e) { console.error('Share error', e); }
+
+            // Fallback for PC or browsers without Share API
+            fallbackDownload(fileData, fileName);
+
+            function fallbackDownload(data, name) {
+                try {
+                    const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", name);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch (e) {
+                    // Fallback to data URI
+                    const link = document.createElement("a");
+                    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(data);
+                    link.download = name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
         }
 
         // 🔥 INITIALIZE APP

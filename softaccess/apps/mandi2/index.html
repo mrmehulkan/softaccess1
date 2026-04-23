@@ -1020,7 +1020,7 @@
                 <!-- Companies injected here -->
                 <div style="text-align:center; padding:20px; color:#64748b">Loading firms...</div>
             </div>
-            
+
             <div style="border-top: 1px solid #e2e8f0; padding-top:15px">
                 <button class="btn" style="width:100%; height:48px;" onclick="addCompanyUI()">➕ Add New Firm</button>
             </div>
@@ -1035,7 +1035,9 @@
             <div class="brand">
                 <div style="font-size:0.7rem; opacity:0.8; letter-spacing:1px">ACTIVE FIRM</div>
                 <div style="margin-top:2px">Loading...</div>
-                <button class="btn-outline" style="font-size:0.65rem; padding:2px 8px; margin-top:8px; border-color:#ffffff44; color:white" onclick="showCompanyPicker()">Switch Firm</button>
+                <button class="btn-outline"
+                    style="font-size:0.65rem; padding:2px 8px; margin-top:8px; border-color:#ffffff44; color:white"
+                    onclick="showCompanyPicker()">Switch Firm</button>
             </div>
             <div class="sidebar-note small">Online Mode</div>
 
@@ -1082,7 +1084,8 @@
                     <div>Sync Data</div>
                 </div>
                 <!-- 🔥 DANGEROUS: FACTORY RESET -->
-                <div class="menu-btn" onclick="factoryResetUI()" data-tooltip="Factory Reset" style="color:#ef4444; margin-top:20px; border-top:1px solid #ffffff22; padding-top:10px">
+                <div class="menu-btn" onclick="factoryResetUI()" data-tooltip="Factory Reset"
+                    style="color:#ef4444; margin-top:20px; border-top:1px solid #ffffff22; padding-top:10px">
                     <div class="ico">⚠️</div>
                     <div>Factory Reset</div>
                 </div>
@@ -1481,6 +1484,12 @@
                 <!-- 🔍 Filter -->
                 <div class="toggle-btn" style="flex:0; padding:6px 10px" onclick="openSellerFilterPopup()">
                     🔍
+                </div>
+
+                <!-- 📥 Export to Excel -->
+                <div class="toggle-btn" style="flex:0; padding:6px 10px; color:#166534; border-color:#166534;"
+                    onclick="exportSaleRegisterToCSV()" title="Download Excel">
+                    📥
                 </div>
             </div>
 
@@ -2381,7 +2390,7 @@
                 fd.append("data", JSON.stringify({ action: 'getCompanies' }));
                 const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
                 const json = await res.json();
-                
+
                 if (json.status === 'ok') {
                     companies = json.data || [];
                     renderCompanyPicker();
@@ -2394,7 +2403,7 @@
         function renderCompanyPicker() {
             const container = document.getElementById('companyListContainer');
             if (!container) return;
-            
+
             if (companies.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b">No firms found. Please add one.</div>';
                 return;
@@ -2420,10 +2429,10 @@
             currentCompanyId = id;
             localStorage.setItem('mandi_company_id', id);
             document.getElementById('companyPickerOverlay').style.display = 'none';
-            
+
             // 🔥 Reset app data for new company
             refreshAllData();
-            
+
             // Update UI
             updateCompanyUI();
         }
@@ -2431,21 +2440,21 @@
         async function addCompanyUI() {
             const name = prompt("Enter Firm Name:");
             if (!name) return;
-            
+
             const addr = prompt("Enter Address:");
             const mo = prompt("Enter Mobile:");
 
             try {
                 const fd = new FormData();
-                fd.append("data", JSON.stringify({ 
-                    action: 'addCompany', 
+                fd.append("data", JSON.stringify({
+                    action: 'addCompany',
                     name: name,
                     address: addr,
                     mobile: mo
                 }));
                 const res = await fetch(WEB_APP_URL, { method: "POST", body: fd });
                 const json = await res.json();
-                
+
                 if (json.status === 'ok') {
                     alert("✅ Firm Added Successfully!");
                     loadCompanies(); // Refresh list
@@ -4209,14 +4218,14 @@
             const val = Number(inputEl.value) || 0;
             cashCurrent.set(d, val);
 
-                // Update row total text
-                const totalEl = document.getElementById(`cash-row-total-${d}`);
-                if (totalEl) totalEl.textContent = '₹' + (d * val).toLocaleString('en-IN');
-    
-                cash_updateTotals();
-            }
-    
-            function cash_updateTotals() {
+            // Update row total text
+            const totalEl = document.getElementById(`cash-row-total-${d}`);
+            if (totalEl) totalEl.textContent = '₹' + (d * val).toLocaleString('en-IN');
+
+            cash_updateTotals();
+        }
+
+        function cash_updateTotals() {
             let t = 0;
             cashCurrent.forEach((v, k) => {
                 if (CASH_DENOMS.includes(k)) t += v * k;
@@ -4634,7 +4643,8 @@ Advance: ₹${adv}`;
 </head>
 <body>
 
-<div class="center bold">${copyLabel.toUpperCase()}</div>
+<div class="center bold big" style="text-decoration:underline;">ESTIMATE BILL</div>
+<div class="center bold">(${copyLabel.toUpperCase()})</div>
 <div class="center bold big">${compName.toUpperCase()}</div>
 <div class="center">${compAddr}</div>
 <div class="center">Mo. ${compMobile}</div>
@@ -4932,7 +4942,7 @@ Advance: ₹${adv}`;
         }
         function generateThermalReceipt(sale, copyType) {
             const copyLabel = copyType || "CUSTOMER ESTIMATE"; // Changed from COPY to ESTIMATE
-            const LINE_WIDTH = 32; 
+            const LINE_WIDTH = 32;
 
             const center = (text) => {
                 const cleanText = text.replace(/<b>|<\/b>/g, "");
@@ -4973,7 +4983,8 @@ Advance: ₹${adv}`;
 
             let receipt = "";
             receipt += `<br>`; // Top Margin
-            receipt += center(copyLabel.toUpperCase());
+            receipt += center("ESTIMATE BILL");
+            receipt += center(`(${copyLabel.toUpperCase()})`);
             receipt += center(`<b>${compName.toUpperCase()}</b>`);
             receipt += center(compAddr);
             receipt += center("Mo. " + compMobile);
@@ -5153,6 +5164,66 @@ Advance: ₹${adv}`;
             } catch (e) {
                 alert("❌ Connection Error");
             }
+        }
+
+        // 📥 EXPORT SALE REGISTER TO EXCEL (CSV)
+        function exportSaleRegisterToCSV() {
+            const table = document.querySelector('.seller-table');
+            if (!table) { alert("No table found to export!"); return; }
+
+            let csvContent = "";
+
+            // Get visible headers
+            let headers = Array.from(table.querySelectorAll('thead th'))
+                .filter(th => window.getComputedStyle(th).display !== 'none')
+                .map(th => th.innerText.replace(/\n|₹/g, '').trim());
+            csvContent += headers.join(",") + "\n";
+
+            // Get visible rows
+            let rows = Array.from(table.querySelectorAll('tbody tr'))
+                .filter(tr => window.getComputedStyle(tr).display !== 'none');
+
+            rows.forEach(tr => {
+                let rowData = Array.from(tr.querySelectorAll('td'))
+                    .filter(td => window.getComputedStyle(td).display !== 'none')
+                    .map(td => {
+                        let text = td.innerText.replace(/₹/g, '').replace(/"/g, '""').trim();
+                        if (text.includes(",") || text.includes("\n")) {
+                            text = `"${text}"`;
+                        }
+                        return text;
+                    });
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            // Add total footer row
+            let tfoot = table.querySelector('tfoot tr');
+            if (tfoot && window.getComputedStyle(tfoot).display !== 'none') {
+                let footData = Array.from(tfoot.querySelectorAll('td'))
+                    .filter(td => window.getComputedStyle(td).display !== 'none')
+                    .map(td => {
+                        let text = td.innerText.replace(/₹/g, '').replace(/"/g, '""').trim();
+                        if (text.includes(",") || text.includes("\n")) {
+                            text = `"${text}"`;
+                        }
+                        return text;
+                    });
+                csvContent += footData.join(",") + "\n";
+            }
+
+            // Create and trigger download
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM for proper Excel encoding
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+
+            const firmName = (companies.find(c => c.id == currentCompanyId) || {}).name || "Firm";
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.setAttribute("download", `Sale_Register_${firmName.replace(/[^a-zA-Z0-9]/g, '_')}_${dateStr}.csv`);
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // 🔥 INITIALIZE APP

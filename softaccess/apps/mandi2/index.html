@@ -1154,6 +1154,15 @@
                                 placeholder="e.g. 8799076303">
                         </div>
 
+                        <div class="modern-input-group"
+                            style="flex-direction:row; align-items:center; gap:8px; padding-top: 6px; padding-bottom: 6px;">
+                            <input type="checkbox" id="comp_office_copy"
+                                style="width:20px; height:20px; cursor:pointer;" checked>
+                            <label for="comp_office_copy"
+                                style="margin:0; font-size:0.9rem; cursor:pointer; font-weight:700;">Print Office
+                                Copy</label>
+                        </div>
+
                         <button class="btn" onclick="saveCompanySettings()" style="width:100%; margin-top:4px">💾 Save
                             Company Details</button>
                         <div id="comp_save_msg" class="small"
@@ -2881,10 +2890,12 @@
 
         // ================= COMPANY SETTINGS LOGIC =================
         function saveCompanySettings() {
+            const officeCopyCheckbox = document.getElementById('comp_office_copy');
             const details = {
                 name: document.getElementById('comp_name').value.trim(),
                 addr: document.getElementById('comp_addr').value.trim(),
-                mobile: document.getElementById('comp_mobile').value.trim()
+                mobile: document.getElementById('comp_mobile').value.trim(),
+                printOfficeCopy: officeCopyCheckbox ? officeCopyCheckbox.checked : true
             };
             localStorage.setItem('mandi_company_details', JSON.stringify(details));
 
@@ -2903,10 +2914,14 @@
             const nameEl = document.getElementById('comp_name');
             const addrEl = document.getElementById('comp_addr');
             const mobileEl = document.getElementById('comp_mobile');
+            const officeCopyEl = document.getElementById('comp_office_copy');
 
             if (nameEl && details.name) nameEl.value = details.name;
             if (addrEl && details.addr) addrEl.value = details.addr;
             if (mobileEl && details.mobile) mobileEl.value = details.mobile;
+            if (officeCopyEl && details.printOfficeCopy !== undefined) {
+                officeCopyEl.checked = details.printOfficeCopy;
+            }
         }
 
         function updateTopBarVisibility(pid) {
@@ -3450,19 +3465,26 @@
                 udhar: s.udhar ?? s.udhar_amount ?? 0
             };
 
-            // 🔥 DOUBLE PRINT LOGIC
+            // 🔥 PRINT LOGIC
             try {
+                const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');
+                const printOfficeCopy = comp.printOfficeCopy !== false; // Default to true
                 if (window.Android && window.Android.print) {
                     const custReceipt = generateThermalReceipt(slipData, "CUSTOMER COPY");
-                    const officeReceipt = generateThermalReceipt(slipData, "OFFICE COPY");
-                    // Combine with extra breaks
-                    window.Android.print(custReceipt + "<br><br>--------------------------<br><br>" + officeReceipt);
+                    let finalPrintData = custReceipt;
+                    if (printOfficeCopy) {
+                        const officeReceipt = generateThermalReceipt(slipData, "OFFICE COPY");
+                        finalPrintData += "<br><br>--------------------------<br><br>" + officeReceipt;
+                    }
+                    window.Android.print(finalPrintData);
                 } else {
                     // Browser Print (Opens separate windows/tabs sequentially)
                     printSaleSlip(slipData, "CUSTOMER COPY");
-                    setTimeout(() => {
-                        printSaleSlip(slipData, "OFFICE COPY");
-                    }, 1000);
+                    if (printOfficeCopy) {
+                        setTimeout(() => {
+                            printSaleSlip(slipData, "OFFICE COPY");
+                        }, 1000);
+                    }
                 }
             } catch (err) {
                 alert("❌ Print Error: " + err.message);
@@ -3886,13 +3908,21 @@
                                 bill_no: "" // Empty as per client request
                             };
                             try {
+                                const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');
+                                const printOfficeCopy = comp.printOfficeCopy !== false; // Default to true
                                 if (window.Android && window.Android.print) {
                                     const c1 = generateThermalReceipt(slipData, "CUSTOMER ESTIMATE");
-                                    const c2 = generateThermalReceipt(slipData, "OFFICE ESTIMATE");
-                                    window.Android.print(c1 + "<br><br>--------------------------<br><br>" + c2);
+                                    let finalPrintData = c1;
+                                    if (printOfficeCopy) {
+                                        const c2 = generateThermalReceipt(slipData, "OFFICE ESTIMATE");
+                                        finalPrintData += "<br><br>--------------------------<br><br>" + c2;
+                                    }
+                                    window.Android.print(finalPrintData);
                                 } else {
                                     printSaleSlip(slipData, "CUSTOMER ESTIMATE");
-                                    setTimeout(() => printSaleSlip(slipData, "OFFICE ESTIMATE"), 800);
+                                    if (printOfficeCopy) {
+                                        setTimeout(() => printSaleSlip(slipData, "OFFICE ESTIMATE"), 800);
+                                    }
                                 }
                             }
                             catch (err) { alert('❌ Print Error: ' + err.message); }

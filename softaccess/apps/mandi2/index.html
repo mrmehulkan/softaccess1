@@ -2530,12 +2530,14 @@
             const out = await fetchFromSheetAction("getSales");
             if (out.status === "ok") {
                 sales = (out.data || []).map(r => ({
+                    id: r.id,
                     date: r.date,
                     party_name: r.party_name,
                     product_id: r.product_id,
                     qty_kg: Number(r.qty_kg),
                     qty_katta: Number(r.qty_katta),
                     rate_20kg: Number(r.rate_20kg),
+                    commission_pct: Number(r.commission_pct || 0),
                     commission_amt: Number(r.commission_amt),
                     cess_amt: Number(r.cess_amt),
                     majuri_amt: Number(r.majuri_amt),
@@ -3206,6 +3208,17 @@
                 // Party
                 const partyEl = container.querySelector('.partyTpl');
                 if (partyEl) partyEl.value = sale.party_name || '';
+
+                // Product
+                const prodEl = container.querySelector('.sellerProductTpl');
+                if (prodEl) {
+                    const p = products.find(prod => String(prod.id) === String(sale.product_id));
+                    if (p) prodEl.value = p.name;
+                }
+
+                // Commission
+                const commEl = container.querySelector('.commTpl');
+                if (commEl && sale.commission_pct) commEl.value = sale.commission_pct;
 
                 // Date
                 const dateEl = container.querySelector('.dateTpl');
@@ -3885,6 +3898,18 @@
                             catch (err) { alert('❌ Print Error: ' + err.message); }
                         }
                         btn.disabled = false; btn.textContent = 'SAVE SALE'; btn.style.background = '';
+
+                        // 🔒 Require PIN again after update and print
+                        const activePanel = document.querySelector('.menu-btn.active')?.dataset?.panel;
+                        if (activePanel && typeof SELLER_CONFIG !== 'undefined' && SELLER_CONFIG[activePanel]) {
+                            const config = SELLER_CONFIG[activePanel];
+                            const userPin = prompt(`Enter PIN for ${config.name} to continue:`);
+                            if (userPin !== config.pin) {
+                                alert("❌ Session Locked.");
+                                renderAndShow('home');
+                                currentSeller = ""; // Reset seller context
+                            }
+                        }
                     }, 200);
 
                 } catch (err) {

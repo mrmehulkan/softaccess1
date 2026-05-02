@@ -1592,7 +1592,7 @@
 
                         <div class="modern-input-group">
                             <label>Bill No</label>
-                            <input class="billNoBox unified-input-style" type="text" placeholder="Bill No"
+                            <input class="billNoBox unified-input-style" type="text" value="GB/"
                                 style="text-align:center; height:100%">
                         </div>
                     </div>
@@ -1690,6 +1690,7 @@
                 </div>
 
                 <div class="row" id="columnTogglePanel" style="display:none;margin-top:8px">
+                    <label><input type="checkbox" data-col="bill" checked> Bill No</label>
                     <label><input type="checkbox" data-col="date" checked> Date</label>
                     <label><input type="checkbox" data-col="party" checked> Party</label>
                     <label><input type="checkbox" data-col="product" checked> Product</label>
@@ -3146,7 +3147,7 @@
             <td data-col="gpay">₹${s.gpay || 0}</td>
             <td data-col="udhar">₹${s.udhar || 0}</td>
             <td data-col="partial">${(s.cash > 0 && s.gpay > 0) ? '✔' : '-'}</td>
-            <td data-col="bill" style="display:none">${s.bill_no || '-'}</td>
+            <td data-col="bill">${s.bill_no || '-'}</td>
             <td data-col="action">
                 <button class="btn-outline" onclick='reprintSale(${JSON.stringify(s)})'>🖨️</button>
                 <button class="btn-outline" style="margin-left:4px" onclick='editSale(${JSON.stringify(s)})'>✏️</button>
@@ -3255,6 +3256,10 @@
                 const weightEl = container.querySelector('.weightTpl');
                 if (weightEl) weightEl.value = sale.qty_kg || '';
 
+                // Bill No
+                const billEl = container.querySelector('.billNoBox');
+                if (billEl) billEl.value = sale.bill_no || 'GB/';
+
                 // Payments
                 const cashEl = container.querySelector('.cashTpl');
                 const gpayEl = container.querySelector('.gpayTpl');
@@ -3332,6 +3337,7 @@
             safeSet('.cashTpl', '');
             safeSet('.gpayTpl', '');
             safeSet('.udharTpl', '');
+            safeSet('.billNoBox', 'GB/');
 
             const paySel = card.querySelector('.paymentTypeSelect');
             if (paySel) {
@@ -3881,7 +3887,7 @@
                     safeSet('.cashTpl', '');
                     safeSet('.gpayTpl', '');
                     safeSet('.udharTpl', '');
-                    safeSet('.billNoBox', '');
+                    safeSet('.billNoBox', 'GB/');
 
                     const paySel = container.querySelector('.paymentTypeSelect');
                     if (paySel) {

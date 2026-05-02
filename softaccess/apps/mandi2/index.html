@@ -1592,8 +1592,8 @@
 
                         <div class="modern-input-group">
                             <label>Bill No</label>
-                            <input class="billNoBox unified-input-style" type="text" readonly value="(Auto)"
-                                style="border:1px dashed #99f6e4 !important; text-align:center; cursor:default; height:100%">
+                            <input class="billNoBox unified-input-style" type="text" placeholder="Bill No"
+                                style="text-align:center; height:100%">
                         </div>
                     </div>
 
@@ -3850,7 +3850,8 @@
                         payment_type: payType,
                         cash_amount: cashAmt,
                         gpay_amount: gpayAmt,
-                        udhar_amount: udharAmt
+                        udhar_amount: udharAmt,
+                        bill_no: container.querySelector('.billNoBox')?.value || ''
                     };
                     if (currentEditingId) { payload.id = currentEditingId; }
 
@@ -3880,6 +3881,7 @@
                     safeSet('.cashTpl', '');
                     safeSet('.gpayTpl', '');
                     safeSet('.udharTpl', '');
+                    safeSet('.billNoBox', '');
 
                     const paySel = container.querySelector('.paymentTypeSelect');
                     if (paySel) {
@@ -3905,7 +3907,7 @@
                                 rate: r, bags: Number(nag), kg: totalKg, total: totalAmt,
                                 cash: cashAmt, gpay: gpayAmt, udhar: udharAmt,
                                 comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip,
-                                bill_no: "" // Empty as per client request
+                                bill_no: container.querySelector('.billNoBox')?.value || ""
                             };
                             try {
                                 const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');
@@ -3928,18 +3930,6 @@
                             catch (err) { alert('❌ Print Error: ' + err.message); }
                         }
                         btn.disabled = false; btn.textContent = 'SAVE SALE'; btn.style.background = '';
-
-                        // 🔒 Require PIN again after update and print
-                        const activePanel = document.querySelector('.menu-btn.active')?.dataset?.panel;
-                        if (activePanel && typeof SELLER_CONFIG !== 'undefined' && SELLER_CONFIG[activePanel]) {
-                            const config = SELLER_CONFIG[activePanel];
-                            const userPin = prompt(`Enter PIN for ${config.name} to continue:`);
-                            if (userPin !== config.pin) {
-                                alert("❌ Session Locked.");
-                                renderAndShow('home');
-                                currentSeller = ""; // Reset seller context
-                            }
-                        }
                     }, 200);
 
                 } catch (err) {
@@ -4706,6 +4696,7 @@ Advance: ₹${adv}`;
 <div class="center">--------------------</div>
 
 <table>
+<tr><td>Bill No</td><td class="right">${sale.bill_no || '-'}</td></tr>
 <tr><td>Date</td><td class="right">${sale.date}</td></tr>
 <tr><td>Party</td><td class="right">${sale.party}</td></tr>
 <tr><td>Seller</td><td class="right">${sale.seller}</td></tr>
@@ -5045,7 +5036,7 @@ Advance: ₹${adv}`;
             receipt += center("Mo. " + compMobile);
             receipt += dashedDivider();
 
-            // receipt += row("Bill No", sale.bill_no); -- REMOVED AS PER CLIENT REQUEST
+            if (sale.bill_no) receipt += row("Bill No", sale.bill_no);
             receipt += row("Date", dateStr);
             receipt += row("Party", (sale.party || "").toUpperCase());
             if (sale.seller) receipt += row("Seller", sale.seller);

@@ -3907,7 +3907,7 @@
                                 rate: r, bags: Number(nag), kg: totalKg, total: totalAmt,
                                 cash: cashAmt, gpay: gpayAmt, udhar: udharAmt,
                                 comm: commAmtSlip, cess: cessAmtSlip, majuri: majuriAmtSlip,
-                                bill_no: container.querySelector('.billNoBox')?.value || ""
+                                bill_no: payload.bill_no
                             };
                             try {
                                 const comp = JSON.parse(localStorage.getItem('mandi_company_details') || '{}');

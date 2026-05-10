@@ -1055,7 +1055,8 @@
                     <div class="ico">⚖️</div>
                     <div>P2 Calc</div>
                 </div>
-                <div class="menu-btn" data-panel="purchase" data-tooltip="P3 Purchase" onclick="switchPanel(event)">
+                <div class="menu-btn" data-panel="purchase" data-tooltip="P3 Purchase" onclick="switchPanel(event)"
+                    style="display:none;">
                     <div class="ico">🛒</div>
                     <div>P3 Purchase</div>
                 </div>
@@ -1536,7 +1537,12 @@
 
                     <!-- Row 4: Product -->
                     <div class="modern-input-group full-width highlight-field">
-                        <label>Product</label>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label style="margin:0;">Product</label>
+                            <span
+                                style="color:#0f766e; cursor:pointer; font-weight:800; font-size:0.8rem; margin-right:4px;"
+                                onclick="addProductFromSeller()">➕ Add New</span>
+                        </div>
                         <div class="autocomplete-wrapper">
                             <input class="sellerProductTpl" placeholder="Search Product..." autocomplete="off">
                         </div>
@@ -1948,6 +1954,40 @@
             </div>
         </div>
     </template>
+
+    <!-- 📦 ADD NEW PRODUCT POPUP -->
+    <div class="seller-popup-overlay" id="addProductPopup">
+        <div class="seller-popup">
+            <div class="seller-popup-header">
+                ➕ Add New Product
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div class="modern-input-group">
+                    <label>Product Name (e.g. Potato)</label>
+                    <input id="newProdName" type="text" class="unified-input-style" autocomplete="off">
+                </div>
+                <div class="modern-input-group">
+                    <label>Default Rate (per 20kg)</label>
+                    <input id="newProdRate" type="number" placeholder="0" class="unified-input-style">
+                </div>
+                <div class="modern-input-group">
+                    <label>Opening Stock (KG)</label>
+                    <input id="newProdKg" type="number" placeholder="0" class="unified-input-style">
+                </div>
+                <div class="modern-input-group">
+                    <label>Opening Bags (Katta)</label>
+                    <input id="newProdBags" type="number" placeholder="0" class="unified-input-style">
+                </div>
+            </div>
+            <div class="small" id="newProdMsg" style="margin-top:8px; text-align:center; font-weight:bold;"></div>
+            <div class="seller-popup-footer" style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn-outline" style="flex:1; border-color:#ef4444; color:#ef4444;"
+                    onclick="document.getElementById('addProductPopup').style.display='none'">CANCEL</button>
+                <button class="btn" style="flex:1; background:#0f766e; color:white;"
+                    onclick="submitNewProduct()">SAVE</button>
+            </div>
+        </div>
+    </div>
 
 
     <script>
@@ -2734,6 +2774,75 @@
 
             } catch (err) {
                 if (msgEl) { msgEl.textContent = 'Failed: ' + err.message; msgEl.style.color = 'red'; }
+            }
+        }
+
+        function addProductFromSeller() {
+            if (!checkInternet()) {
+                alert("Adding a new product requires Internet connection.");
+                return;
+            }
+            document.getElementById('newProdName').value = '';
+            document.getElementById('newProdRate').value = '';
+            document.getElementById('newProdKg').value = '';
+            document.getElementById('newProdBags').value = '';
+            document.getElementById('newProdMsg').textContent = '';
+            document.getElementById('addProductPopup').style.display = 'flex';
+        }
+
+        async function submitNewProduct() {
+            const name = document.getElementById('newProdName').value.trim();
+            const rate = document.getElementById('newProdRate').value || 0;
+            const kg = document.getElementById('newProdKg').value || 0;
+            const bags = document.getElementById('newProdBags').value || 0;
+            const msgEl = document.getElementById('newProdMsg');
+
+            if (!name) {
+                msgEl.textContent = "❌ Product Name is required!";
+                msgEl.style.color = "red";
+                return;
+            }
+
+            msgEl.textContent = "⏳ Adding Product...";
+            msgEl.style.color = "#0f766e";
+
+            try {
+                // 1. Add Product
+                const out = await fetchFromSheetAction("addProduct", { name: name, rate: rate });
+                if (out.status !== "ok") throw new Error(out.msg || "Error adding product");
+
+                // 2. Fetch all data to get the new product ID
+                msgEl.textContent = "⏳ Updating Data...";
+                await refreshAllData();
+
+                // 3. Add opening stock via 'purchase' logic if kg or bags provided
+                if (kg > 0 || bags > 0) {
+                    msgEl.textContent = "⏳ Adding Opening Stock...";
+                    const prodObj = products.find(p => p.name.toLowerCase() === name.toLowerCase());
+                    if (prodObj) {
+                        const totalAmt = (Number(rate) / 20) * Number(kg);
+                        await fetchFromSheetAction("purchase", {
+                            date: todayStr(),
+                            party_id: '',
+                            party_name: 'Opening Stock',
+                            product_id: String(prodObj.id),
+                            qty_kg: Number(kg),
+                            qty_katta: Number(bags),
+                            rate_20kg: Number(rate),
+                            total: totalAmt,
+                            bill: 'OPENING'
+                        });
+
+                        // 4. Final refresh to update stock in UI
+                        await refreshAllData();
+                    }
+                }
+
+                document.getElementById('addProductPopup').style.display = 'none';
+                alert("✅ Product & Stock Added Successfully!");
+            } catch (err) {
+                msgEl.textContent = "❌ " + err.message;
+                msgEl.style.color = "red";
             }
         }
 
